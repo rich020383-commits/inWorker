@@ -80,7 +80,7 @@
                 <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Detalles del Servicio</span>
                     <span class="text-xs font-black text-teal-600 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-200/50">
-                        ${{ "{:,.0f}".format(tarea.presupuesto) if tarea.presupuesto is font else tarea['presupuesto'] }} COP
+                        ${{ "{:,.0f}".format(tarea.presupuesto | float) if tarea.presupuesto else '0' }} COP
                     </span>
                 </div>
                 
