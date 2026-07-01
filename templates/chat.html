@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>inWorker - Negociación y Chat</title>
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/favicon.png') }}">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script src="https://cdn.socketio.io/4.7.2/socketio.min.js"></script>
+    
+    <style>
+        body {
+            background-color: #f8fafc; 
+            color: #334155;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .mensajes-box {
+            height: 450px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            background-color: #ffffff; 
+            border: 1px solid #e2e8f0;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col pb-12">
+
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="/dashboard" class="text-gray-400 hover:text-white transition">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+                <div>
+                    <h1 class="text-sm font-black tracking-tight flex items-center space-x-1.5">
+                        <span>Orden #{{ tarea.id if tarea.id else tarea['id'] }}</span>
+                        <span class="text-xs bg-teal-500 text-slate-900 px-2 py-0.5 rounded-full font-bold uppercase">{{ tarea.categoria }}</span>
+                    </h1>
+                    <p class="text-[11px] text-gray-400 font-medium truncate max-w-[220px] md:max-w-xs">{{ tarea.titulo }}</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden md:block">
+                    <p class="text-xs font-bold text-gray-200">{{ nombre_usuario }}</p>
+                    <p class="text-[10px] text-teal-400 font-semibold truncate max-w-[150px]">{{ session['usuario_correo'] }}</p>
+                </div>
+                <a href="/logout" class="bg-slate-800 hover:bg-rose-600 border border-slate-700 hover:border-rose-500 p-2 rounded-xl text-gray-300 hover:text-white transition text-xs shadow-sm">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-2 md:px-4 py-4 grid grid-cols-1 lg:grid-cols-12 gap-4 flex-grow w-full">
+        
+        <section class="lg:col-span-4 space-y-4 flex flex-col">
+            
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex-grow">
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Detalles del Servicio</span>
+                    <span class="text-xs font-black text-teal-600 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-200/50">
+                        ${{ "{:,.0f}".format(tarea.presupuesto) if tarea.presupuesto is font else tarea['presupuesto'] }} COP
+                    </span>
+                </div>
+                
+                <h3 class="text-sm font-bold text-slate-800 mb-1.5 leading-snug">{{ tarea.titulo }}</h3>
+                <p class="text-xs text-slate-600 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-100 whitespace-pre-line leading-relaxed">{{ tarea.descripcion }}</p>
+                
+                <div class="space-y-2 text-xs">
+                    <div class="flex items-center text-slate-600">
+                        <i class="fas fa-map-marker-alt text-teal-500 w-5 text-center"></i>
+                        <span class="font-medium truncate">{{ tarea.ciudad }}, {{ tarea.barrio }}</span>
+                    </div>
+                    <div class="flex items-center text-slate-600">
+                        <i class="fas fa-user text-purple-500 w-5 text-center"></i>
+                        <span class="truncate">Cliente: <strong class="font-semibold text-slate-700">{{ tarea.cliente_nombre }}</strong></span>
+                    </div>
+                    <div class="flex items-center text-slate-600">
+                        <i class="fas fa-tools text-amber-500 w-5 text-center"></i>
+                        <span class="truncate">Técnico: <strong class="font-semibold text-slate-700">{{ tarea.trabajador_nombre if tarea.trabajador_nombre else 'Postulante / Conversando' }}</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-3 shadow-sm h-48 relative overflow-hidden flex-shrink-0">
+                <div id="mapa-chat" class="w-full h-full rounded-xl z-10"></div>
+            </div>
+        </section>
+
+        <section class="lg:col-span-8 flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden h-[600px]">
+            
+            <div class="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Canal Seguro Monitorizado</span>
+                </div>
+                <div class="text-[10px] bg-slate-200 text-slate-600 font-bold px-2.5 py-1 rounded-md border border-slate-300/60 uppercase">
+                    ID: {{ canal_actual }}
+                </div>
+            </div>
+
+            <div id="chat-mensajes" class="flex-grow p-4 overflow-y-auto space-y-4 bg-slate-50/50 messages-box">
+                <div class="h-full flex items-center justify-center py-12 text-gray-400">
+                    <i class="fas fa-spinner animate-spin text-xl mr-2"></i>
+                    <span class="text-xs">Sincronizando historial...</span>
+                </div>
+            </div>
+
+            <div class="p-3 bg-white border-t border-slate-200 flex-shrink-0">
+                <form id="formEnviarMensaje" method="POST" enctype="multipart/form-data" class="space-y-2">
+                    
+                    <div id="wrapper-previsualizacion" class="hidden flex items-center justify-between bg-slate-50 border border-slate-200 p-2 rounded-xl">
+                        <div class="flex items-center space-x-2">
+                            <img id="img-preview" src="#" class="w-10 h-10 object-cover rounded-lg border border-slate-300">
+                            <span id="preview-filename" class="text-xs font-medium text-slate-600 truncate max-w-[180px]">archivo.jpg</span>
+                        </div>
+                        <button type="button" onclick="cancelarArchivo()" class="text-gray-400 hover:text-rose-500 p-1 transition">
+                            <i class="fas fa-times-circle text-sm"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-600 p-3 rounded-xl transition shadow-sm active:scale-95 flex items-center justify-center">
+                            <i class="fas fa-paperclip text-sm"></i>
+                            <input type="file" name="imagen_adjunta" id="imagen_adjunta" accept="image/*" class="hidden">
+                        </label>
+                        
+                        <div class="flex-grow relative">
+                            <input type="text" name="mensaje" id="inputMensaje" placeholder="Escribe un mensaje seguro..." autocomplete="off"
+                                   class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-3 pr-10 py-3 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-500 focus:bg-white transition shadow-inner">
+                        </div>
+
+                        <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-3 rounded-xl text-xs uppercase tracking-wider transition shadow active:scale-95 flex items-center space-x-1.5">
+                            <span>Enviar</span>
+                            <i class="fas fa-paper-plane text-[10px]"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const latTarea = parseFloat("{{ tarea.latitud if tarea.latitud else 4.60971 }}");
+        const lngTarea = parseFloat("{{ tarea.longitud if tarea.longitud else -74.08175 }}");
+        const cajaMensajes = document.getElementById('chat-mensajes');
+
+        function irAlFinalChat() {
+            if (cajaMensajes) {
+                cajaMensajes.scrollTop = cajaMensajes.scrollHeight;
+            }
+        }
+
+        // Inicialización del Mapa Nativo Leaflet
+        document.addEventListener("DOMContentLoaded", function() {
+            try {
+                const map = L.map('mapa-chat', {
+                    center: [latTarea, lngTarea],
+                    zoom: 14,
+                    zoomControl: false,
+                    attributionControl: false
+                });
+
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 20
+                }).addTo(map);
+
+                const iconSencillo = L.icon({
+                    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41]
+                });
+
+                L.marker([latTarea, lngTarea], { icon: iconSencillo }).addTo(map);
+            } catch(e) {
+                console.error("Error cargando mapa:", e);
+            }
+        });
+
+        // Control de Adjuntos Multimedia
+        const inputImagen = document.getElementById('imagen_adjunta');
+        const wrapperPreview = document.getElementById('wrapper-previsualizacion');
+        const imgPreview = document.getElementById('img-preview');
+        const filenamePreview = document.getElementById('preview-filename');
+
+        if (inputImagen) {
+            inputImagen.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    filenamePreview.textContent = this.files[0].name;
+                    reader.onload = function(e) {
+                        imgPreview.src = e.target.result;
+                        wrapperPreview.classList.remove('hidden');
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+
+        function cancelarArchivo() {
+            if (inputImagen) inputImagen.value = "";
+            if (wrapperPreview) wrapperPreview.classList.add('hidden');
+        }
+    </script>
+
+    <script>
+        const tareaId = "{{ tarea.id if tarea.id else tarea['id'] }}";
+        const canalActual = "{{ canal_actual }}"; 
+
+        const URL_API_MENSAGES = `/api/chat/${tareaId}/${canalActual}`;
+        const nombreUsuarioActual = "{{ nombre_usuario }}";
+        const usuarioSesion = "{{ session['usuario_correo'] }}";
+        const clienteCorreoTarea = "{{ tarea.cliente_correo }}";
+
+        // =========================================================================
+        // 🔌 INYECCIÓN 2: CONTROLADOR DE WEBSOCKETS SOBRE EL BACKUP
+        // =========================================================================
+        const socket = io({
+            transports: ['websocket'], 
+            upgrade: false,
+            rememberUpgrade: true
+        });
+
+        socket.on('connect', function() {
+            console.log(`🔌 Conexión WebSocket activa en Render. Sala: ${canalActual}`);
+            socket.emit('join', { room: canalActual }); 
+        });
+
+        // Si el WebSocket grita que llegó algo, forzamos la recarga al instante
+        socket.on('nuevo_mensaje_ws', function(data) {
+            console.log("⚡ Señal en vivo atrapada por WebSocket:", data);
+            if (data.remitente_correo !== usuarioSesion) {
+                cargarMensajes(); 
+            }
+        });
+
+        // =========================================================================
+        // 🔄 LÓGICA DE BACKUP INTACTA (Tu renderizador perfecto de junio)
+        // =========================================================================
+        function cargarMensajes() {
+            if (!cajaMensajes) return;
+            
+            // Metemos rompecaché dinámico por si Render móvil se congela
+            const urlConParametros = URL_API_MENSAGES + window.location.search + `&_=${new Date().getTime()}`;
+            
+            fetch(urlConParametros)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    let nuevoHTML = "";
+
+                    if (!data.mensajes || data.mensajes.length === 0) {
+                        nuevoHTML = `
+                            <div id="chat-vacio" class="h-full flex flex-col items-center justify-center text-center py-12 text-gray-500">
+                                <span class="text-4xl mb-3 opacity-60">💬</span>
+                                <p class="text-xs text-gray-600">Envía un mensaje o lanza una oferta para arrancar.</p>
+                            </div>`;
+                    } else {
+                        data.mensajes.forEach(msg => {
+                            const correoMsg = msg.remitente_correo || msg.correo || "";
+                            const nombreMsg = msg.remitente || msg.remitente_nombre || "Usuario";
+                            const esPropio = (correoMsg === usuarioSesion || nombreMsg === nombreUsuarioActual);
+                            
+                            // Lógica de Tarjetas Moradas de Propuesta Económica
+                            if (msg.tipo && msg.tipo.includes('cotizacion')) {
+                                let bordeCotizacion = 'border-gray-700';
+                                let footerCotizacion = '';
+
+                                if (msg.tipo === 'cotizacion_pendiente') {
+                                    bordeCotizacion = 'border-purple-600';
+                                    if (usuarioSesion === clienteCorreoTarea) {
+                                        footerCotizacion = `
+                                            <form action="/chat/${tareaId}/responder_cotizacion/${msg.id}?trabajador_email=${new URLSearchParams(window.location.search).get('trabajador_email') || ''}" method="POST" class="flex items-center justify-center space-x-3">
+                                                <input type="hidden" name="canal_actual" value="${canalActual}">
+                                                <button type="submit" name="accion" value="Aceptar" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-5 py-2 rounded-xl text-xs uppercase tracking-wide transition shadow">
+                                                    ✔ Aceptar e Iniciar
+                                                </button>
+                                                <button type="submit" name="accion" value="Rechazar" class="bg-gray-700 hover:bg-rose-600 text-gray-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs uppercase transition">
+                                                    Declinado
+                                                </button>
+                                            </form>`;
+                                    } else {
+                                        footerCotizacion = `
+                                            <span class="text-xs font-semibold text-purple-400 bg-purple-950/40 px-3 py-1 rounded-full border border-purple-900 animate-pulse">
+                                                ⏳ Esperando respuesta del cliente...
+                                            </span>`;
+                                    }
+                                } else if (msg.tipo === 'cotizacion_aceptada') {
+                                    bordeCotizacion = 'border-emerald-600';
+                                    footerCotizacion = `
+                                        <div class="text-xs font-black text-emerald-400 bg-emerald-950/50 py-1.5 rounded-xl border border-emerald-900 uppercase tracking-wide flex items-center justify-center space-x-1">
+                                            <i class="fas fa-lock"></i> <span>Garantía Congelada & Contrato Firmado</span>
+                                        </div>`;
+                                } else {
+                                    footerCotizacion = `
+                                        <div class="text-xs font-medium text-gray-400 bg-gray-900/50 py-1.5 rounded-xl border border-gray-800 uppercase tracking-wide">
+                                            ❌ Oferta Declinada / Caducada
+                                        </div>`;
+                                }
+
+                                let montoFinal = 0;
+                                let conceptoFinal = "Propuesta Económica";
+                                
+                                if (msg.mensaje && msg.mensaje.includes('|')) {
+                                    let partes = msg.mensaje.split('|');
+                                    montoFinal = parseFloat(partes[0]) || 0;
+                                    conceptoFinal = partes[1] || "Sin concepto";
+                                } else {
+                                    montoFinal = parseFloat(msg.monto_pesos) || parseFloat(msg.cotizacion_pesos) || 0;
+                                    conceptoFinal = msg.cotizacion_concepto || msg.mensaje || "Propuesta formal";
+                                }
+
+                                let creditosCalculados = (montoFinal / 10000).toFixed(2);
+
+                                nuevoHTML += `
+                                    <div class="flex flex-col items-center my-4 w-full">
+                                        <div class="bg-gradient-to-b from-gray-800 to-gray-850 border-2 ${bordeCotizacion} rounded-2xl p-4 max-w-md w-full text-center shadow-2xl">
+                                            <div class="text-xs font-bold uppercase tracking-widest text-purple-400 mb-1">💼 Propuesta Económica Formal</div>
+                                            <div class="text-2xl font-black text-white my-2">
+                                                $${montoFinal.toLocaleString('es-CO', { maximumFractionDigits: 0 })} <span class="text-xs font-normal text-gray-400">COP</span>
+                                            </div>
+                                            <p class="text-xs text-gray-300 italic px-2 mb-3">"${conceptoFinal}"</p>
+                                            <div class="text-[10px] text-gray-500 mb-3">Equivalente en Plataforma: ${creditosCalculados} Créditos</div>
+                                            ${footerCotizacion}
+                                        </div>
+                                        <span class="text-[9px] text-gray-600 mt-1">${msg.fecha_envio || 'Justo ahora'}</span>
+                                    </div>`;
+
+                            } else {
+                                // Globos de texto tradicionales e imágenes
+                                let cuerpoMensaje = "";
+                                if (msg.tipo === 'imagen') {
+                                    cuerpoMensaje = `
+                                        <div class="rounded-lg overflow-hidden border border-black/20 my-1 bg-gray-800">
+                                            <img src="/static/uploads/${msg.mensaje}" alt="Imagen adjunta" class="max-w-full h-auto object-cover max-h-60 hover:scale-105 transition cursor-zoom-in" onclick="window.open(this.src)">
+                                        </div>`;
+                                } else {
+                                    cuerpoMensaje = `<p class="leading-relaxed break-words whitespace-pre-line">${msg.mensaje || ""}</p>`;
+                                }
+
+                                let esArbitro = (correoMsg === 'arbitro@inworker.co');
+                                let alineacionClase = esArbitro ? 'items-center my-4 w-full' : (esPropio ? 'items-end' : 'items-start');
+                                let colorBurbujaClase = esArbitro ? 'bg-gradient-to-b from-amber-900 to-amber-950 text-amber-200 border border-amber-600 text-center rounded-xl font-medium' : (esPropio ? 'bg-teal-600 text-white rounded-tr-none' : 'bg-gray-700 text-gray-100 rounded-tl-none');
+                                let nombreAMostrar = esArbitro ? '⚖ Árbitro Oficial IA' : nombreMsg;
+                                
+                                nuevoHTML += `
+                                    <div class="flex flex-col ${alineacionClase} mb-2">
+                                        <div class="max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-2.5 shadow-md text-sm ${colorBurbujaClase}">
+                                            <p class="text-[10px] font-bold uppercase tracking-wider ${esArbitro ? 'text-amber-400' : 'opacity-75'} mb-1">${nombreAMostrar}</p>
+                                            ${cuerpoMensaje}
+                                        </div>
+                                        <span class="text-[9px] text-gray-500 mt-0.5 px-1">${msg.fecha_envio || 'Justo ahora'}</span>
+                                    </div>`;
+                            }
+                        }); 
+                    }
+                    
+                    // Solo actualiza el DOM si realmente cambió el HTML (Evita parpadeos)
+                    if (cajaMensajes.innerHTML.trim() !== nuevoHTML.trim()) {
+                        cajaMensajes.innerHTML = nuevoHTML;
+                        irAlFinalChat();
+                    }
+                }
+            })
+            .catch(err => console.error("Error consultando nuevos mensajes:", err));
+        }
+
+        // =========================================================================
+        // 📥 CONFIGURACIÓN DE INICIO Y FORMULARIO (AJAX Puro de tu backup)
+        // =========================================================================
+        document.addEventListener("DOMContentLoaded", function() {
+            irAlFinalChat();
+            cargarMensajes();
+            
+            // Doble motor: Tu intervalo de confianza de 3 segundos se queda blindando el en vivo
+            setInterval(cargarMensajes, 3000);
+
+            const miFormulario = document.getElementById('formEnviarMensaje');
+            if (miFormulario) {
+                miFormulario.addEventListener('submit', function(e) {
+                    e.preventDefault(); 
+
+                    const mensajeInput = document.getElementById('inputMensaje');
+                    const fileInput = document.getElementById('imagen_adjunta');
+                    
+                    if ((!mensajeInput || mensajeInput.value.trim() === "") && (!fileInput || fileInput.files.length === 0)) {
+                        alert("No puedes enviar un mensaje vacío.");
+                        return;
+                    }
+
+                    const formData = new FormData(this);
+                    const urlDestino = window.location.pathname + window.location.search;
+
+                    fetch(urlDestino, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            if (mensajeInput) mensajeInput.value = ""; 
+                            cancelarArchivo();   
+                            cargarMensajes(); // Actualiza al instante tu pantalla                                        
+                        } else {
+                            alert("Error al enviar el mensaje.");
+                        }
+                    })
+                    .catch(err => console.error("Error en envío AJAX:", err));
+                });
+            }
+        });
+    </script>
+</body>
+</html>
