@@ -1235,11 +1235,9 @@ def ver_chat(tarea_id):
 
         return redirect(url_for('ver_chat', tarea_id=tarea_id))
 
-    # Aseguramos el cierre si por alguna razón no entró al POST (aunque en tu código original manejas el retorno al final de la vista)
-    conexion.close()
-    return redirect(url_for('ver_tareas'))
-
-    # --- MÉTODO GET (Muestra la pantalla del chat) ---
+    # =====================================================================
+    # --- MÉTODO GET (Muestra la pantalla del chat completo e historial) ---
+    # =====================================================================
     cursor.execute("""
         SELECT m.id, m.tarea_id, m.canal_trabajador, m.remitente_correo, m.mensaje, m.tipo, m.fecha_envio, 
                IFNULL(u.nombre, 'Usuario de inWorker') as remitente 
@@ -1257,8 +1255,10 @@ def ver_chat(tarea_id):
             partes = item['mensaje'].split('|')
             item['cotizacion_pesos'] = partes[0] if len(partes) > 0 else "0"
             item['cotizacion_concepto'] = partes[1] if len(partes) > 1 else "Sin concepto"
-            try: item['cotizacion_creditos'] = round(float(item['cotizacion_pesos']) / VALOR_CREDITO_COP, 2)
-            except: item['cotizacion_creditos'] = 0.0
+            try: 
+                item['cotizacion_creditos'] = round(float(item['cotizacion_pesos']) / VALOR_CREDITO_COP, 2)
+            except: 
+                item['cotizacion_creditos'] = 0.0
         mensajes.append(item)
     
     cursor.execute("SELECT nombre, correo, profesion, habilidades, cedula, telefono, verificado FROM usuarios WHERE correo = ?", (tarea['cliente_correo'],))
