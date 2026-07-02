@@ -202,7 +202,7 @@ def api_notificaciones_globales():
         return jsonify({'success': False, 'error': 'No autenticado'}), 401
         
     correo_logueado = session['usuario_correo']
-    rol_logueado = session.get('usuario_rol')
+    rol_logueado = session.get('usuario_rol') # Puede ser 'Cliente', 'Trabajador' o 'Worker'
     
     conexion = sqlite3.connect(ruta_db)
     conexion.row_factory = sqlite3.Row
@@ -215,7 +215,7 @@ def api_notificaciones_globales():
             JOIN tareas t ON m.tarea_id = t.id
             WHERE t.cliente_correo = ? AND m.remitente_correo != ? AND m.leido = 0
         """, (correo_logueado, correo_logueado))
-    elif rol_logueado == 'Trabajador':
+    elif rol_logueado in ['Trabajador', 'Worker']: # Validamos ambos términos por seguridad
         cursor.execute("""
             SELECT COUNT(*) as total 
             FROM mensajes m
@@ -252,7 +252,7 @@ def verificar_alertas():
         return jsonify({"total_mensajes": 0})
         
     correo_usuario = session['usuario_correo']
-    rol_logueado = session.get('usuario_rol')
+    rol_logueado = session.get('usuario_rol') # Puede ser 'Cliente', 'Trabajador' o 'Worker'
     conexion = None
     
     try:
@@ -267,7 +267,7 @@ def verificar_alertas():
                 WHERE t.cliente_correo = ? AND m.remitente_correo != ? AND m.leido = 0
             """, (correo_usuario, correo_usuario))
             
-        elif rol_logueado == 'Trabajador':
+        elif rol_logueado in ['Trabajador', 'Worker']: # 🔥 CORREGIDO: Soportar ambos roles
             cursor.execute("""
                 SELECT COUNT(*) FROM mensajes m
                 JOIN tareas t ON m.tarea_id = t.id
@@ -277,7 +277,7 @@ def verificar_alertas():
         else:
             return jsonify({"total_mensajes": 0})
         
-        total_sin_leer = cursor.fetchone()[0]
+        total_sin_leer = cursor.fetchone()[0] or 0
         return jsonify({"total_mensajes": total_sin_leer})
         
     except Exception as e:
@@ -1137,14 +1137,21 @@ def ver_chat(tarea_id):
 
     canal_sala = f"sala_{tarea_id}"        
 
-    if rol_logueado == 'Trabajador' and tarea['estado'] == 'Disponible':
+    # 🔥 CORREGIDO: Soporta tanto 'Trabajador' como 'Worker' para cambiar el estado a Cotización Pendiente
+    if rol_logueado in ['Trabajador', 'Worker'] and tarea['estado'] == 'Disponible':
         cursor.execute("UPDATE tareas SET estado = 'Cotización Pendiente' WHERE id = ?", (tarea_id,))
         conexion.commit()
         cursor.execute("SELECT * FROM tareas WHERE id = ?", (tarea_id,))
         tarea = cursor.fetchone()
         
+    # 🔥 CORREGIDO: Marcamos de forma consistente como leídos todos los mensajes recibidos en esta tarea
+    # para que se sincronice perfectamente con el contador global de notificaciones del dashboard
     if tarea['estado'] == 'Finalizada' or canal_sala != "Ninguno":
-        cursor.execute("UPDATE mensajes SET leido = 1 WHERE tarea_id = ? AND canal_trabajador = ? AND remitente_correo != ?", (tarea_id, canal_sala, correo_logueado))
+        cursor.execute("""
+            UPDATE mensajes 
+            SET leido = 1 
+            WHERE tarea_id = ? AND remitente_correo != ? AND leido = 0
+        """, (tarea_id, correo_logueado))
         conexion.commit()
     
     if request.method == 'POST':
@@ -1152,6 +1159,7 @@ def ver_chat(tarea_id):
         archivo = request.files.get('imagen_adjunta')
         
         if canal_sala == "Ninguno":
+            conexion.close()
             flash("❌ Sala de negociación no inicializada.", "error")
             return redirect(url_for('ver_chat', tarea_id=tarea_id))
 
@@ -1226,6 +1234,10 @@ def ver_chat(tarea_id):
             })
 
         return redirect(url_for('ver_chat', tarea_id=tarea_id))
+
+    # Aseguramos el cierre si por alguna razón no entró al POST (aunque en tu código original manejas el retorno al final de la vista)
+    conexion.close()
+    return redirect(url_for('ver_tareas'))
 
     # --- MÉTODO GET (Muestra la pantalla del chat) ---
     cursor.execute("""
