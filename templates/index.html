@@ -38,6 +38,14 @@
 
             <div class="flex items-center space-x-3">
                 <span class="text-xs text-slate-500 hidden md:inline">Bienvenido, <strong class="text-slate-900">{{ nombre_usuario }}</strong></span>
+                
+                <a href="{{ url_for('ver_tareas') }}" class="relative p-2 text-slate-500 hover:text-blue-600 transition mr-1 flex items-center justify-center">
+                    <i class="fas fa-envelope text-lg"></i>
+                    <span id="badge-nav-mensajes" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">
+                        0
+                    </span>
+                </a>
+
                 <span class="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-[#2563EB] px-3 py-1.5 rounded-lg border border-blue-100">
                     {{ session['usuario_role'] if 'usuario_role' in session else session['usuario_rol'] }}
                 </span>

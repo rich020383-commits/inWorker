@@ -867,19 +867,19 @@ def ver_tareas():
         lista_tareas.sort(key=lambda x: x.get('distancia', 9999))
         
     # =========================================================================
-    # 💰 INYECCIÓN BLINDADA DE 10 CRÉDITOS DE PRUEBA ($100.000 COP)
+    # 🪙 SALDO REAL ENLAZADO DIRECTAMENTE CON LA BASE DE DATOS
     # =========================================================================
-    saldo_test = 10.00  
-    perfil_falso = {'saldo_creditos': saldo_test, 'saldo': saldo_test}
+    # Eliminamos el saldo estático de prueba para que refleje tu billetera real.
+    perfil_real = {'saldo_creditos': saldo_actual, 'saldo': saldo_actual}
     # =========================================================================
         
     return render_template('tareas.html', 
                            tareas=lista_tareas, 
                            nombre_usuario=session['usuario_nombre'], 
-                           saldo=saldo_test,                 # 👈 Cambiado para inyectar fijos los 10 créditos
-                           saldo_usuario=saldo_test,         # 👈 Agregado por si acaso
-                           cliente_perfil=perfil_falso,       # 👈 Blindaje contra NameErrors
-                           trabajador_perfil=perfil_falso,   # 👈 Blindaje contra NameErrors
+                           saldo=saldo_actual,               # 👈 Cambiado a saldo_actual real
+                           saldo_usuario=saldo_actual,       # 👈 Sincronizado real
+                           cliente_perfil=perfil_real,       # 👈 Ajustado con el valor real
+                           trabajador_perfil=perfil_real,    # 👈 Ajustado con el valor real
                            user_lat=user_lat, 
                            user_lng=user_lng,
                            t_distancia=t_distancia)
