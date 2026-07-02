@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>inWorker - Sala de Negociación</title>
+    <title>inWorker - NegociaciÃ³n y Chat</title>
 
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/favicon.png') }}">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,100 +15,83 @@
     
     <style>
         body {
-            background-color: #f8fafc;
+            background-color: #f8fafc; /* Fondo gris/azul muy claro e institucional */
             color: #334155;
             font-family: 'Segoe UI', sans-serif;
         }
         .mensajes-box {
-            height: 500px;
+            height: 450px;
             overflow-y: auto;
             scroll-behavior: smooth;
-            background-color: #f8fafc;
-            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
-            background-size: 20px 20px;
+            background-color: #ffffff; /* Caja de mensajes blanca */
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
         }
-        .mensajes-box::-webkit-scrollbar { width: 6px; }
-        .mensajes-box::-webkit-scrollbar-track { background: transparent; }
-        .mensajes-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .mensajes-box::-webkit-scrollbar {
+            width: 6px;
+        }
+        .mensajes-box::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .mensajes-box::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
         #map {
             height: 180px;
             border-radius: 0.75rem;
             z-index: 10;
             border: 1px solid #e2e8f0;
+            background-color: #f1f5f9; /* Cambiado para evitar el bloque negro */
         }
-        
-        .estrellas-box { display: flex; flex-direction: row-reverse; justify-content: center; }
-        .estrellas-box input { display: none; }
-        .estrellas-box label { font-size: 2.5rem; color: #e2e8f0; cursor: pointer; transition: color 0.2s ease-in-out, transform 0.2s; margin: 0 0.3rem; }
-        .estrellas-box label:hover,
-        .estrellas-box label:hover ~ label,
-        .estrellas-box input:checked ~ label {
-            color: #fbbf24;
-            transform: scale(1.1);
-        }
-        /* 🛡️ Oculta el marcador por defecto del acordeón de Escrow */
-        summary::-webkit-details-marker { display: none; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased flex flex-col min-h-screen">
+<body class="bg-slate-50 text-slate-900 font-sans antialiased">
 
-    <header class="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-50 shadow-sm flex flex-wrap justify-between items-center gap-3">
-        <div class="flex items-center space-x-3 w-full sm:w-auto">
-            <a href="/tareas" class="text-slate-400 hover:text-blue-600 transition p-2 rounded-lg hover:bg-blue-50 shrink-0" title="Volver">
-                <i class="fas fa-arrow-left"></i>
+    <header class="bg-white border-b border-slate-200 px-4 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50 shadow-sm gap-2">
+        <div class="flex items-center space-x-3">
+            <a href="/tareas" class="text-slate-500 hover:text-blue-600 transition bg-slate-100 p-2.5 rounded-xl flex items-center justify-center" title="Volver a tareas">
+                <i class="fas fa-arrow-left text-sm"></i>
             </a>
-            
-            <!-- 💎 MEJORA 2: HEADER VIVO DE LA NEGOCIACIÓN -->
-            <div class="flex flex-col mt-1 sm:mt-0 w-full overflow-hidden">
-                <h2 class="text-sm font-black text-slate-800 uppercase tracking-wide flex items-center">
-                    Sala de Negociación <span class="text-slate-400 font-bold ml-2 normal-case text-xs">#{{ tarea.id if tarea.id else '---' }}</span>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-cubes text-blue-600 text-xl"></i>
+                <h2 class="text-base font-black text-slate-800 uppercase tracking-wider">
+                    inWorker <span class="text-blue-600 text-xs font-bold">SALA</span>
                 </h2>
-                <h1 class="text-xs font-medium text-slate-500 truncate max-w-[300px] mb-1.5">{{ tarea.titulo }}</h1>
-                
-                <div class="flex flex-wrap items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider">
-                    <span class="bg-emerald-50 border border-emerald-200 text-emerald-600 px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
-                        <i class="fas fa-circle text-[6px] {% if tarea.estado != 'Finalizada' %}animate-pulse{% endif %}"></i> {{ 'Cerrada' if tarea.estado == 'Finalizada' else 'Activa' }}
-                    </span>
-                    
-                    {% if tarea.estado in ['En Garantia', 'Finalizada'] and tarea.costo_creditos %}
-                    <span class="bg-blue-50 border border-blue-200 text-blue-600 px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
-                        <i class="fas fa-lock"></i> Escrow: ${{ "{:,.0f}".format(tarea.costo_creditos|float) }}
-                    </span>
-                    {% endif %}
-                    
-                    {% if trabajador_perfil and trabajador_perfil.verificado == 1 %}
-                    <span class="bg-amber-50 border border-amber-200 text-amber-600 px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
-                        <i class="fas fa-star text-[8px]"></i> Verificado
-                    </span>
-                    {% endif %}
+                <div class="border-l border-slate-200 pl-3 hidden sm:block">
+                    <h1 class="text-xs font-bold text-slate-500 uppercase tracking-wide truncate max-w-[200px]">{{ tarea.titulo }}</h1>
                 </div>
             </div>
         </div>
         
-        <div class="flex items-center space-x-3 ml-auto">
+        <div class="flex items-center space-x-2">
             {% if tarea.estado == 'En Garantia' %}
-            <button type="button" onclick="abrirModalControversia()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition flex items-center space-x-1 uppercase shadow-sm active:scale-95">
-                <i class="fas fa-shield-alt"></i> <span class="hidden sm:inline">Mediación</span>
+            <button type="button" onclick="abrirModalControversia()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-black px-3 py-2 rounded-xl transition shadow-sm flex items-center space-x-1 uppercase tracking-wide animate-pulse hover:animate-none" title="Reportar Problema / Iniciar MediaciÃ³n">
+                <i class="fas fa-shield-alt text-sm"></i>
+                <span class="hidden sm:inline">Controversia</span>
             </button>
             {% endif %}
 
             <div class="bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 flex items-center space-x-2">
-                <i class="fas fa-wallet text-emerald-500"></i>
-                <span class="text-xs font-bold text-slate-800">${{ "{:,.0f}".format(session.get('usuario_creditos', 0) * 10000) }}</span>
-            </div>
-            <a href="/recargar_billetera" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition uppercase shadow-sm">
-                Recargar
+    <i class="fas fa-wallet text-emerald-600 text-sm"></i>
+    <span class="text-sm font-bold text-slate-800">${{ "{:,.0f}".format(session.get('usuario_creditos', 0) * 10000) }} COP</span>
+    <span class="text-[10px] text-slate-400 font-medium">({{ session.get('usuario_creditos', 0) }} Cr)</span>
+</div>
+            
+            <a href="/recargar_billetera" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-3 py-2 rounded-xl transition shadow-sm flex items-center space-x-1 uppercase tracking-wide">
+                <i class="fas fa-bolt text-[10px]"></i>
+                <span>Recargar</span>
             </a>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto p-4 w-full flex-grow">
+    <main class="max-w-7xl mx-auto p-4">
         
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="mb-4 p-3 rounded-xl text-xs font-medium flex items-center space-x-2 shadow-sm border {% if category == 'insuficiente' or category == 'error' %} bg-rose-50 text-rose-700 border-rose-200 {% else %} bg-emerald-50 text-emerald-700 border-emerald-200 {% endif %}">
-                        <i class="fas {% if category == 'success' %} fa-check-circle {% else %} fa-exclamation-circle {% endif %} text-base"></i>
+                    <div class="mb-4 p-3 rounded-lg text-sm font-medium flex items-center space-x-2 {% if category == 'success' %} bg-emerald-950 text-emerald-300 border border-emerald-800 {% else %} bg-rose-950 text-rose-300 border border-rose-800 {% endif %}">
+                        <i class="fas {% if category == 'success' %} fa-check-circle {% else %} fa-exclamation-circle {% endif %}"></i>
                         <span>{{ message }}</span>
                     </div>
                 {% endfor %} 
@@ -117,189 +100,132 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            <div class="lg:col-span-4 space-y-5">
+            <div class="lg:col-span-4 space-y-4">
                 
-                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                    <!-- 💎 MEJORA 1: TIMELINE DE ESTADOS -->
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Progreso del Servicio</h3>
-                    
-                    <div class="relative space-y-5 mb-5 px-1">
-                        <!-- Línea vertical conectora -->
-                        <div class="absolute left-[5px] top-2 bottom-2 w-0.5 bg-slate-100"></div>
-
-                        <!-- Paso 1: Solicitud -->
-                        <div class="relative flex items-center gap-3">
-                            <div class="w-3 h-3 rounded-full z-10 flex-shrink-0 transition-colors {% if tarea.estado in ['Disponible', 'Cotización Pendiente', 'En Garantia', 'Finalizada'] %}bg-blue-500 shadow-[0_0_0_3px_rgba(59,130,246,0.2)]{% else %}bg-slate-200{% endif %}"></div>
-                            <span class="text-xs font-bold transition-colors {% if tarea.estado in ['Disponible', 'Cotización Pendiente', 'En Garantia', 'Finalizada'] %}text-slate-800{% else %}text-slate-400{% endif %}">Solicitud Creada</span>
-                        </div>
-
-                        <!-- Paso 2: Oferta -->
-                        <div class="relative flex items-center gap-3">
-                            <div class="w-3 h-3 rounded-full z-10 flex-shrink-0 transition-colors {% if tarea.estado in ['Cotización Pendiente', 'En Garantia', 'Finalizada'] %}bg-purple-500 shadow-[0_0_0_3px_rgba(168,85,247,0.2)]{% else %}bg-slate-200{% endif %}"></div>
-                            <span class="text-xs font-bold transition-colors {% if tarea.estado in ['Cotización Pendiente', 'En Garantia', 'Finalizada'] %}text-slate-800{% else %}text-slate-400{% endif %}">Oferta / Cotización</span>
-                        </div>
-
-                        <!-- Paso 3: Escrow / Proceso -->
-                        <div class="relative flex items-center gap-3">
-                            <div class="w-3 h-3 rounded-full z-10 flex-shrink-0 transition-colors {% if tarea.estado in ['En Garantia', 'Finalizada'] %}bg-amber-500 shadow-[0_0_0_3px_rgba(245,158,11,0.2)]{% else %}bg-slate-200{% endif %}"></div>
-                            <span class="text-xs font-bold transition-colors {% if tarea.estado in ['En Garantia', 'Finalizada'] %}text-slate-800{% else %}text-slate-400{% endif %}">Pago Escrow & Proceso</span>
-                        </div>
-
-                        <!-- Paso 4: Finalizado -->
-                        <div class="relative flex items-center gap-3">
-                            <div class="w-3 h-3 rounded-full z-10 flex-shrink-0 transition-colors {% if tarea.estado == 'Finalizada' %}bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.2)]{% else %}bg-slate-200{% endif %}"></div>
-                            <span class="text-xs font-bold transition-colors {% if tarea.estado == 'Finalizada' %}text-slate-800{% else %}text-slate-400{% endif %}">Finalizado</span>
-                        </div>
-                    </div>
-                    
-                    <div class="text-xs font-medium border-t border-slate-100 pt-4">
-                        {% if tarea.estado == 'En Garantia' %}
-                            {% if session['usuario_correo'] == tarea.cliente_correo %}
-                                <form id="formLiberarFondos" action="/chat/{{ tarea.id }}/liberar_fondos" method="POST" onsubmit="event.preventDefault(); procesarLiberacion(this);">
-                                    <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
-                                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl transition shadow-md font-black text-[11px] uppercase tracking-widest flex items-center justify-center active:scale-95">
-                                        <i class="fas fa-hand-holding-dollar mr-2 text-lg"></i> Liberar Fondos al Técnico
-                                    </button>
-                                    <p class="text-[9px] text-slate-400 mt-2 text-center leading-tight">Presiona aquí para pagarle al especialista. Luego podrás elegir si continuas o finalizas.</p>
-                                </form>
-                            {% elif session['usuario_correo'] == tarea.trabajador_correo %}
-                                <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 shadow-sm mt-2">
-                                    <h4 class="text-[10px] font-black text-indigo-700 uppercase tracking-widest mb-2 flex items-center">
-                                        <i class="fas fa-camera-retro mr-1.5"></i> Protocolo de Evidencia
-                                    </h4>
-                                    <p class="text-[10px] text-indigo-600 mb-3 leading-tight">Sube una foto del daño inicial y otra del trabajo terminado para garantizar tu pago.</p>
-                                    
-                                    <form action="/confirmar_entrega/{{ tarea.id }}" method="POST" enctype="multipart/form-data" class="space-y-2">
-                                        <div class="grid grid-cols-2 gap-2">
-                                            <label class="border-2 border-dashed border-indigo-300 bg-white rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-100 transition group">
-                                                <i class="fas fa-image text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                                                <span class="text-[9px] font-bold text-indigo-700">Foto "Antes"</span>
-                                                <input type="file" name="foto_antes" required class="hidden" accept="image/*" capture="environment" onchange="this.previousElementSibling.innerText = '✅ Lista'; this.parentElement.classList.add('bg-indigo-100');">
-                                            </label>
-                                            <label class="border-2 border-dashed border-indigo-300 bg-white rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-100 transition group">
-                                                <i class="fas fa-check-double text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                                                <span class="text-[9px] font-bold text-indigo-700">Foto "Después"</span>
-                                                <input type="file" name="foto_despues" required class="hidden" accept="image/*" capture="environment" onchange="this.previousElementSibling.innerText = '✅ Lista'; this.parentElement.classList.add('bg-indigo-100');">
-                                            </label>
-                                        </div>
-                                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg transition shadow font-bold text-xs uppercase tracking-wide mt-2">
-                                            Enviar Evidencia y Cobrar <i class="fas fa-flag-checkered ml-1"></i>
+                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Estado de la Orden</h3>
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider 
+                            {% if tarea.estado == 'Disponible' %} bg-blue-950 text-blue-400 border border-blue-800
+                            {% elif tarea.estado == 'CotizaciÃ³n Pendiente' %} bg-purple-950 text-purple-400 border border-purple-800
+                            {% elif tarea.estado == 'En Garantia' %} bg-amber-950 text-amber-400 border border-amber-800
+                            {% else %} bg-emerald-950 text-emerald-400 border border-emerald-800 {% endif %}">
+                            <i class="fas fa-circle text-[10px] mr-1.5 {{"animate-pulse" if tarea.estado != 'Finalizada' else ""}}"></i>{{ tarea.estado }}
+                        </span>
+                        
+                        <div class="flex items-center space-x-1 text-xs font-medium">
+                            {% if tarea.estado == 'CotizaciÃ³n Pendiente' %}
+                                {% if session['usuario_correo'] == tarea.cliente_correo and tarea.confirmacion_cliente == 0 %}
+                                    <form action="/confirmar_entrega/{{ tarea.id }}" method="POST">
+                                        <button type="submit" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-1.5 rounded-lg transition shadow-md font-bold text-xs">
+                                            Liberar GarantÃ­a âœ”
                                         </button>
                                     </form>
-                                </div>
+                                {% elif session['usuario_correo'] == tarea.trabajador_correo and tarea.confirmacion_trabajador == 0 %}
+                                    <form action="/confirmar_entrega/{{ tarea.id }}" method="POST">
+                                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition shadow-md font-bold text-xs">
+                                            Notificar Entrega ðŸš€
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <span class="text-amber-400 flex items-center bg-amber-950/50 px-2 py-1 rounded border border-amber-900 text-xs">
+                                        <i class="fas fa-hourglass-half mr-1.5 animate-spin"></i> Esperando al otro lado...
+                                    </span>
+                                {% endif %}
+                            {% elif tarea.estado == 'Finalizada' and session['usuario_correo'] == tarea.cliente_correo and tarea.calificada == 0 %}
+                                <form action="/calificar/{{ tarea.id }}" method="POST" class="w-full mt-2 pt-2 border-t border-gray-700">
+                                    <label class="block text-xs text-gray-400 mb-1 text-center">Califica al TÃ©cnico:</label>
+                                    <div class="flex justify-center items-center space-x-2">
+                                        <select name="estrellas" class="bg-gray-900 border border-gray-700 rounded p-1 text-sm text-amber-400 font-bold focus:outline-none">
+                                            <option value="5">â­â­â­â­â­ (5.0)</option>
+                                            <option value="4">â­â­â­â­ (4.0)</option>
+                                            <option value="3">â­â­â­ (3.0)</option>
+                                            <option value="2">â­â­ (2.0)</option>
+                                            <option value="1">â­ (1.0)</option>
+                                        </select>
+                                        <button type="submit" class="bg-amber-500 hover:bg-amber-400 text-gray-900 font-bold px-3 py-1 rounded text-xs transition">
+                                            Calificar
+                                        </button>
+                                    </div>
+                                </form>
+                            {% elif tarea.estado == 'Finalizada' %}
+                                <span class="text-emerald-400 text-xs bg-emerald-950/40 px-2 py-1 rounded border border-emerald-900 font-bold flex items-center">
+                                    <i class="fas fa-handshake mr-1.5"></i> Pago Desembolsado
+                                </span>
                             {% endif %}
-                        {% elif tarea.estado == 'Cotización Pendiente' %}
-                            <div class="bg-slate-50 text-slate-500 p-3 rounded-lg border border-slate-200 text-center font-bold text-[10px] uppercase tracking-widest mt-2 flex items-center justify-center gap-2">
-                                <i class="fas fa-hourglass-half animate-spin text-purple-500"></i> Esperando confirmación
-                            </div>
-                        {% elif tarea.estado == 'Finalizada' %}
-                            <div class="bg-emerald-50 text-emerald-700 p-3 rounded-xl border border-emerald-200 flex items-center justify-center font-black uppercase tracking-widest text-[10px] mt-2 shadow-sm">
-                                <i class="fas fa-handshake mr-2 text-lg"></i> Transacción Completada
-                            </div>
-                        {% endif %}
+                        </div>
                     </div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"><i class="fas fa-map-marker-alt text-rose-500 mr-1"></i> Ubicación</h3>
+                <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+                    <h3 class="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+                        <i class="fas fa-map-marker-alt text-rose-500 mr-1"></i> UbicaciÃ³n del Trabajo
+                    </h3>
                     <div id="map"></div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-4">
                     
-                    <div class="flex items-center space-x-3 pb-4 border-b border-slate-100">
-                        <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold border border-blue-100 shrink-0">
-                            {{ cliente_perfil.nombre[0]|upper }}
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200/60">
+                        <div class="flex items-center space-x-2 text-blue-600 font-bold text-xs uppercase tracking-wider mb-2">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Contratante (Cliente)</span>
                         </div>
-                        <div class="w-full">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">Contratante</p>
-                            <p class="text-sm font-bold text-slate-800">{{ cliente_perfil.nombre }}</p>
-                            
-                            {% if tarea.estado in ['En Garantia', 'Finalizada'] %}
-                                <div class="mt-1 space-y-0.5 animate-fade-in">
-                                    <p class="text-[11px] text-slate-600 font-medium flex items-center"><i class="fas fa-phone-alt text-emerald-500 w-4"></i> {{ cliente_perfil.celular if cliente_perfil.celular else cliente_perfil.telefono }}</p>
-                                    <p class="text-[11px] text-slate-600 font-medium flex items-center truncate"><i class="fas fa-envelope text-emerald-500 w-4"></i> {{ cliente_perfil.correo }}</p>
-                                </div>
-                            {% else %}
-                                <div class="mt-1 flex items-center text-[10px] text-slate-400 bg-slate-50 border border-slate-100 rounded p-1 w-max">
-                                    <i class="fas fa-lock mr-1.5"></i> Datos ocultos hasta el pago
-                                </div>
-                            {% endif %}
+                        <div class="text-sm space-y-1">
+                            <p class="text-slate-800 font-bold"><span class="text-slate-400 font-medium">Nombre:</span> {{ cliente_perfil.nombre }}</p>
+                            <p class="text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200 w-max uppercase">CotizaciÃ³n en curso</p>
                         </div>
                     </div>
 
-                    <div class="flex items-center space-x-3 pt-1">
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200/60">
+                        <div class="flex items-center space-x-2 text-slate-700 font-bold text-xs uppercase tracking-wider mb-2">
+                            <i class="fas fa-tools text-blue-600"></i>
+                            <span>Especialista (TÃ©cnico)</span>
+                        </div>
                         {% if trabajador_perfil %}
-                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold border border-slate-200 shrink-0">
-                                {{ trabajador_perfil.nombre[0]|upper }}
-                            </div>
-                            <div class="w-full">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase flex items-center">
-                                    Especialista <span class="ml-2 text-amber-500"><i class="fas fa-star text-[10px]"></i> {{ trabajador_perfil.promedio_estrellas }}</span>
-                                </p>
-                                <p class="text-sm font-bold text-slate-800 flex items-center">
-                                {{ trabajador_perfil.nombre }}
-                                {% if trabajador_perfil.verificado == 1 %}
-                                    <span class="ml-1.5 text-blue-500 bg-blue-50 rounded-full w-4 h-4 flex items-center justify-center border border-blue-100" title="Identidad Verificada por inWorker">
-                                        <i class="fas fa-check text-[9px]"></i>
+                            <div class="text-sm space-y-1">
+                                <p class="text-slate-800 font-bold flex items-center justify-between">
+                                    <span>{{ trabajador_perfil.nombre }}</span>
+                                    <span class="text-amber-600 text-xs bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 flex items-center">
+                                        â˜… {{ trabajador_perfil.promedio_estrellas }}
                                     </span>
-                                {% endif %}
                                 </p>
-                                
-                                {% if tarea.estado in ['En Garantia', 'Finalizada'] %}
-                                    <div class="mt-1 space-y-0.5 animate-fade-in">
-                                        <p class="text-[11px] text-slate-600 font-medium flex items-center"><i class="fas fa-phone-alt text-emerald-500 w-4"></i> {{ trabajador_perfil.celular if trabajador_perfil.celular else trabajador_perfil.telefono }}</p>
-                                        <p class="text-[11px] text-slate-600 font-medium flex items-center truncate"><i class="fas fa-envelope text-emerald-500 w-4"></i> {{ trabajador_perfil.correo }}</p>
-                                    </div>
-                                {% else %}
-                                    <div class="mt-1 flex items-center text-[10px] text-slate-400 bg-slate-50 border border-slate-100 rounded p-1 w-max">
-                                        <i class="fas fa-lock mr-1.5"></i> Contacto protegido por Escrow
-                                    </div>
-                                {% endif %}
+                                <p class="text-xs text-slate-500 font-medium"><span class="text-slate-400">Especialidad:</span> {{ trabajador_perfil.profesion }}</p>
                             </div>
-                        {% else %}
-                            <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 border border-slate-200 border-dashed shrink-0">
-                                <i class="fas fa-tools"></i>
-                            </div>
-                            <p class="text-xs text-slate-400 italic">Esperando técnico...</p>
+                        {% else %} 
+                            <p class="text-xs text-slate-400 italic text-center py-2">NingÃºn tÃ©cnico asignado todavÃ­a.</p>
                         {% endif %}
                     </div>
                 </div>
 
-                {% if session['usuario_rol'] == 'Trabajador' and (tarea.estado == 'Disponible' or tarea.estado == 'Cotización Pendiente') %}
-                <div class="bg-white border-2 border-purple-100 rounded-2xl p-5 shadow-md relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
-                    <h3 class="text-xs font-black text-purple-700 uppercase tracking-widest mb-4 flex items-center">
-                        <i class="fas fa-file-invoice-dollar mr-2"></i> Enviar Oferta Inicial
-                    </h3>
-                    <form action="/chat/{{ tarea.id }}/enviar_cotizacion" method="POST" class="space-y-4">
+                {% if session['usuario_rol'] == 'Trabajador' and (tarea.estado == 'Disponible' or tarea.estado == 'CotizaciÃ³n Pendiente') %}
+                <div class="bg-gradient-to-b from-gray-800 to-gray-850 border border-purple-900/60 rounded-xl p-4 shadow-xl">
+                    <div class="flex items-center space-x-1.5 text-purple-400 font-bold text-xs uppercase tracking-wider mb-3">
+                        <i class="fas fa-hand-holding-usd text-sm"></i>
+                        <span>Enviar Oferta EconÃ³mica (COP)</span>
+                    </div>
+                    <form action="/chat/{{ tarea.id }}/enviar_cotizacion" method="POST" class="space-y-3">
                         <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
-                        <input type="hidden" name="es_hito_adicional" value="false">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Monto Total (COP)</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><span class="text-slate-400 font-bold">$</span></div>
-                                <input type="number" name="monto_pesos" step="1" min="1000" placeholder="45000" required
-                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-12 py-2.5 text-sm font-bold text-slate-800 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition">
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"><span class="text-slate-400 text-[10px] font-bold">COP</span></div>
+                            <label class="block text-[11px] text-gray-400 mb-1">Â¿CuÃ¡nto vas a cobrar en total?</label>
+                            <div class="relative rounded-md shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">$</span>
+                                </div>
+                                <input type="number" name="monto_pesos" step="1" min="1000" placeholder="Ej: 45000" required
+                                    class="w-full bg-gray-950 border border-gray-700 rounded-lg pl-7 pr-12 py-2 text-sm font-bold text-purple-400 focus:outline-none focus:border-purple-500">
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 text-xs">COP</span>
+                                </div>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 flex justify-between items-end">
-                                <span>Concepto</span>
-                                <div class="space-x-1">
-                                    <button type="button" onclick="document.querySelector('textarea[name=\'concepto\']').value = 'Visita técnica y diagnóstico.'" class="text-[9px] text-purple-600 hover:underline">Visita</button>
-                                    <button type="button" onclick="document.querySelector('textarea[name=\'concepto\']').value = 'Mano de obra y materiales.'" class="text-[9px] text-purple-600 hover:underline">Mano de obra</button>
-                                </div>
-                            </label>
-                            <textarea name="concepto" rows="2" placeholder="Ej: Revisión e instalación..." required
-                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-purple-500 transition resize-none"></textarea>
+                            <label class="block text-[11px] text-gray-400 mb-1">Â¿QuÃ© incluye tu propuesta?</label>
+                            <textarea name="concepto" rows="2" placeholder="Ej: Mano de obra y cambio de empaques..." required
+                                class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500 resize-none"></textarea>
                         </div>
-                        
-                        <button type="submit" 
-                                onclick="this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin mr-2\'></i>Enviando...'; this.form.submit();" 
-                                class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center">
-                            Enviar Propuesta Oficial
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-lg text-xs transition uppercase tracking-wide shadow-md">
+                            ðŸš€ Lanzar Propuesta
                         </button>
                     </form>
                 </div>
@@ -307,236 +233,130 @@
 
             </div>
 
-            <div class="lg:col-span-8 flex flex-col h-full">
-                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col overflow-hidden relative">
+            <div class="lg:col-span-8">
+                <div class="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
                     
-                    <!-- 💎 MEJORA 3: MENSAJE DE GARANTÍA COMPACTO -->
-                    <details class="bg-emerald-50/50 border-b border-emerald-100 text-xs group cursor-pointer transition-colors hover:bg-emerald-50">
-                        <summary class="px-4 py-3 flex items-center justify-between font-bold text-emerald-800 select-none outline-none">
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-shield-check text-emerald-500 text-lg"></i>
-                                <span class="uppercase tracking-wide text-[10px]">Pago protegido por Escrow</span>
-                            </div>
-                            <div class="text-[10px] text-emerald-600 font-medium flex items-center gap-1 bg-emerald-100/50 px-2 py-1 rounded-md">
-                                <span class="group-open:hidden">Ver cómo funciona</span>
-                                <span class="hidden group-open:inline">Ocultar</span>
-                                <i class="fas fa-chevron-down transition-transform group-open:rotate-180"></i>
-                            </div>
-                        </summary>
-                        <div class="px-4 pb-4 pt-1 text-emerald-700/80 leading-relaxed text-[11px] font-medium border-t border-emerald-100/30 mx-2">
-                            Tu dinero está a salvo. El pago se congela en la plataforma y se libera únicamente cuando confirmas que el servicio se realizó exitosamente.
-                        </div>
-                    </details>
+                    <div class="bg-gray-850 border-b border-gray-700 px-4 py-3 flex items-center space-x-3 text-xs">
+                        <img src="/static/img/icono_seguridad.png" alt="GarantÃ­a" class="w-6 h-6 flex-shrink-0">
+                        <p class="text-gray-300 leading-normal">
+                            <strong class="text-teal-400">GarantÃ­a inWorker Activa:</strong> Tu dinero se mantiene congelado de forma segura en la plataforma y solo se libera cuando confirmes que el servicio quedÃ³ al 100%.
+                        </p>
+                    </div>
 
-                    <div id="cajaMensajes" class="mensajes-box p-4 sm:p-6 space-y-4">
-                        
-                        {% set categorias_profesionales = [
-                            'Abogado Penal', 'Abogado Laboral', 'Abogado de Familia', 
-                            'Contabilidad y Finanzas', 'Asesoría Tributaria', 'Trámites Legales', 
-                            'Arquitectura', 'Ingeniería civil', 'Ingeniería mecánica', 'Ingeniería eléctrica',
-                            'Clases de Matemáticas', 'Clases de Idiomas', 'Clases de Música', 'Refuerzo Escolar', 'Tutoría Universitaria'
-                        ] %}
-
-                        {% if tarea.categoria in categorias_profesionales and tarea.estado not in ['En Garantia', 'Finalizada'] %}
-                        <div class="my-2 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-2xl p-4 shadow-sm relative overflow-hidden animate-fade-in-down w-full max-w-2xl mx-auto">
-                            <div class="absolute -right-4 -top-4 w-16 h-16 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
-                            <div class="absolute left-0 top-0 w-1 h-full bg-indigo-500"></div>
-                            
-                            <div class="flex items-start gap-3 relative z-10">
-                                <div class="w-9 h-9 rounded-full bg-indigo-100 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0 shadow-inner">
-                                    <i class="fas fa-robot text-sm"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-[10px] font-black text-indigo-800 uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                                        <i class="fas fa-shield-check text-emerald-500"></i> Bot inWorker: Tip de Seguridad
-                                    </p>
-                                    <p class="text-xs text-indigo-900/80 leading-relaxed font-medium">
-                                        Por seguridad de ambos, para dar una cotización final exacta en este oficio, recomendamos acordar un valor menor por la <strong>"Consulta Inicial o Revisión de Caso"</strong>.
-                                    </p>
-                                    <div class="mt-2 bg-white/60 rounded-xl p-2.5 border border-indigo-100 text-[11px] text-indigo-800">
-                                        <i class="fas fa-unlock-alt text-indigo-500 mr-1"></i> Al fondear la consulta inicial en Garantía, <strong>se desbloquearán automáticamente los números de teléfono</strong> para enviar documentos o agendar videollamadas.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
+                    <div id="cajaMensajes" class="mensajes-box p-4 bg-gray-900/40 space-y-4">
                         {% for msg in mensajes %}
                             
-                            {% set f_str = msg.fecha_envio | string %}
-                            {% set hora_corta = f_str[17:22] if 'GMT' in f_str else (f_str[11:16] if f_str|length >= 16 else f_str) %}
-                            
                             {% if 'cotizacion' in msg.tipo %}
-                            <div class="flex flex-col items-center my-6 w-full">
-                                <div class="bg-white border shadow-sm rounded-2xl p-5 max-w-sm w-full text-center relative overflow-hidden
-                                    {% if msg.tipo == 'cotizacion_pendiente' %} border-purple-200 
-                                    {% elif msg.tipo == 'cotizacion_aceptada' %} border-emerald-200 
-                                    {% else %} border-slate-200 {% endif %}">
-                                    
-                                    <div class="text-[10px] font-black uppercase tracking-widest mb-2
-                                        {% if msg.tipo == 'cotizacion_pendiente' %} text-purple-600 
-                                        {% elif msg.tipo == 'cotizacion_aceptada' %} text-emerald-600 
-                                        {% else %} text-slate-400 {% endif %}">
-                                        <i class="fas fa-file-invoice-dollar mr-1"></i> Cotización Formal
+                            <div class="flex flex-col items-center my-4 w-full">
+                                <div class="bg-gradient-to-b from-gray-800 to-gray-850 border-2 {% if msg.tipo == 'cotizacion_pendiente' %} border-purple-600 {% elif msg.tipo == 'cotizacion_aceptada' %} border-emerald-600 {% else %} border-gray-700 {% endif %} rounded-2xl p-4 max-w-md w-full text-center shadow-2xl">
+                                    <div class="text-xs font-bold uppercase tracking-widest text-purple-400 mb-1">ðŸ’¼ Propuesta EconÃ³mica Formal</div>
+                                    <div class="text-2xl font-black text-white my-2">
+                                        ${{ "{:,.0f}".format(msg.monto_pesos|float if msg.monto_pesos else msg.cotizacion_pesos|float) }} <span class="text-xs font-normal text-gray-400">COP</span>
                                     </div>
-                                    
-                                    <div class="text-3xl font-black text-slate-800 mb-2">
-                                        ${{ "{:,.0f}".format(msg.monto_pesos|float if msg.monto_pesos else msg.mensaje.split('|')[0]|float) }} <span class="text-xs font-medium text-slate-400">COP</span>
-                                    </div>
-                                    <p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 mb-4">
-                                        {{ msg.cotizacion_concepto if msg.cotizacion_concepto else msg.mensaje.split('|')[1] }}
-                                    </p>
+                                    <p class="text-xs text-gray-300 italic px-2 mb-3">"{{ msg.cotizacion_concepto }}"</p>
+                                    <div class="text-[10px] text-gray-500 mb-3">Equivalente en Plataforma: {{ msg.cotizacion_creditos }} CrÃ©ditos</div>
 
                                     {% if msg.tipo == 'cotizacion_pendiente' %}
                                         {% if session['usuario_correo'] == tarea.cliente_correo %}
-                                        <form action="/chat/{{ tarea.id }}/responder_cotizacion/{{ msg.id }}" method="POST" class="flex flex-col sm:flex-row gap-2">
+                                        <form action="/chat/{{ tarea.id }}/responder_cotizacion/{{ msg.id }}" method="POST" class="flex items-center justify-center space-x-3">
                                             <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
-                                            <button type="submit" name="accion" value="Aceptar" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs transition shadow-sm active:scale-95">
-                                                <i class="fas fa-check mr-1"></i> Aceptar y Pagar
+                                            <button type="submit" name="accion" value="Aceptar" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-5 py-2 rounded-xl text-xs uppercase tracking-wide transition shadow">
+                                                âœ” Aceptar e Iniciar
                                             </button>
-                                            <button type="submit" name="accion" value="Rechazar" class="bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 font-bold px-4 py-2 rounded-xl text-xs transition">
-                                                Rechazar
+                                            <button type="submit" name="accion" value="Rechazar" class="bg-gray-700 hover:bg-rose-600 text-gray-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs uppercase transition">
+                                                Declinado
                                             </button>
                                         </form>
                                         {% else %}
-                                        <div class="bg-purple-50 text-purple-600 text-xs font-bold py-2 rounded-xl animate-pulse">
-                                            <i class="fas fa-clock mr-1"></i> Esperando al cliente...
-                                        </div>
+                                        <span class="text-xs font-semibold text-purple-400 bg-purple-950/40 px-3 py-1 rounded-full border border-purple-900 animate-pulse">
+                                            â³ Esperando respuesta del cliente...
+                                        </span>
                                         {% endif %}
-                                    
                                     {% elif msg.tipo == 'cotizacion_aceptada' %}
-                                        <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold py-2 rounded-xl flex justify-center items-center mb-3">
-                                            <i class="fas fa-lock mr-1.5"></i> Pago Asegurado en Garantía
+                                        <div class="text-xs font-black text-emerald-400 bg-emerald-950/50 py-1.5 rounded-xl border border-emerald-900 uppercase tracking-wide flex items-center justify-center space-x-1">
+                                            <i class="fas fa-lock"></i> <span>GarantÃ­a Congelada & Contrato Firmado</span>
                                         </div>
-                                        
-                                        {% if tarea.estado != 'Finalizada' %}
-                                            <div class="border-t border-slate-100 pt-3 mt-2">
-                                                {% if session['usuario_correo'] == tarea.cliente_correo %}
-                                                    <form action="/chat/{{ tarea.id }}/liberar_fondos" method="POST" onsubmit="event.preventDefault(); procesarLiberacion(this);">
-                                                        <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
-                                                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-[10px] uppercase tracking-wider transition shadow-md active:scale-95 flex items-center justify-center">
-                                                            <i class="fas fa-hand-holding-dollar mr-2"></i> Liberar Fondos al Técnico
-                                                        </button>
-                                                    </form>
-                                                    <p class="text-[9px] text-slate-400 mt-1.5 leading-tight">Solo presiona aquí si el técnico ya terminó y estás 100% satisfecho.</p>
-                                                {% endif %}
-                                            </div>
-                                        {% else %}
-                                            <div class="bg-blue-50 text-blue-600 text-[10px] font-black py-2 rounded-xl flex justify-center items-center uppercase tracking-wider mt-3 border border-blue-100">
-                                                <i class="fas fa-check-double mr-1.5"></i> Servicio Pagado
-                                            </div>
-                                        {% endif %}
-
                                     {% else %}
-                                        <div class="bg-slate-50 text-slate-400 text-xs font-bold py-2 rounded-xl">Cotización Declinada</div>
+                                        <div class="text-xs font-medium text-gray-400 bg-gray-900/50 py-1.5 rounded-xl border border-gray-800 uppercase tracking-wide">
+                                            âŒ Oferta Declinada / Caducada
+                                        </div>
                                     {% endif %}
                                 </div>
-                                <span class="text-[9px] font-medium text-slate-400 mt-1.5">{{ hora_corta }}</span>
+                                <span class="text-[9px] text-gray-600 mt-1">{{ msg.fecha_envio }}</span>
                             </div>
 
                             {% else %}
-                            
-                            <div class="flex flex-col w-full {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} items-end {% else %} items-start {% endif %} my-1">
-                                <div class="flex items-end max-w-[85%] md:max-w-[70%] gap-2">
+                            <div class="flex flex-col {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} items-end {% else %} items-start {% endif %}">
+                                <div class="max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-2.5 shadow-md text-sm
+                                    {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} bg-teal-600 text-white rounded-tr-none
+                                    {% else %} bg-gray-700 text-gray-100 rounded-tl-none {% endif %}">
+                                    <p class="text-[10px] font-bold uppercase tracking-wider opacity-75 mb-1">{{ msg.remitente }}</p>
                                     
-                                    {% if not (msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario) %}
-                                        <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold border border-slate-300 flex-shrink-0">
-                                            {{ msg.remitente[0]|upper if msg.remitente else '?' }}
+                                    {% if msg.tipo == 'imagen' %}
+                                        <div class="rounded-lg overflow-hidden border border-black/20 my-1 bg-gray-800">
+                                            <img src="/static/uploads/{{ msg.mensaje }}" alt="Imagen adjunta" class="max-w-full h-auto object-cover max-h-60 hover:scale-105 transition cursor-zoom-in" onclick="window.open(this.src)">
                                         </div>
+                                    {% else %}
+                                        <p class="leading-relaxed break-words">{{ msg.mensaje }}</p>
                                     {% endif %}
-
-                                    <div class="relative px-4 py-2.5 text-sm shadow-sm
-                                        {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} 
-                                            bg-blue-600 text-white rounded-2xl rounded-br-none
-                                        {% else %} 
-                                            bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-bl-none 
-                                        {% endif %}">
-                                        
-                                        {% if msg.tipo == 'imagen' %}
-                                            <div class="rounded-lg overflow-hidden my-1">
-                                                <img src="/static/uploads/{{ msg.mensaje }}" alt="Foto" class="max-w-full h-auto object-cover max-h-60 rounded cursor-zoom-in" onclick="window.open(this.src)">
-                                            </div>
-                                        {% else %}
-                                            <p class="leading-relaxed whitespace-pre-wrap pr-8">{{ msg.mensaje }}</p>
-                                        {% endif %}
-                                        
-                                        <span class="absolute bottom-1 right-2 text-[9px] font-medium 
-                                            {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} text-blue-200 {% else %} text-slate-400 {% endif %}">
-                                            {{ hora_corta }}
-                                        </span>
-                                    </div>
                                 </div>
+                                <span class="text-[9px] text-gray-500 mt-0.5 px-1">{{ msg.fecha_envio }}</span>
                             </div>
                             {% endif %}
 
                         {% else %}
-                            <div id="chat-vacio" class="h-full flex flex-col items-center justify-center text-center py-12 text-slate-400">
-                                <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                    <i class="far fa-comments text-3xl"></i>
-                                </div>
-                                <p class="text-sm font-bold text-slate-600">No hay mensajes aún.</p>
-                                <p class="text-xs mt-1 max-w-xs">Escribe los detalles del problema o envía una propuesta técnica para iniciar.</p>
+                            <div id="chat-vacio" class="h-full flex flex-col items-center justify-center text-center py-12 text-gray-500">
+                                <img src="/static/img/icono_conexion.png" alt="ConexiÃ³n" class="w-14 h-14 mb-3 opacity-60">
+                                <p class="text-sm font-medium text-gray-400">Sala de negociaciÃ³n vacÃ­a.</p>
+                                <p class="text-xs text-gray-600">EnvÃ­a un mensaje o lanza una oferta para arrancar.</p>
                             </div>
                         {% endfor %}
                     </div>
 
-                    {% if tarea.estado == 'Finalizada' %}
-                        <div class="p-5 text-center bg-slate-50 border-t border-slate-200">
-                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-200 text-slate-500 mb-2">
-                                <i class="fas fa-lock"></i>
-                            </span>
-                            <p class="text-sm font-bold text-slate-700">Chat Cerrado</p>
-                            <p class="text-xs text-slate-500 mt-0.5">El servicio ya ha sido finalizado.</p>
-                        </div>
-                    {% else %}
-                        <div class="p-3 sm:p-4 bg-white border-t border-slate-200">
-                            {% if session.get('usuario_rol') in ['Trabajador', 'Worker'] and tarea.estado != 'Finalizada' %}
-                            <div class="flex justify-start mb-3">
-                                <!-- 💎 MEJORA 4: BOTÓN DE CREAR HITO LIMPIO -->
-                                <button type="button" onclick="abrirModalHito()" class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black px-4 py-2 rounded-xl text-[10px] uppercase tracking-widest shadow-md shadow-indigo-500/30 transition-all active:scale-95 flex items-center gap-2 border border-indigo-500 w-max">
-                                    <i class="fas fa-plus"></i> Crear Hito
-                                </button>
-                            </div>
+                    <div class="p-3 bg-gray-800 border-t border-gray-700">
+                        <form id="formEnviarMensaje" action="" method="POST" enctype="multipart/form-data" class="flex flex-col w-full">
+                            <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
+    
+                            {% if tarea and tarea.tecnico_correo == session['usuario_correo'] %}
+                                <div class="mb-4 p-4 bg-emerald-950/40 border border-emerald-500/30 rounded-xl flex items-center gap-3 shadow-lg w-full">
+                                    <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                                        <i class="fas fa-star text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="text-xs font-black text-emerald-400 uppercase tracking-wider">Â¡InvitaciÃ³n Directa Recibida!</h4>
+                                        <p class="text-[11px] text-slate-300 mt-0.5">Este contratante te seleccionÃ³ especialmente desde el catÃ¡logo para atender este requerimiento a tu medida.</p>
+                                    </div>
+                                    <span class="text-[10px] bg-emerald-500 text-slate-950 px-2 py-0.5 rounded-md font-bold uppercase tracking-wide">Exclusivo</span>
+                                </div>
                             {% endif %}
 
-                            <form id="formEnviarMensaje" action="/chat/{{ tarea.id }}" method="POST" enctype="multipart/form-data" class="flex flex-col">
-                                <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
-                                
-                                <div class="flex items-end space-x-2">
-                                    <div class="flex flex-col gap-2">
-                                        <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-600 p-3 rounded-xl transition flex items-center justify-center h-12 w-12" title="Cámara">
-                                            <i class="fas fa-camera"></i>
-                                            <input type="file" id="imagen_camara" name="imagen_adjunta" class="hidden" accept="image/*" capture="environment">
-                                        </label>
-                                    </div>
-                                    <div class="flex flex-col gap-2">
-                                        <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-600 p-3 rounded-xl transition flex items-center justify-center h-12 w-12" title="Galería">
-                                            <i class="fas fa-paperclip"></i>
-                                            <input type="file" id="imagen_galeria" name="imagen_adjunta" class="hidden" accept="image/*">
-                                        </label>
-                                    </div>
+                            <div class="flex items-center space-x-2 w-full">
+                                <label class="cursor-pointer bg-gray-700 hover:bg-gray-600 text-gray-300 p-3 rounded-xl transition shadow flex items-center justify-center border border-gray-600 flex-shrink-0" title="Adjuntar soporte fotogrÃ¡fico">
+                                    <i class="fas fa-camera text-base"></i>
+                                    <input type="file" id="imagen_adjunta" name="imagen_adjunta" class="hidden" accept="image/*">
+                                </label>
 
-                                    <div class="flex-1">
-                                        <textarea id="inputMensaje" name="mensaje" rows="1" placeholder="Escribe un mensaje..." class="w-full bg-slate-100 border-transparent rounded-xl py-3 px-4 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 transition resize-none"></textarea>
-                                    </div>
-
-                                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-xl transition shadow h-12 w-12 flex items-center justify-center">
-                                        <i class="fas fa-paper-plane"></i>
-                                    </button>
+                                <div class="flex-1 relative">
+                                    <input type="text" id="inputMensaje" name="mensaje" placeholder="Escribe un mensaje..." autocomplete="off" class="w-full bg-gray-950 border border-gray-700 rounded-xl py-3 px-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition">
                                 </div>
 
-                                <div id="preview-filename" class="hidden text-xs font-medium text-slate-600 mt-2 px-3 py-2 bg-slate-100 rounded-lg flex items-center justify-between">
-                                    <div class="flex items-center space-x-2 truncate">
-                                        <i class="fas fa-image text-blue-500"></i>
-                                        <span id="nombre-archivo" class="truncate"></span>
-                                    </div>
-                                    <button type="button" onclick="cancelarArchivo()" class="text-slate-400 hover:text-rose-500 ml-2">
-                                        <i class="fas fa-times-circle text-sm"></i>
-                                    </button>
+                                <button type="submit" class="bg-teal-500 hover:bg-teal-400 text-gray-900 font-bold px-5 py-3 rounded-xl transition shadow flex items-center space-x-1.5 text-sm uppercase tracking-wide flex-shrink-0">
+                                    <span>Enviar</span>
+                                    <i class="fas fa-paper-plane text-xs"></i>
+                                </button>
+                            </div>
+
+                            <div id="preview-filename" class="hidden text-xs text-teal-400 mt-2 px-1 flex items-center justify-between bg-gray-900/40 p-2 rounded-lg border border-teal-900/50">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-image text-teal-400"></i>
+                                    <span id="nombre-archivo" class="truncate max-w-[180px]"></span>
                                 </div>
-                            </form>
-                        </div>
-                    {% endif %}
+                                <button type="button" onclick="cancelarArchivo()" class="text-gray-400 hover:text-rose-400 transition p-1">
+                                    <i class="fas fa-times-circle"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
 
                 </div>
             </div>
@@ -544,496 +364,277 @@
         </div>
     </main>
 
-    <div id="modalControversia" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[110] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white border border-slate-200 rounded-[2rem] max-w-md w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 relative" id="modalControversiaContent">
-            
-            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-rose-400 to-rose-600"></div>
-
-            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-rose-50 mt-2">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shadow-inner">
-                        <i class="fas fa-balance-scale text-sm"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-sm font-black text-rose-900 uppercase tracking-widest leading-tight">Escalar a Soporte</h2>
-                        <p class="text-[9px] text-rose-500 font-bold uppercase tracking-wider mt-0.5">Arbitraje inWorker</p>
-                    </div>
+    <div id="modalControversia" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl p-6 transform scale-95 opacity-0 transition-all duration-300" id="contenidoModalControversia">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-100">
+                    <i class="fas fa-shield-alt text-2xl"></i>
                 </div>
-                <button type="button" onclick="cerrarModalControversia()" class="text-slate-400 hover:text-rose-500 transition-colors bg-white p-2 rounded-full border border-slate-200 shadow-sm active:scale-90">
-                    <i class="fas fa-times"></i>
+                <h3 class="text-base font-black text-slate-900 uppercase tracking-wide">Â¿Iniciar MediaciÃ³n por Disputa?</h3>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                    Si abres este caso, los fondos en garantÃ­a de <strong>${{ "{:,.0f}".format(saldo * 10000) }} COP</strong> se congelarÃ¡n administrativamente de inmediato. Nuestro Ãrbitro con Inteligencia Artificial leerÃ¡ el historial de este chat para dictar un veredicto justo.
+                </p>
+            </div>
+            
+            <div class="mt-6 flex items-center space-x-3">
+                <button onclick="cerrarModalControversia()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wide transition border border-slate-200">
+                    Cancelar
                 </button>
+                <a href="/abrir_disputa/{{ tarea.id }}" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wide transition text-center shadow-md shadow-rose-600/20">
+                    ðŸš¨ SÃ­, Activar IA
+                </a>
             </div>
-            
-            <form action="/abrir_disputa/{{ tarea.id }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
-                
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-600 font-medium leading-relaxed">
-                    Estás a punto de congelar los fondos y escalar este caso a la administración. Por favor, sé claro y objetivo.
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Motivo de la disputa</label>
-                    <textarea name="alegato" rows="3" required placeholder="Ej: El especialista dejó la tubería con fugas y se niega a repararla..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-900 focus:outline-none focus:border-rose-500 transition shadow-inner resize-none"></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Foto de Evidencia (Obligatorio)</label>
-                    <input type="file" name="evidencia" required accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-rose-50 file:text-rose-600 hover:file:bg-rose-100 cursor-pointer border border-slate-200 rounded-xl transition shadow-inner bg-slate-50">
-                </div>
-
-                <div class="pt-4 border-t border-slate-100">
-                    <button type="submit" onclick="this.innerHTML='<i class=\'fas fa-spinner fa-spin mr-2\'></i>Procesando...';" class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black uppercase tracking-widest rounded-xl transition-all shadow-lg hover:shadow-rose-600/30 flex items-center justify-center gap-2 text-xs active:scale-[0.98]">
-                        Iniciar Arbitraje Oficial <i class="fas fa-gavel ml-1"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="modalNuevoHito" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white border border-slate-200 rounded-[2rem] max-w-sm w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="modalNuevoHitoContent">
-            
-            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shadow-inner">
-                        <i class="fas fa-plus-circle text-sm"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-sm font-black text-indigo-900 uppercase tracking-widest leading-tight">Añadir Cobro</h2>
-                        <p class="text-[9px] text-indigo-500 font-bold uppercase tracking-wider mt-0.5">Protegido por Escrow</p>
-                    </div>
-                </div>
-                <button type="button" onclick="cerrarModalHito()" class="text-slate-400 hover:text-rose-500 transition-colors bg-white p-2 rounded-full border border-slate-200 shadow-sm active:scale-90">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form action="/chat/{{ tarea.id }}/enviar_cotizacion" method="POST" class="p-6 space-y-4">
-                <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
-                <input type="hidden" name="es_hito_adicional" value="true">
-
-                <div>
-                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Tipo de Cobro</label>
-                    <select name="tipo_cobro" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:outline-none focus:border-indigo-500 transition cursor-pointer shadow-inner">
-                        <option value="Hito de Proyecto">📌 Siguiente Hito (Ej: Radicar Demanda)</option>
-                        <option value="Ajuste en Sitio">🔧 Ajuste en Sitio (Ej: Repuestos extra)</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Concepto / Descripción</label>
-                    <input type="text" name="concepto" required placeholder="Ej: Compra de tubo PVC / 2da Etapa..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-indigo-500 transition shadow-inner">
-                </div>
-                
-                <div>
-                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Valor del Adicional (COP)</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><span class="text-emerald-500 font-black">$</span></div>
-                        <input type="number" name="monto_pesos" required placeholder="50000" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-4 py-3 text-sm font-black text-slate-900 focus:outline-none focus:border-emerald-500 transition shadow-inner">
-                    </div>
-                </div>
-
-                <div class="pt-4 border-t border-slate-100">
-                    <button type="submit" class="w-full py-3.5 bg-slate-900 hover:bg-indigo-600 text-white font-black uppercase tracking-widest rounded-xl transition-all shadow-lg hover:shadow-indigo-500/30 flex items-center justify-center gap-2 text-xs active:scale-[0.98]">
-                        Enviar Cobro al Cliente <i class="fas fa-paper-plane ml-1"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="modalDecisionCierre" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[120] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white border border-slate-200 rounded-[2rem] max-w-md w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 text-center relative" id="modalDecisionCierreContent">
-            
-            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-blue-500"></div>
-
-            <div class="p-8 pb-6">
-                <div class="w-20 h-20 mx-auto bg-emerald-50 text-emerald-500 rounded-full border-4 border-emerald-100 flex items-center justify-center mb-5 animate-bounce">
-                    <i class="fas fa-check-circle text-4xl"></i>
-                </div>
-                <h2 class="text-2xl font-black text-slate-900 leading-tight tracking-tight mb-2">¡Pago Liberado!</h2>
-                <p class="text-sm text-slate-500 font-medium">El especialista ya recibió los fondos en su billetera inWorker. ¿Cómo deseas continuar con este requerimiento?</p>
-            </div>
-
-            <div class="px-6 pb-8 space-y-3">
-                <button onclick="continuarProceso()" class="w-full bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-2xl p-4 text-left flex items-start gap-4 transition-all group">
-                    <div class="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-md">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-black text-indigo-900">Continuar con inWorker</h3>
-                        <p class="text-[10px] text-indigo-700/80 mt-1 leading-relaxed">Mantén el chat abierto y recibe las siguientes cotizaciones bajo la protección de Garantía Escrow.</p>
-                    </div>
-                </button>
-
-                <button onclick="finalizarYCalificar()" class="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl p-4 text-left flex items-start gap-4 transition-all group">
-                    <div class="w-10 h-10 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-black text-slate-800">Finalizar y Calificar</h3>
-                        <p class="text-[10px] text-slate-500 mt-1 leading-relaxed">Da por terminado este requerimiento por completo y evalúa el trabajo del especialista.</p>
-                    </div>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modalCalificar" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[130] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white border border-slate-200 rounded-[2rem] max-w-sm w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 text-center relative" id="modalCalificarContent">
-            
-            <div class="p-8 pb-6">
-                <div class="w-16 h-16 mx-auto bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mb-4 shadow-inner border-2 border-amber-100">
-                    <i class="fas fa-star text-3xl"></i>
-                </div>
-                <h2 class="text-2xl font-black text-slate-900 mb-1">Califica el Servicio</h2>
-                <p class="text-xs text-slate-500 mb-6 font-medium">¿Qué tal te pareció el trabajo del especialista?</p>
-                
-                <form action="/calificar/{{ tarea.id }}" method="POST" class="space-y-5">
-                    
-                    <div class="estrellas-box mb-2">
-                        <input type="radio" id="star5" name="estrellas" value="5" required />
-                        <label for="star5" title="5 Estrellas"><i class="fas fa-star"></i></label>
-                        
-                        <input type="radio" id="star4" name="estrellas" value="4" />
-                        <label for="star4" title="4 Estrellas"><i class="fas fa-star"></i></label>
-                        
-                        <input type="radio" id="star3" name="estrellas" value="3" />
-                        <label for="star3" title="3 Estrellas"><i class="fas fa-star"></i></label>
-                        
-                        <input type="radio" id="star2" name="estrellas" value="2" />
-                        <label for="star2" title="2 Estrellas"><i class="fas fa-star"></i></label>
-                        
-                        <input type="radio" id="star1" name="estrellas" value="1" />
-                        <label for="star1" title="1 Estrella"><i class="fas fa-star"></i></label>
-                    </div>
-
-                    <div class="text-left">
-                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Reseña (Opcional)</label>
-                        <textarea name="resena" rows="3" placeholder="Ej: Excelente servicio, muy puntual y profesional..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-amber-500 transition resize-none shadow-inner"></textarea>
-                    </div>
-                    
-                    <button type="submit" onclick="this.innerHTML='<i class=\'fas fa-spinner fa-spin mr-2\'></i>Procesando...';" class="w-full bg-slate-900 hover:bg-amber-500 text-white font-black py-3.5 rounded-xl transition-all shadow-lg hover:shadow-amber-500/30 active:scale-95 uppercase tracking-widest text-xs flex items-center justify-center gap-2 mt-2">
-                        Enviar y Finalizar <i class="fas fa-check"></i>
-                    </button>
-                </form>
-            </div>
-            
-            <button type="button" onclick="cerrarModalCalificar()" class="absolute top-4 right-4 text-slate-300 hover:text-rose-500 transition bg-slate-50 rounded-full p-1 border border-slate-100 active:scale-90 w-8 h-8 flex items-center justify-center shadow-sm">
-                <i class="fas fa-times text-sm"></i>
-            </button>
         </div>
     </div>
 
     <script>
         const cajaMensajes = document.getElementById('cajaMensajes');
 
-        function irAlFinalChat() {
-            if (cajaMensajes) cajaMensajes.scrollTop = cajaMensajes.scrollHeight;
-        }
-
-        function mostrarPrevisualizacion(e) {
-            const inputCamara = document.getElementById('imagen_camara');
-            const inputGaleria = document.getElementById('imagen_galeria');
-            if (e && e.target) {
-                if (e.target.id === 'imagen_camara' && inputGaleria) inputGaleria.value = '';
-                if (e.target.id === 'imagen_galeria' && inputCamara) inputCamara.value = '';
-            }
-            const fileInput = (inputCamara && inputCamara.files.length > 0) ? inputCamara : inputGaleria;
-            const previewContainer = document.getElementById('preview-filename');
-            
-            if (fileInput && fileInput.files[0]) {
-                document.getElementById('nombre-archivo').textContent = fileInput.files[0].name;
-                previewContainer.classList.remove('hidden');
-                irAlFinalChat();
-            }
-        }
-
-        function cancelarArchivo() {
-            document.getElementById('imagen_camara').value = ''; 
-            document.getElementById('imagen_galeria').value = ''; 
-            document.getElementById('preview-filename').classList.add('hidden');
-        }
-
-        const latitudInicial = parseFloat("{{ tarea.latitud if tarea.latitud else 10.9639 }}");  
-        const longitudInicial = parseFloat("{{ tarea.longitud if tarea.longitud else -74.7964 }}"); 
-        let mapaServicio = null; 
-
-        function inicializarMapa() {
-            try {
-                if (!mapaServicio) {
-                    mapaServicio = L.map('map').setView([latitudInicial, longitudInicial], 14);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapaServicio);
-                    L.marker([latitudInicial, longitudInicial]).addTo(mapaServicio);
-                }
-            } catch (error) { console.error("Error mapa:", error); }
-        }
-
-        const miFormulario = document.getElementById('formEnviarMensaje');
-        if (miFormulario) {
-            miFormulario.addEventListener('submit', function(e) {
-                e.preventDefault(); 
-                const msgInput = document.getElementById('inputMensaje');
-                const fileC = document.getElementById('imagen_camara');
-                const fileG = document.getElementById('imagen_galeria');
-                
-                if ((!msgInput.value.trim()) && (!fileC.files.length && !fileG.files.length)) return;
-
-                const btn = this.querySelector('button[type="submit"]');
-                btn.innerHTML = `<i class="fas fa-spinner animate-spin"></i>`;
-                btn.disabled = true;
-
-                fetch(this.action || window.location.pathname, { method: 'POST', body: new FormData(this) })
-                .then(res => {
-                    if (res.ok) { 
-                        msgInput.value = ""; 
-                        cancelarArchivo();
-                        cargarMensajes();
-                    }
-                }).catch(err => {
-                    console.error("Error al enviar el archivo:", err);
-                }).finally(() => {
-                    btn.innerHTML = `<i class="fas fa-paper-plane"></i>`;
-                    btn.disabled = false;
-                });
-            });
-        }
-
-        // --- LÓGICA DEL MODAL DE CONTROVERSIA / MEDIACIÓN ---
+        // FUNCIONES DEL MODAL DE CONTROVERSIA
         function abrirModalControversia() {
             const modal = document.getElementById('modalControversia');
-            const content = document.getElementById('modalControversiaContent');
-            if(modal) {
+            const contenido = document.getElementById('contenidoModalControversia');
+            if (modal && contenido) {
                 modal.classList.remove('hidden');
                 setTimeout(() => {
-                    modal.classList.remove('opacity-0');
-                    content.classList.remove('scale-95');
-                }, 10);
+                    contenido.classList.remove('scale-95', 'opacity-0');
+                    contenido.classList.add('scale-100', 'opacity-100');
+                }, 50);
             }
         }
 
         function cerrarModalControversia() {
             const modal = document.getElementById('modalControversia');
-            const content = document.getElementById('modalControversiaContent');
-            if(modal) {
-                modal.classList.add('opacity-0');
-                content.classList.add('scale-95');
-                setTimeout(() => { modal.classList.add('hidden'); }, 300);
-            }
-        }
-
-        // --- LÓGICA DE HITOS Y MODALES FINANCIEROS ---
-        function abrirModalHito() {
-            const modal = document.getElementById('modalNuevoHito');
-            const content = document.getElementById('modalNuevoHitoContent');
-            if(modal) {
-                modal.classList.remove('hidden');
+            const contenido = document.getElementById('contenidoModalControversia');
+            if (modal && contenido) {
+                contenido.classList.remove('scale-100', 'opacity-100');
+                contenido.classList.add('scale-95', 'opacity-0');
                 setTimeout(() => {
-                    modal.classList.remove('opacity-0');
-                    content.classList.remove('scale-95');
-                }, 10);
+                    modal.classList.add('hidden');
+                }, 300);
             }
         }
 
-        function cerrarModalHito() {
-            const modal = document.getElementById('modalNuevoHito');
-            const content = document.getElementById('modalNuevoHitoContent');
-            if(modal) {
-                modal.classList.add('opacity-0');
-                content.classList.add('scale-95');
-                setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        function irAlFinalChat() {
+            if (cajaMensajes) {
+                cajaMensajes.scrollTop = cajaMensajes.scrollHeight;
             }
         }
 
-        function procesarLiberacion(form) {
-            const btn = form.querySelector('button');
-            const oldHtml = btn.innerHTML;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Liberando fondos...`;
-            btn.disabled = true;
+        function mostrarPrevisualizacion() {
+            const fileInput = document.getElementById('imagen_adjunta');
+            const previewContainer = document.getElementById('preview-filename');
+            
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+                const archivo = fileInput.files[0];
+                
+                if (archivo.size > 8 * 1024 * 1024) {
+                    alert("El soporte fotogrÃ¡fico es muy pesado. MÃ¡ximo 8MB.");
+                    cancelarArchivo();
+                    return;
+                }
 
-            fetch(form.action, {
-                method: 'POST',
-                body: new FormData(form)
-            }).then(response => {
-                mostrarEncrucijadaCliente();
-            }).catch(err => {
-                console.error(err);
-                mostrarEncrucijadaCliente(); 
+                const txtNombre = document.getElementById('nombre-archivo');
+                if (txtNombre) txtNombre.textContent = archivo.name;
+                if (previewContainer) previewContainer.classList.remove('hidden');
+                
+                irAlFinalChat();
+            }
+        }
+
+        function cancelarArchivo() {
+            const fileInput = document.getElementById('imagen_adjunta');
+            const previewContainer = document.getElementById('preview-filename');
+            
+            if (fileInput) fileInput.value = ''; 
+            if (previewContainer) previewContainer.classList.add('hidden');
+        }
+
+        const latitudInicial = parseFloat("{{ tarea.latitud if tarea.latitud else 10.9639 }}");  
+        const longitudInicial = parseFloat("{{ tarea.longitud if tarea.longitud else -74.7964 }}"); 
+
+        try {
+            const map = L.map('map').setView([latitudInicial, longitudInicial], 14);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            L.marker([latitudInicial, longitudInicial]).addTo(map)
+                .bindPopup('<b class="text-gray-900">UbicaciÃ³n del Servicio</b><br><span class="text-xs text-gray-600">Ãrea acordada de asistencia.</span>')
+                .openPopup();
+        } catch (error) {
+            console.error("Error cargando el mapa de Leaflet:", error);
+        }
+
+        const miFormulario = document.getElementById('formEnviarMensaje');
+
+        if (miFormulario) {
+            miFormulario.addEventListener('submit', function(e) {
+                e.preventDefault(); 
+
+                const mensajeInput = document.getElementById('inputMensaje');
+                const fileInput = document.getElementById('imagen_adjunta');
+                
+                if ((!mensajeInput || mensajeInput.value.trim() === "") && (!fileInput || fileInput.files.length === 0)) {
+                    alert("No puedes enviar un mensaje vacÃ­o.");
+                    return;
+                }
+
+                const formData = new FormData(this);
+                const btnEnviar = this.querySelector('button[type="submit"]');
+                if (btnEnviar) {
+                    btnEnviar.disabled = true;
+                    btnEnviar.innerHTML = `<span>Enviando...</span> <i class="fas fa-spinner animate-spin text-xs"></i>`;
+                }
+
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        if (mensajeInput) mensajeInput.value = ""; 
+                        cancelarArchivo();                         
+                        cargarMensajes();                                   
+                    } else {
+                        alert("Error al enviar el mensaje.");
+                    }
+                })
+                .catch(err => console.error("Error en envÃ­o:", err))
+                .finally(() => {
+                    if (btnEnviar) {
+                        btnEnviar.disabled = false;
+                        btnEnviar.innerHTML = `<span>Enviar</span> <i class="fas fa-paper-plane text-xs"></i>`;
+                    }
+                });
             });
         }
 
-        function mostrarEncrucijadaCliente() {
-            const modal = document.getElementById('modalDecisionCierre');
-            const content = document.getElementById('modalDecisionCierreContent');
-            if(modal) {
-                modal.classList.remove('hidden');
-                setTimeout(() => {
-                    modal.classList.remove('opacity-0');
-                    content.classList.remove('scale-95');
-                }, 10);
-            }
-        }
-
-        function continuarProceso() {
-            window.location.reload(); 
-        }
-
-        function finalizarYCalificar() {
-            const modalEncrucijada = document.getElementById('modalDecisionCierre');
-            if(modalEncrucijada) modalEncrucijada.classList.add('hidden');
-            
-            const modal = document.getElementById('modalCalificar');
-            const content = document.getElementById('modalCalificarContent');
-            if(modal) {
-                modal.classList.remove('hidden');
-                setTimeout(() => {
-                    modal.classList.remove('opacity-0');
-                    content.classList.remove('scale-95');
-                }, 10);
-            }
-        }
-
-        function cerrarModalCalificar() {
-            const modal = document.getElementById('modalCalificar');
-            const content = document.getElementById('modalCalificarContent');
-            if(modal) {
-                modal.classList.add('opacity-0');
-                content.classList.add('scale-95');
-                setTimeout(() => { modal.classList.add('hidden'); }, 300);
-            }
-        }
-
-        // --- SISTEMA DE CARGA EN VIVO (POLLING BLINDADO) ---
-        const URL_API_MENSAGES = `/api/chat/{{ tarea.id if tarea.id else tarea['id'] }}/{{ canal_actual }}`;
-        const usuarioSesion = "{{ session['usuario_correo'] }}";
+        const tareaId = "{{ tarea.id if tarea.id else tarea['id'] }}";
+        const canalActual = "{{ canal_actual }}";
+        const URL_API_MENSAGES = `/api/chat/${tareaId}/${canalActual}`;
         const nombreUsuarioActual = "{{ nombre_usuario }}";
+        const usuarioSesion = "{{ session['usuario_correo'] }}";
         const clienteCorreoTarea = "{{ tarea.cliente_correo }}";
-        let ultimoIdMensaje = 0; 
-        let miPollingTimer = null;
 
         function cargarMensajes() {
-            clearTimeout(miPollingTimer);
-            fetch(`${URL_API_MENSAGES}?ultimo_id=${ultimoIdMensaje}`)
+            if (!cajaMensajes) return;
+            
+            fetch(URL_API_MENSAGES)
             .then(res => res.json())
             .then(data => {
-                if (data.success && data.mensajes && data.mensajes.length > 0) {
-                    document.getElementById('chat-vacio')?.remove();
-                    
-                    data.mensajes.forEach(msg => {
-                        try {
-                            if (msg.id > ultimoIdMensaje) ultimoIdMensaje = msg.id;
-                            if (document.getElementById(`msg-${msg.id}`)) return;
+                if (data.success) {
+                    let nuevoHTML = "";
 
+                    if (data.mensajes.length === 0) {
+                        nuevoHTML = `
+                            <div id="chat-vacio" class="h-full flex flex-col items-center justify-center text-center py-12 text-gray-500">
+                                <img src="/static/img/icono_conexion.png" alt="ConexiÃ³n" class="w-14 h-14 mb-3 opacity-60">
+                                <p class="text-sm font-medium text-gray-400">Sala de negociaciÃ³n vacÃ­a.</p>
+                                <p class="text-xs text-gray-600">EnvÃ­a un mensaje o lanza una oferta para arrancar.</p>
+                            </div>`;
+                    } else {
+                        data.mensajes.forEach(msg => {
                             const esPropio = (msg.remitente_correo === usuarioSesion || msg.remitente === nombreUsuarioActual);
-                            const alineacion = esPropio ? 'items-end' : 'items-start';
-                            const burbujaNormal = esPropio ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none';
-                            const colorHora = esPropio ? 'text-blue-200' : 'text-slate-400';
-                            const avatarInfo = esPropio ? '' : `<div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold border border-slate-300 flex-shrink-0">${msg.remitente ? msg.remitente.charAt(0).toUpperCase() : '?'}</div>`;
+                            const alineacionClase = esPropio ? 'items-end' : 'items-start';
+                            const colorBurbujaClase = esPropio ? 'bg-teal-600 text-white rounded-tr-none' : 'bg-gray-700 text-gray-100 rounded-tl-none';
                             
-                            let f_str = String(msg.fecha_envio || "");
-                            let horaCorta = f_str.includes('GMT') ? f_str.substring(17, 22) : (f_str.length >= 16 ? f_str.substring(11, 16) : f_str);
+                            if (msg.tipo && msg.tipo.includes('cotizacion')) {
+                                let bordeCotizacion = 'border-gray-700';
+                                let footerCotizacion = '';
 
-                            let html = "";
-                            
-                            if (msg.tipo && typeof msg.tipo === 'string' && msg.tipo.includes('cotizacion')) {
-                                let bordeColor = msg.tipo === 'cotizacion_pendiente' ? 'border-purple-200' : (msg.tipo === 'cotizacion_aceptada' ? 'border-emerald-200' : 'border-slate-200');
-                                
-                                let monto = 0;
-                                let concepto = "";
-                                if (msg.mensaje && typeof msg.mensaje === 'string' && msg.mensaje.includes('|')) {
-                                    monto = parseFloat(msg.mensaje.split('|')[0]) || 0;
-                                    concepto = msg.mensaje.split('|')[1] || "";
-                                } else {
-                                    monto = msg.monto_pesos ? parseFloat(msg.monto_pesos) : parseFloat(msg.cotizacion_pesos || 0);
-                                    concepto = msg.cotizacion_concepto || (msg.mensaje ? msg.mensaje : "Cotización sin detalles");
-                                }
-
-                                let botonesHTML = "";
                                 if (msg.tipo === 'cotizacion_pendiente') {
+                                    bordeCotizacion = 'border-purple-600';
                                     if (usuarioSesion === clienteCorreoTarea) {
-                                        botonesHTML = `
-                                        <form action="/chat/{{ tarea.id }}/responder_cotizacion/${msg.id}" method="POST" class="flex flex-col sm:flex-row gap-2 mt-4">
-                                            <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
-                                            <button type="submit" name="accion" value="Aceptar" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs transition shadow-sm active:scale-95">
-                                                <i class="fas fa-check mr-1"></i> Aceptar y Pagar
-                                            </button>
-                                            <button type="submit" name="accion" value="Rechazar" class="bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 font-bold px-4 py-2 rounded-xl text-xs transition">
-                                                Rechazar
-                                            </button>
-                                        </form>`;
+                                        footerCotizacion = `
+                                            <form action="/chat/${tareaId}/responder_cotizacion/${msg.id}" method="POST" class="flex items-center justify-center space-x-3">
+                                                <input type="hidden" name="canal_actual" value="${canalActual}">
+                                                <button type="submit" name="accion" value="Aceptar" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-5 py-2 rounded-xl text-xs uppercase tracking-wide transition shadow">
+                                                    âœ” Aceptar e Iniciar
+                                                </button>
+                                                <button type="submit" name="accion" value="Rechazar" class="bg-gray-700 hover:bg-rose-600 text-gray-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs uppercase transition">
+                                                    Declinado
+                                                </button>
+                                            </form>`;
                                     } else {
-                                        botonesHTML = `
-                                        <div class="bg-purple-50 text-purple-600 text-xs font-bold py-2 rounded-xl animate-pulse mt-4">
-                                            <i class="fas fa-clock mr-1"></i> Esperando al cliente...
-                                        </div>`;
+                                        footerCotizacion = `
+                                            <span class="text-xs font-semibold text-purple-400 bg-purple-950/40 px-3 py-1 rounded-full border border-purple-900 animate-pulse">
+                                                â³ Esperando respuesta del cliente...
+                                            </span>`;
                                     }
                                 } else if (msg.tipo === 'cotizacion_aceptada') {
-                                    botonesHTML = `
-                                    <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold py-2 rounded-xl flex justify-center items-center mt-4">
-                                        <i class="fas fa-lock mr-1.5"></i> Pago Asegurado en Garantía
-                                    </div>`;
+                                    bordeCotizacion = 'border-emerald-600';
+                                    footerCotizacion = `
+                                        <div class="text-xs font-black text-emerald-400 bg-emerald-950/50 py-1.5 rounded-xl border border-emerald-900 uppercase tracking-wide flex items-center justify-center space-x-1">
+                                            <i class="fas fa-lock"></i> <span>GarantÃ­a Congelada & Contrato Firmado</span>
+                                        </div>`;
                                 } else {
-                                    botonesHTML = `<div class="bg-slate-50 text-slate-400 text-xs font-bold py-2 rounded-xl mt-4">Cotización Declinada</div>`;
+                                    footerCotizacion = `
+                                        <div class="text-xs font-medium text-gray-400 bg-gray-900/50 py-1.5 rounded-xl border border-gray-800 uppercase tracking-wide">
+                                            âŒ Oferta Declinada / Caducada
+                                        </div>`;
                                 }
-                                
-                                html = `
-                                <div id="msg-${msg.id}" class="flex flex-col items-center my-6 w-full">
-                                    <div class="bg-white border shadow-sm rounded-2xl p-5 max-w-sm w-full text-center ${bordeColor}">
-                                        <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Cotización</div>
-                                        <div class="text-3xl font-black text-slate-800 mb-2">$${monto.toLocaleString('es-CO')} <span class="text-xs font-medium text-slate-400">COP</span></div>
-                                        <p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">${concepto}</p>
-                                        ${botonesHTML}
-                                    </div>
-                                    <span class="text-[9px] font-medium text-slate-400 mt-1.5">${horaCorta}</span>
-                                </div>`;
-                            
-                            } else if (msg.tipo === 'sistema' || (msg.mensaje && typeof msg.mensaje === 'string' && msg.mensaje.startsWith('SISTEMA:'))) {
-                                let textoLimpio = (msg.mensaje || "").replace('SISTEMA:', '').trim();
-                                html = `
-                                <div id="msg-${msg.id}" class="flex flex-col items-center my-4 w-full">
-                                    <div class="bg-slate-900 text-white rounded-xl shadow-md border border-slate-700 text-center text-xs px-4 py-3 max-w-[90%] sm:max-w-[70%]">
-                                        <p class="leading-relaxed whitespace-pre-wrap font-bold"><i class="fas fa-robot text-blue-400 mr-1.5"></i> ${textoLimpio}</p>
-                                    </div>
-                                    <span class="text-[9px] font-medium text-slate-400 mt-1">${horaCorta}</span>
-                                </div>`;
+
+                                const monto = msg.monto_pesos ? parseFloat(msg.monto_pesos) : parseFloat(msg.cotizacion_pesos);
+
+                                nuevoHTML += `
+                                    <div class="flex flex-col items-center my-4 w-full">
+                                        <div class="bg-gradient-to-b from-gray-800 to-gray-850 border-2 ${bordeCotizacion} rounded-2xl p-4 max-w-md w-full text-center shadow-2xl">
+                                            <div class="text-xs font-bold uppercase tracking-widest text-purple-400 mb-1">ðŸ’¼ Propuesta EconÃ³mica Formal</div>
+                                            <div class="text-2xl font-black text-white my-2">
+                                                $${monto.toLocaleString('es-CO', { maximumFractionDigits: 0 })} <span class="text-xs font-normal text-gray-400">COP</span>
+                                            </div>
+                                            <p class="text-xs text-gray-300 italic px-2 mb-3">"${msg.cotizacion_concepto}"</p>
+                                            <div class="text-[10px] text-gray-500 mb-3">Equivalente en Plataforma: ${msg.cotizacion_creditos} CrÃ©ditos</div>
+                                            ${footerCotizacion}
+                                        </div>
+                                        <span class="text-[9px] text-gray-600 mt-1">${msg.fecha_envio}</span>
+                                    </div>`;
 
                             } else {
-                                let contenidoHtml = msg.tipo === 'imagen' 
-                                    ? `<div class="rounded-lg overflow-hidden my-1"><img src="/static/uploads/${msg.mensaje}" class="max-w-full h-auto object-cover max-h-60 rounded cursor-zoom-in" onclick="window.open(this.src)"></div>` 
-                                    : `<p class="leading-relaxed whitespace-pre-wrap pr-8">${msg.mensaje || ""}</p>`;
-                                    
-                                html = `
-                                <div id="msg-${msg.id}" class="flex flex-col w-full ${alineacion} my-1">
-                                    <div class="flex items-end max-w-[85%] md:max-w-[70%] gap-2">
-                                        ${avatarInfo}
-                                        <div class="relative px-4 py-2.5 text-sm shadow-sm rounded-2xl ${burbujaNormal}">
-                                            ${contenidoHtml}
-                                            <span class="absolute bottom-1 right-2 text-[9px] font-medium ${colorHora}">${horaCorta}</span>
+                                let cuerpoMensaje = "";
+                                if (msg.tipo === 'imagen') {
+                                    cuerpoMensaje = `
+                                        <div class="rounded-lg overflow-hidden border border-black/20 my-1 bg-gray-800">
+                                            <img src="/static/uploads/${msg.mensaje}" alt="Imagen adjunta" class="max-w-full h-auto object-cover max-h-60 hover:scale-105 transition cursor-zoom-in" onclick="window.open(this.src)">
+                                        </div>`;
+                                } else {
+                                    cuerpoMensaje = `<p class="leading-relaxed break-words">${msg.mensaje}</p>`;
+                                }
+
+                                nuevoHTML += `
+                                    <div class="flex flex-col ${alineacionClase}">
+                                        <div class="max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-2.5 shadow-md text-sm ${colorBurbujaClase}">
+                                            <p class="text-[10px] font-bold uppercase tracking-wider opacity-75 mb-1">${msg.remitente}</p>
+                                            ${cuerpoMensaje}
                                         </div>
-                                    </div>
-                                </div>`;
+                                        <span class="text-[9px] text-gray-500 mt-0.5 px-1">${msg.fecha_envio}</span>
+                                    </div>`;
                             }
-                            
-                            cajaMensajes.insertAdjacentHTML('beforeend', html);
-                        } catch(e) {
-                            console.error("Error procesando mensaje individual:", e, msg);
-                        }
-                    });
-                    
-                    irAlFinalChat();
+                        });
+                    }
+
+                    if (cajaMensajes.innerHTML.trim() !== nuevoHTML.trim()) {
+                        cajaMensajes.innerHTML = nuevoHTML;
+                        irAlFinalChat();
+                    }
                 }
             })
-            .catch(error => console.error("Error en el polling de mensajes:", error))
-            .finally(() => { 
-                if (!document.hidden) miPollingTimer = setTimeout(cargarMensajes, 4000); 
-            });
+            .catch(err => console.error("Error consultando nuevos mensajes:", err));
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-            setTimeout(() => { inicializarMapa(); if(mapaServicio) mapaServicio.invalidateSize(); }, 500);
-            document.getElementById('imagen_camara')?.addEventListener('change', mostrarPrevisualizacion);
-            document.getElementById('imagen_galeria')?.addEventListener('change', mostrarPrevisualizacion);
-            if (cajaMensajes) cargarMensajes();
+            irAlFinalChat();
+            cargarMensajes();
+            
+            const inputArchivo = document.getElementById('imagen_adjunta');
+            if (inputArchivo) {
+                inputArchivo.addEventListener('change', mostrarPrevisualizacion);
+            }
+            
+            setInterval(cargarMensajes, 3000);
         });
     </script>
 </body>
-</html>
