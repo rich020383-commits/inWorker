@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>inWorker - Catálogo de Especialistas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen font-sans">
+
+    <nav class="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-50 px-4 py-3 shadow-sm">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <a href="/tareas" class="text-xl font-black tracking-wider text-blue-600 flex items-center gap-2">
+                    <i class="fas fa-wallet text-blue-600"></i> inWorker
+                </a>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="/tareas" class="text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-blue-600 transition flex items-center gap-1.5">
+                    <i class="fas fa-briefcase"></i> Ver Tablón
+                </a>
+                <span class="text-sm text-slate-700 font-medium hidden md:inline">Hola, <span class="text-blue-600 font-bold">{{ nombre_usuario }}</span></span>
+                <a href="/logout" class="text-xs font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-200 px-3 py-2 rounded-lg hover:bg-red-100 transition">
+                    Salir <i class="fas fa-sign-out-alt ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div class="mb-8">
+            <h1 class="text-2xl font-black text-slate-900 flex items-center gap-3">
+                <i class="fas fa-user-tie text-blue-600"></i> Especialistas Disponibles
+            </h1>
+            <p class="text-sm text-slate-500 mt-1">Conecta con los mejores técnicos calificados en la zona para tus proyectos y reparaciones.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for tecnico in tecnicos %}
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between hover:border-blue-300 transition shadow-sm relative overflow-hidden">
+                <div>
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-14 h-14 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center text-slate-400">
+                            {% if tecnico.foto %}
+                                <img src="/static/uploads/{{ tecnico.foto }}" alt="{{ tecnico.nombre }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <i class="fas fa-user text-2xl text-slate-400"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900">{{ tecnico.nombre }}</h3>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md mt-0.5 inline-block">
+                                {{ tecnico.profesion if tecnico.profesion else 'Técnico General' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 mb-4 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                        <div class="flex text-amber-500 text-xs">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                        <span class="text-xs font-black text-slate-800">{{ "%.1f"|format(tecnico.promedio_estrellas) }}</span>
+                        <span class="text-[11px] text-slate-500">({{ tecnico.total_calificaciones }} opiniones)</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <span class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider mb-1.5">Habilidades</span>
+                        <div class="flex flex-wrap gap-1.5">
+                            {% if tecnico.habilidades %}
+                                {% for hab in tecnico.habilidades.split(',') %}
+                                <span class="text-[10px] bg-slate-50 text-slate-700 px-2 py-1 rounded-md border border-slate-200 font-medium">{{ hab.strip() }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-[10px] bg-slate-50 text-slate-400 px-2 py-1 rounded-md italic">Soporte General</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-4 mt-2">
+                    <button onclick="prepararYAbrirModal(this)" 
+                            data-nombre="{{ tecnico.nombre }}"
+                            data-profesion="{{ tecnico.profesion if tecnico.profesion else 'Técnico General' }}"
+                            data-descripcion="{{ tecnico.descripcion if tecnico.descripcion else 'Sin descripción disponible por ahora.' }}"
+                            data-foto="{% if tecnico.foto %}/static/uploads/{{ tecnico.foto }}{% endif %}"
+                            data-portafolio="{% if tecnico.proyectos %}{% for p in tecnico.proyectos %}/static/uploads/{{ p.imagen_ruta }}|{{ p.descripcion if p.descripcion else 'Trabajo Realizado' }}{% if not loop.last %},{% endif %}{% endfor %}{% endif %}"
+                            data-correo="{{ tecnico.correo }}"
+                            class="w-full text-center px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 shadow-sm active:scale-[0.99]">
+                        <i class="fas fa-eye text-sm"></i> Ver Perfil Completo
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-span-full bg-white border border-slate-200 border-dashed rounded-2xl p-12 text-center shadow-sm">
+                <i class="fas fa-users-slash text-slate-300 text-4xl mb-3"></i>
+                <h3 class="text-base font-bold text-slate-400">No hay especialistas registrados</h3>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <div id="modalPerfil" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
+        <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl relative flex flex-col">
+            
+            <button onclick="cerrarModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2 text-xl transition z-10">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="p-6 md:p-8">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-20 h-20 rounded-full bg-slate-50 border border-slate-200 overflow-hidden flex items-center justify-center">
+                        <img id="modalFoto" src="" alt="" class="w-full h-full object-cover hidden">
+                        <i id="modalIcono" class="fas fa-user text-4xl text-slate-300"></i>
+                    </div>
+                    <div>
+                        <h2 id="modalNombre" class="text-2xl font-black text-slate-900"></h2>
+                        <span id="modalProfesion" class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md mt-1 inline-block"></span>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h4 class="text-xs uppercase font-black tracking-wider text-slate-400 mb-2">Sobre el Especialista</h4>
+                    <p id="modalDescripcion" class="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100"></p>
+                </div>
+
+                <div class="mb-8">
+                    <h4 class="text-xs uppercase font-black tracking-wider text-slate-400 mb-3">Trabajos Anteriores (Portafolio)</h4>
+                    <div id="modalGaleria" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-6 flex flex-col sm:flex-row gap-3">
+                    <button onclick="activarFlujoCotizacion()" class="flex-1 text-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold uppercase tracking-wider text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm active:scale-[0.99]">
+                        <i class="fas fa-comments text-base"></i> Solicitar Cotización Privada Directa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalCotizacionPrivada" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full overflow-hidden shadow-xl">
+            
+            <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fas fa-user-lock text-blue-600"></i> Orden Privada: <span id="nombreTecnicoCotizar" class="text-blue-600 font-black"></span>
+                </h2>
+                <button onclick="document.getElementById('modalCotizacionPrivada').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form action="/solicitar_cotizacion_privada" method="POST" class="p-5 space-y-4">
+                <input type="hidden" id="inputTecnicoCorreo" name="tecnico_correo" value="">
+
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">¿Qué necesitas reparar o cotizar?</label>
+                    <input type="text" name="titulo" required placeholder="Ej: Reparación Tarjeta Nevera Whirlpool" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition">
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Detalles o síntomas de la falla</label>
+                    <textarea name="descripcion" rows="3" required placeholder="Explica detalladamente para recibir una propuesta formal en el chat..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Categoría</label>
+                        <select name="categoria" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 transition">
+                            <option value="Soporte Técnico">Soporte Técnico</option>
+                            <option value="Línea Blanca">Línea Blanca</option>
+                            <option value="Electricidad">Electricidad</option>
+                            <option value="Plomería">Plomería</option>
+                            <option value="Mantenimiento">Mantenimiento</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Presupuesto Inicial (COP)</label>
+                        <input type="number" name="pago" required placeholder="Ej: 100000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition">
+                    </div>
+                </div>
+
+                <input type="hidden" name="latitud" value="10.9639">
+                <input type="hidden" name="longitud" value="-74.7964">
+                <input type="hidden" name="zona" value="Barranquilla (Directo)">
+
+                <div class="pt-1">
+                    <button type="submit" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase tracking-wider rounded-xl transition text-[10px] shadow-sm">
+                        Enviar Requerimiento al Chat
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let tecnicoActivoCorreo = '';
+        let tecnicoActivoNombre = '';
+
+        function prepararYAbrirModal(boton) {
+            tecnicoActivoNombre = boton.getAttribute('data-nombre');
+            tecnicoActivoCorreo = boton.getAttribute('data-correo');
+            let profesion = boton.getAttribute('data-profesion');
+            let descripcion = boton.getAttribute('data-descripcion');
+            let foto = boton.getAttribute('data-foto');
+            let fotosPortafolio = boton.getAttribute('data-portafolio');
+
+            document.getElementById('modalNombre').innerText = tecnicoActivoNombre;
+            document.getElementById('modalProfesion').innerText = profesion;
+            document.getElementById('modalDescripcion').innerText = descripcion;
+            
+            const imgFoto = document.getElementById('modalFoto');
+            const iconFoto = document.getElementById('modalIcono');
+            
+            if(foto && foto !== 'None' && foto !== '') {
+                imgFoto.src = foto;
+                imgFoto.classList.remove('hidden');
+                iconFoto.classList.add('hidden');
+            } else {
+                imgFoto.classList.add('hidden');
+                iconFoto.classList.remove('hidden');
+            }
+
+            const galeria = document.getElementById('modalGaleria');
+            galeria.innerHTML = '';
+            
+            if(fotosPortafolio && fotosPortafolio.trim() !== 'None' && fotosPortafolio.trim() !== '') {
+                const proyectos = fotosPortafolio.split(',');
+                proyectos.forEach(proyectoRaw => {
+                    if(proyectoRaw.trim() !== '') {
+                        const parts = proyectoRaw.split('|');
+                        const url = parts[0];
+                        const text = parts[1] || 'Trabajo Realizado';
+
+                        // CAMBIO SUTIL: Cajas de las imágenes del portafolio en fondo claro acorde a la nueva estética
+                        const container = document.createElement('div');
+                        container.className = "bg-slate-50 p-1.5 rounded-xl border border-slate-200 text-center space-y-1";
+
+                        const img = document.createElement('img');
+                        img.src = url.trim();
+                        img.className = "w-full h-24 object-cover rounded-lg border border-slate-200 hover:border-blue-500 transition cursor-pointer";
+                        
+                        const txt = document.createElement('p');
+                        txt.className = "text-[10px] text-slate-500 truncate px-1 font-medium";
+                        txt.innerText = text;
+
+                        container.appendChild(img);
+                        container.appendChild(txt);
+                        galeria.appendChild(container);
+                    }
+                });
+            } else {
+                // CAMBIO SUTIL: Estado vacío del portafolio alineado
+                galeria.innerHTML = `<p class="text-xs text-slate-400 italic col-span-full bg-slate-50 p-4 text-center rounded-xl border border-slate-200 border-dashed">El técnico no ha subido fotos de sus trabajos todavía.</p>`;
+            }
+
+            const modal = document.getElementById('modalPerfil');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function cerrarModal() {
+            const modal = document.getElementById('modalPerfil');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        function activarFlujoCotizacion() {
+            cerrarModal(); 
+            document.getElementById('inputTecnicoCorreo').value = tecnicoActivoCorreo;
+            document.getElementById('nombreTecnicoCotizar').innerText = tecnicoActivoNombre;
+            document.getElementById('modalCotizacionPrivada').classList.remove('hidden');
+        }
+
+        window.onclick = function(event) {
+            const modalPerfil = document.getElementById('modalPerfil');
+            const modalCotizacion = document.getElementById('modalCotizacionPrivada');
+            if (event.target == modalPerfil) {
+                cerrarModal();
+            }
+            if (event.target == modalCotizacion) {
+                modalCotizacion.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

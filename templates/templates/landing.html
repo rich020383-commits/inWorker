@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>inWorker - Trabaja y contrata con total confianza</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm px-4 py-3">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <a href="#" class="flex items-center space-x-2 select-none group">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-10 w-auto object-contain">
+                    <div class="flex flex-col border-l border-slate-200 pl-2 ml-1">
+                        <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                            Ecosistema <span class="text-[#2563EB]">Tech</span>
+                        </span>
+                    </div>
+                </a>
+            </div>
+            <div>
+    <a href="{{ url_for('login') }}" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-sm flex items-center space-x-1">
+        <i class="fas fa-user text-[10px]"></i>
+        <span>Ingresar al Panel</span>
+    </a>
+</div>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        
+        <section class="max-w-7xl mx-auto px-4 pt-16 pb-12 text-center space-y-6">
+            <span class="text-[10px] font-black uppercase tracking-widest bg-blue-50 text-[#2563EB] px-3 py-1.5 rounded-lg border border-blue-100 inline-block">
+                Marketplace de Confianza Garantizada
+            </span>
+            <h1 class="text-4xl md:text-6xl font-black text-slate-950 tracking-tight max-w-4xl mx-auto leading-tight">
+                Trabaja y contrata con total confianza.
+            </h1>
+            <p class="text-base md:text-lg text-slate-500 max-w-2xl mx-auto font-medium">
+                Conectamos talento técnico independiente con clientes bajo un sistema de pago 100% protegido. El dinero solo se libera cuando apruebas el servicio.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
+    <a href="{{ url_for('login', action='registro', rol='Cliente') }}" class="w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-4 rounded-xl text-sm uppercase tracking-wider transition shadow-md">
+        <i class="fas fa-search mr-2"></i> Buscar Talento Técnico
+    </a>
+    
+    <a href="{{ url_for('login', action='registro', rol='Worker') }}" class="w-full sm:w-auto text-center bg-green-500 hover:bg-green-600 text-white font-bold px-8 py-4 rounded-xl text-sm uppercase tracking-wider transition shadow-md">
+        <i class="fas fa-tools mr-2"></i> Ofrecer mis Servicios
+    </a>
+</div>
+
+            <div class="pt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                    <div class="text-blue-600 bg-blue-50 p-2 rounded-lg"><i class="fas fa-lock"></i></div>
+                    <span class="text-xs font-bold text-slate-800">Pagos en Escrow🛡️</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                    <div class="text-green-500 bg-green-50 p-2 rounded-lg"><i class="fas fa-id-card"></i></div>
+                    <span class="text-xs font-bold text-slate-800">Perfiles Verificados</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                    <div class="text-amber-500 bg-amber-50 p-2 rounded-lg"><i class="fas fa-briefcase"></i></div>
+                    <span class="text-xs font-bold text-slate-800">Portafolios Reales</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                    <div class="text-purple-500 bg-purple-50 p-2 rounded-lg"><i class="fas fa-check-circle"></i></div>
+                    <span class="text-xs font-bold text-slate-800">Garantía de Entrega</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white border-y border-slate-200 py-16 px-4">
+            <div class="max-w-7xl mx-auto space-y-12">
+                <div class="text-center space-y-2">
+                    <h2 class="text-2xl md:text-3xl font-black text-slate-950 uppercase tracking-tight">Diseñado para tu seguridad</h2>
+                    <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Adiós a los fraudes en contratación independiente</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                    <div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl space-y-4">
+                        <h3 class="text-sm font-black text-blue-600 uppercase tracking-wider flex items-center">
+                            <i class="fas fa-user-tie mr-2 text-base"></i> Para el Cliente: Cero estafas
+                        </h3>
+                        <ol class="space-y-4 text-xs text-slate-600 font-medium">
+                            <li class="flex items-start"><span class="bg-blue-100 text-blue-700 h-5 w-5 rounded-full flex items-center justify-center font-bold mr-2.5 shrink-0">1</span> <span><strong>Publica tu necesidad:</strong> Describe detalladamente el servicio técnico o proyecto que requieres.</span></li>
+                            <li class="flex items-start"><span class="bg-blue-100 text-blue-700 h-5 w-5 rounded-full flex items-center justify-center font-bold mr-2.5 shrink-0">2</span> <span><strong>Depósito seguro:</strong> Tu pago queda retenido de forma segura en la plataforma mediante nuestro sistema Escrow.</span></li>
+                            <li class="flex items-start"><span class="bg-blue-100 text-blue-700 h-5 w-5 rounded-full flex items-center justify-center font-bold mr-2.5 shrink-0">3</span> <span><strong>Revisa y libera:</strong> El especialista realiza el trabajo, tú verificas el resultado y solo cuando estés conforme, liberas los fondos.</span></li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl space-y-4">
+                        <h3 class="text-sm font-black text-green-600 uppercase tracking-wider flex items-center">
+                            <i class="fas fa-user-cog mr-2 text-base"></i> Para el Especialista: Cobro Seguro
+                        </h3>
+                        <ol class="space-y-4 text-xs text-slate-600 font-medium">
+                            <li class="flex items-start"><span class="bg-green-100 text-green-700 h-5 w-5 rounded-full flex items-center justify-center font-bold mr-2.5 shrink-0">1</span> <span><strong>Verifica tu identidad:</strong> Sube tu cédula y realiza nuestra validación facial biométrica para ganar máxima credibilidad.</span></li>
+                            <li class="flex items-start"><span class="bg-green-100 text-green-700 h-5 w-5 rounded-full flex items-center justify-center font-bold mr-2.5 shrink-0">2</span> <span><strong>Muestra tu portafolio:</strong> Carga tus estudios, certificaciones y fotos de tus trabajos previos para atraer clientes premium.</span></li>
+                            <li class="flex items-start"><span class="bg-green-100 text-green-700 h-5 w-5 rounded-full flex items-center justify-center font-bold mr-2.5 shrink-0">3</span> <span><strong>Trabaja con garantía:</strong> Inicia tus labores sabiendo con total certeza que el pago del cliente ya está respaldado y congelado por la plataforma.</span></li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="max-w-5xl mx-auto px-4 py-16">
+            <div class="bg-gradient-to-br from-slate-900 to-blue-950 text-white rounded-3xl p-8 md:p-12 shadow-xl border border-blue-900/50 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="absolute -right-16 -top-16 text-blue-900/20 text-9xl font-black pointer-events-none select-none"><i class="fas fa-brain"></i></div>
+                <div class="space-y-3 max-w-xl z-10">
+                    <span class="text-[10px] font-bold uppercase tracking-widest bg-blue-500/20 text-blue-400 px-3 py-1 rounded-md border border-blue-500/30">
+                        Tecnología de Vanguardia
+                    </span>
+                    <h3 class="text-2xl md:text-3xl font-black tracking-tight">Potenciado por Upward AI</h3>
+                    <p class="text-xs md:text-sm text-slate-300 leading-relaxed font-medium">
+                        Nuestro sistema utiliza algoritmos avanzados de Inteligencia Artificial para ejecutar un matching automático inteligente. Analizamos las habilidades del técnico y los requerimientos exactos del cliente para conectarte con el perfil perfecto en segundos.
+                    </p>
+                </div>
+                <div class="shrink-0 z-10 w-full md:w-auto text-center">
+                    <div class="inline-block bg-blue-600/30 border border-blue-500/40 text-blue-300 rounded-2xl px-6 py-4 font-black tracking-wider text-xs uppercase">
+                        ⚡ Contratación Inteligente
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 px-4 py-6 text-center">
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">inWorker &copy; 2026 - Uniendo Tecnología y Confianza</p>
+    </footer>
+
+</body>
+</html>

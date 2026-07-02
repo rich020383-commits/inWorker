@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>inWorker - Mi Perfil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Estilos personalizados para inputs deshabilitados integrados con el fondo claro */
+        input:disabled, textarea:disabled, select:disabled {
+            background-color: #f1f5f9 !important; /* slate-100 */
+            color: #64748b !important; /* slate-500 */
+            cursor: not-allowed;
+            border-color: #cbd5e1 !important; /* slate-300 */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col relative">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm px-4 py-3">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            
+            <div class="flex items-center space-x-3">
+                <a href="/dashboard" class="w-9 h-9 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition border border-slate-200">
+                    <i class="fas fa-arrow-left text-xs"></i>
+                </a>
+                <div class="flex items-center space-x-2 select-none">
+                    <svg class="w-7 h-7" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="25" cy="20" r="8" fill="#2563EB"/>
+                        <path d="M17 38 C17 38, 17 65, 17 65 C17 73, 27 75, 33 70 C38 65, 45 58, 45 58" stroke="#2563EB" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="75" cy="20" r="8" fill="#22C55E"/>
+                        <path d="M83 38 C83 38, 83 65, 83 65 C83 73, 73 75, 67 70 C62 65, 55 58, 55 58" stroke="#22C55E" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M43 56 L48 61 L57 52" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-black tracking-tight text-slate-900 leading-none">
+                            <span class="text-[#2563EB]">in</span>Worker
+                        </span>
+                        <span class="text-[8px] font-bold uppercase tracking-wider text-slate-400 mt-0.5">
+                            Mi Perfil <span class="text-[#22C55E]">Centralizado</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <span class="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-[#2563EB] px-3 py-1.5 rounded-lg border border-blue-100">
+                    Rol: {{ session['usuario_rol'] }}
+                </span>
+            </div>
+            
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full">
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="p-4 rounded-xl text-xs font-bold mb-6 border leading-relaxed shadow-sm
+                {% if category == 'error' %} bg-red-50 border-red-200 text-red-700
+                {% else %} bg-green-50 border-green-200 text-green-700 {% endif %}">
+                <i class="fas {% if category == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-2"></i>
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+            
+            <form action="/perfil" method="POST" enctype="multipart/form-data" class="space-y-6">
+                
+                <input type="hidden" name="accion_perfil" value="actualizar_datos">
+                
+                <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 pb-6 border-b border-slate-100">
+                    <div class="relative group">
+                        <div class="w-24 h-24 rounded-full bg-slate-100 border-4 border-blue-600/20 flex items-center justify-center text-blue-600 font-black text-2xl uppercase overflow-hidden shadow-inner select-none">
+                            {% if usuario['foto'] %}
+                                <img src="{{ url_for('static', filename='uploads/' + usuario['foto']) }}" class="w-full h-full object-cover">
+                            {% else %}
+                                {{ usuario['nombre'][:2] }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="text-center sm:text-left flex-1">
+                        <h2 class="text-xl font-black text-slate-900">{{ usuario['nombre'] }}</h2>
+                        <p class="text-xs text-blue-600 font-bold uppercase tracking-wider mt-0.5">{{ usuario['correo'] }}</p>
+                        
+                        <div class="mt-3">
+                            <label class="inline-block bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 text-[11px] font-bold uppercase tracking-wide px-3 py-2 rounded-xl cursor-pointer transition shadow-sm">
+                                <i class="fas fa-camera mr-1"></i> Cambiar Foto de Perfil
+                                <input type="file" name="foto_perfil" accept="image/*" class="hidden">
+                            </label>
+                            <p class="text-[10px] text-slate-400 mt-1">Límite recomendado: Máximo 16MB.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Nombre Completo / Razón Social</label>
+                        <input type="text" value="{{ usuario['nombre'] }}" disabled class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Documento de Identidad (Cédula / NIT)</label>
+                        <input type="text" value="{{ usuario['cedula'] }}" disabled class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Número de Contacto Móvil</label>
+                        <input type="tel" name="telefono" value="{{ usuario['telefono'] if usuario['telefono'] else '' }}" placeholder="Ej: 3001234567" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Estado de Verificación Operativa</label>
+                        <div class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold flex items-center space-x-2">
+                            {% if usuario['verificado'] == 1 %}
+                                <span class="text-green-600 flex items-center gap-1"><i class="fas fa-check-circle"></i> Cuenta Certificada y Verificada</span>
+                            {% else %}
+                                <span class="text-amber-600 flex items-center gap-1"><i class="fas fa-clock"></i> Pendiente por Validación Documental</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if session['usuario_rol'] == 'Trabajador' %}
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Profesión u Oficio Destacado</label>
+                        <select id="field-profesion" name="profesion" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500 transition cursor-pointer">
+                            <option value="Soporte Técnico" {% if usuario['profesion'] == 'Soporte Técnico' %}selected{% endif %}>Soporte Técnico</option>
+                            <option value="Línea Blanca" {% if usuario['profesion'] == 'Línea Blanca' %}selected{% endif %}>Línea Blanca</option>
+                            <option value="Electricidad" {% if usuario['profesion'] == 'Electricidad' %}selected{% endif %}>Electricidad</option>
+                            <option value="Plomería" {% if usuario['profesion'] == 'Plomería' %}selected{% endif %}>Plomería</option>
+                            <option value="Mantenimiento" {% if usuario['profesion'] == 'Mantenimiento' %}selected{% endif %}>Mantenimiento Técnico General</option>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Resumen de Habilidades, Experiencia o Herramientas</label>
+                        <textarea id="field-habilidades" name="habilidades" rows="3" placeholder="Describe brevemente tus fortalezas..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500 transition">{{ usuario['habilidades'] if usuario['habilidades'] and usuario['habilidades'] != 'Sin especificar' else '' }}</textarea>
+                    </div>
+
+                    <div class="md:col-span-2 bg-slate-50 p-4 border border-slate-200 rounded-xl">
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Cargar Fotos de Trabajos Recientes (Portafolio)</label>
+                        <input type="file" name="trabajos_previos" multiple accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 cursor-pointer">
+                        <p class="text-[10px] text-slate-400 mt-1">Puedes seleccionar múltiples archivos para mostrar tu experiencia en campo.</p>
+                    </div>
+
+                    <div class="md:col-span-2 border-t border-slate-100 pt-4 mt-2">
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">Finanzas de la cuenta</label>
+                        <a href="/solicitar_pago" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition shadow-sm">
+                            <i class="fas fa-money-bill-wave text-sm"></i>
+                            <span>Solicitar Retiro / Cobro Administrativo</span>
+                        </a>
+                    </div>
+
+                    {% else %}
+                    <input type="hidden" name="profesion" value="Cliente General">
+                    <input type="hidden" name="habilidades" value="Cuenta de Cliente">
+                    {% endif %}
+
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex justify-end">
+                    <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-black py-3.5 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center space-x-2 active:scale-[0.98]">
+                        <i class="fas fa-save text-sm"></i>
+                        <span>Guardar Cambios del Perfil</span>
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </main>
+
+    <div id="copilot-sidebar" class="fixed top-0 right-0 h-full w-full sm:w-96 bg-white border-l border-slate-200 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col hidden">
+        <div class="p-4 bg-slate-900 text-white flex justify-between items-center shadow-md">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-robot text-blue-400 animate-pulse text-base"></i>
+                <div>
+                    <h3 class="text-xs font-black uppercase tracking-wider leading-none">Copiloto inWorker</h3>
+                    <p class="text-[9px] text-slate-400 font-medium mt-0.5">Asistente de Optimización Profesional</p>
+                </div>
+            </div>
+            <button onclick="toggleCopilot()" class="text-slate-400 hover:text-white transition focus:outline-none">
+                <i class="fas fa-times-circle text-lg"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50" id="copilot-chat-box">
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-slate-700 leading-relaxed shadow-sm">
+                <p class="font-bold text-blue-800 mb-1">¡Hola, {{ usuario['nombre'] }}! 👋</p>
+                Analicé la información de tu perfil actual y estoy listo para ayudarte a redactar una descripción ultra-profesional para captar más clientes.
+            </div>
+        </div>
+
+        <div class="p-3 bg-white border-t border-slate-200 flex flex-col space-y-2">
+            <button onclick="optimizarTextoPerfil()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-3 rounded-xl text-[11px] uppercase tracking-wider transition flex items-center justify-center space-x-1.5 shadow-sm">
+                <i class="fas fa-wand-magic-sparkles text-xs"></i>
+                <span>Sugerir Resumen Profesional</span>
+            </button>
+            
+            <div class="flex items-center space-x-2 border-t border-slate-100 pt-2">
+                <input type="text" id="copilot-input" placeholder="Pregúntale algo más al copiloto..." class="flex-1 bg-slate-100 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition">
+                <button onclick="enviarMensajeCopilot()" class="bg-slate-900 hover:bg-slate-800 text-white p-2.5 rounded-xl transition flex items-center justify-center">
+                    <i class="fas fa-paper-plane text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para abrir y cerrar el panel del Copiloto
+        function toggleCopilot() {
+            const sidebar = document.getElementById('copilot-sidebar');
+            if (sidebar) {
+                if (sidebar.classList.contains('hidden')) {
+                    sidebar.classList.remove('hidden');
+                    setTimeout(() => {
+                        sidebar.classList.remove('translate-x-full');
+                    }, 50);
+                } else {
+                    sidebar.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        sidebar.classList.add('hidden');
+                    }, 300);
+                }
+            }
+        }
+
+        // Lógica para simular el envío de mensajes escritos
+        function enviarMensajeCopilot() {
+            const input = document.getElementById('copilot-input');
+            const box = document.getElementById('copilot-chat-box');
+            if (input && input.value.trim() !== "") {
+                box.innerHTML += `
+                    <div class="flex flex-col items-end mt-2">
+                        <div class="bg-slate-900 text-white rounded-2xl rounded-tr-none px-3 py-2 text-xs max-w-[85%] font-medium shadow-sm">
+                            ${input.value}
+                        </div>
+                    </div>`;
+                input.value = "";
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        // =========================================================================
+        // ✨ FUNCIÓN CONECTADA A GEMINI IA (CON FETCH REAL)
+        // =========================================================================
+        function optimizarTextoPerfil() {
+            const box = document.getElementById('copilot-chat-box');
+            const selectProf = document.getElementById('field-profesion');
+            const txtAreaHabilidades = document.getElementById('field-habilidades');
+            
+            let profesionActual = selectProf ? selectProf.value : "Soporte Técnico";
+            let habilidadesActuales = txtAreaHabilidades ? txtAreaHabilidades.value : "";
+
+            // 1. Insertar el mensaje de petición del usuario en el chat
+            box.innerHTML += `
+                <div class="flex flex-col items-end mt-2">
+                    <div class="bg-slate-200 text-slate-800 rounded-2xl rounded-tr-none px-3 py-2 text-xs font-bold shadow-sm">
+                        ¡Optimiza mi perfil de ${profesionActual} con IA! 🤖
+                    </div>
+                </div>`;
+            box.scrollTop = box.scrollHeight;
+
+            // 2. Colocar indicador visual de "Pensando" animado
+            const loaderId = "ia-pensando-" + Date.now();
+            box.innerHTML += `
+                <div id="${loaderId}" class="bg-blue-50 border border-blue-100 text-slate-500 p-3 rounded-xl italic mt-2 animate-pulse text-xs">
+                    ✨ Gemini está analizando tus datos en tiempo real...
+                </div>`;
+            box.scrollTop = box.scrollHeight;
+
+            // 3. Petición POST real al servidor Flask
+            fetch('/api/optimizar_perfil', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    profesion: profesionActual,
+                    habilidades: habilidadesActuales
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Eliminar el letrero de cargando
+                const loader = document.getElementById(loaderId);
+                if (loader) loader.remove();
+
+                let sugerenciaIA = data.sugerencia;
+                // Limpiar el texto para que las comillas no rompan el evento onclick del botón
+                let textoEscapado = sugerenciaIA.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+                // 4. Inyectar la sugerencia inteligente en el chat
+                box.innerHTML += `
+                    <div class="bg-green-50 border border-green-200 text-slate-800 p-3 rounded-xl leading-relaxed shadow-sm mt-2 text-xs">
+                        ✨ <strong>Sugerencia de Gemini:</strong><br>
+                        <p class="mt-1 text-slate-600 font-medium">${sugerenciaIA}</p>
+                        <button onclick="aplicarTextoIA('${textoEscapado}')" class="mt-2.5 bg-green-600 hover:bg-green-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-[10px] uppercase tracking-wide transition block text-center w-full shadow-sm">
+                            Aplicar este texto al formulario 📋
+                        </button>
+                    </div>`;
+                box.scrollTop = box.scrollHeight;
+            })
+            .catch(error => {
+                console.error("Error al conectar con Gemini:", error);
+                const loader = document.getElementById(loaderId);
+                if (loader) loader.remove();
+            });
+        }
+
+        function aplicarTextoIA(texto) {
+            const txtAreaHabilidades = document.getElementById('field-habilidades');
+            if (txtAreaHabilidades) {
+                txtAreaHabilidades.value = texto;
+                
+                // Efecto visual de destello verde en el input
+                txtAreaHabilidades.classList.add('ring-2', 'ring-green-500', 'border-green-500');
+                setTimeout(() => {
+                    txtAreaHabilidades.classList.remove('ring-2', 'ring-green-500', 'border-green-500');
+                }, 1500);
+                
+                const box = document.getElementById('copilot-chat-box');
+                box.innerHTML += `
+                    <div class="bg-slate-900 text-white text-center p-2 rounded-lg font-bold text-[10px] uppercase tracking-wider mt-2">
+                        ✅ ¡Texto aplicado con éxito! Recuerda guardar los cambios abajo.
+                    </div>`;
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        // DETECTOR AUTOMÁTICO DE URL (?autostart_copilot=true)
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autostart_copilot') === 'true') {
+                const sidebar = document.getElementById('copilot-sidebar');
+                if (sidebar) {
+                    sidebar.classList.remove('hidden');
+                    setTimeout(() => {
+                        sidebar.classList.remove('translate-x-full');
+                    }, 100);
+                }
+            }
+        });
+</script>
+</body>
+</html>

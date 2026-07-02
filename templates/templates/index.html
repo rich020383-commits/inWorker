@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>inWorker - Panel de Control</title>
+
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    
+    <meta name="theme-color" content="#2563EB">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icono-512.png') }}?v=1">
+    <link class="html-shortcut-icon" rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}?v=1">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm px-4 py-3">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            
+            <div class="flex items-center space-x-3">
+                <a href="{{ url_for('home') }}" class="flex items-center space-x-2 select-none group">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" 
+                         alt="Logo inWorker" 
+                         class="h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+                         onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/logo.png') }}?v=1';">
+                    <div class="flex flex-col border-l border-slate-200 pl-2 ml-1">
+                        <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                            Control <span class="text-[#22C55E]">Hub</span>
+                        </span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <span class="text-xs text-slate-500 hidden md:inline">Bienvenido, <strong class="text-slate-900">{{ nombre_usuario }}</strong></span>
+                <span class="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-[#2563EB] px-3 py-1.5 rounded-lg border border-blue-100">
+                    {{ session['usuario_role'] if 'usuario_role' in session else session['usuario_rol'] }}
+                </span>
+                <a href="{{ url_for('logout') }}" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs px-3 py-2 rounded-xl transition shadow-sm flex items-center space-x-1">
+                    <i class="fas fa-power-off text-[10px]"></i>
+                    <span class="hidden sm:inline">Cerrar Sesión</span>
+                </a>
+            </div>
+            
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8 space-y-8 flex-grow w-full">
+        
+        {% if session['usuario_rol'] == 'Admin' %}
+        <div class="mb-8 p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl border border-blue-100">
+                    <i class="fas fa-user-shield text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-base font-bold text-slate-950 uppercase tracking-wider">Consola Administrativa</h2>
+                    <p class="text-[11px] text-slate-500 font-medium -mt-0.5">Gestión de operaciones globales</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-blue-400 transition flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">📋 Módulo Cédulas</h3>
+                        <p class="text-[12px] text-slate-500 leading-relaxed mb-4">Buscar, auditar y gestionar las lógicas de documentos de identidad.</p>
+                    </div>
+                    <a href="{{ url_for('admin_modulo_cedulas') }}" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-sm">
+                        Entrar a Cédulas
+                    </a>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-blue-400 transition flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">👷 Validar Técnicos</h3>
+                        <p class="text-[12px] text-slate-500 leading-relaxed mb-4">Revisar especialistas registrados y habilitar perfiles operativos.</p>
+                    </div>
+                    <a href="{{ url_for('admin_validar_tecnicos') }}" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-sm">
+                        Ver Especialistas
+                    </a>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-green-400 transition flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">💰 Solicitudes de Cobro</h3>
+                        <p class="text-[12px] text-slate-500 leading-relaxed mb-4">Aprobar o rechazar órdenes de retiro de créditos a cuentas bancarias.</p>
+                    </div>
+                    <a href="{{ url_for('admin_retiros') }}" class="block w-full text-center bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-sm">
+                        Gestionar Retiros
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between h-44 relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 text-slate-100 text-9xl font-black pointer-events-none select-none">CR</div>
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-blue-600">Billetera de Créditos</span>
+                    <h2 class="text-4xl font-black text-slate-900 tracking-tight mt-1">{{ saldo }} <span class="text-xs font-normal text-slate-400">Cr</span></h2>
+                </div>
+                <div class="pt-4 border-t border-slate-100 flex justify-between items-center z-10">
+                    <span class="text-xs text-slate-500">Equivalente Estimado (COP):</span>
+                    <span class="text-base font-bold text-green-600">${{ "{:,.0f}".format(saldo * 30000) }} COP</span>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Acceso Inmediato</span>
+                    <h2 class="text-base font-bold text-slate-900 mt-0.5">¿Qué operación deseas realizar hoy?</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+    <a href="{{ url_for('ver_tareas') }}" class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:scale-105 transition">
+            <i class="fas fa-briefcase text-lg"></i>
+        </div>
+        <span class="text-xs font-bold text-slate-900">Ver Servicios</span>
+        <span class="text-[10px] text-slate-500 mt-0.5">Explorar tablero</span>
+    </a>
+
+    <a href="{{ url_for('ver_perfil') }}" class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:scale-105 transition">
+            <i class="fas fa-user-circle text-lg"></i>
+        </div>
+        <span class="text-xs font-bold text-slate-900">Mi Perfil</span>
+        <span class="text-[10px] text-slate-500 mt-0.5">Editar mis datos</span>
+    </a>
+
+    <!-- ✨ NUEVO ACCESO AL COPILOT IA DE PERFIL -->
+    <a href="{{ url_for('ver_perfil') }}?autostart_copilot=true" class="bg-gradient-to-br from-blue-50 to-indigo-50/50 hover:from-indigo-100/60 hover:to-blue-100/60 border border-blue-200 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm relative overflow-hidden">
+        <div class="absolute -right-2 -top-2 bg-indigo-500 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">IA</div>
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center mb-2 group-hover:rotate-6 transition">
+            <i class="fas fa-magic text-sm"></i>
+        </div>
+        <span class="text-xs font-bold text-slate-900">Copilot IA</span>
+        <span class="text-[10px] text-indigo-600 font-semibold mt-0.5">Optimizar mi perfil</span>
+    </a>
+
+    <button type="button" onclick="abrirModalRetiro()" class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm focus:outline-none">
+        <div class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center mb-2 group-hover:scale-105 transition">
+            <i class="fas fa-money-check-alt text-lg"></i>
+        </div>
+        <span class="text-xs font-bold text-slate-900">Retirar Fondos</span>
+        <span class="text-[10px] text-slate-500 mt-0.5">Cobrar mis créditos</span>
+    </button>
+</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 flex items-center space-x-4 shadow-sm">
+                <div class="p-3 bg-blue-50 rounded-xl text-blue-600"><i class="fas fa-users text-lg"></i></div>
+                <div>
+                    <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Especialistas Activos</span>
+                    <span class="text-xl font-black text-slate-900">{{ total_workers }}</span>
+                </div>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 flex items-center justify-between shadow-sm {% if ordenes_mediacion > 0 %}border-amber-300 bg-amber-50/20{% endif %}">
+            <div class="flex items-center space-x-4">
+                <div class="p-3 {% if ordenes_mediacion > 0 %}bg-amber-500 text-white{% else %}bg-amber-50 text-amber-500{% endif %} rounded-xl">
+                    <i class="fas fa-gavel text-lg"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Órdenes en Mediación</span>
+                    <span class="text-xl font-black text-slate-900">{{ ordenes_mediacion }}</span>
+                </div>
+            </div>
+            {% if ordenes_mediacion > 0 %}
+            <a href="{{ url_for('ver_tareas', filtro='mediacion') }}" class="text-[10px] bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold px-2 py-1 rounded-lg transition uppercase tracking-wider">
+                Ver Casos
+            </a>
+            {% endif %}
+        </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 flex items-center space-x-4 shadow-sm">
+                <div class="p-3 bg-green-50 rounded-xl text-green-600"><i class="fas fa-lock text-lg"></i></div>
+                <div>
+                    <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Garantías en Escrow🛡️</span>
+                    <span class="text-xl font-black text-green-600">${{ "{:,.0f}".format(fondos_escrow) }} <span class="text-xs font-normal text-slate-500">COP</span></span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="modalRetiro" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white border border-slate-200 w-full max-w-lg rounded-2xl shadow-xl p-6 relative">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h2 class="text-base font-bold text-slate-950 uppercase tracking-tight">Solicitud de Retiro</h2>
+                    <p class="text-xs text-slate-500">Convierte tus créditos acumulados a pesos colombianos (COP)</p>
+                </div>
+                <button type="button" onclick="cerrarModalRetiro()" class="text-slate-400 hover:text-slate-600 transition"><i class="fas fa-times-circle text-xl"></i></button>
+            </div>
+
+            <form action="{{ url_for('home') }}" method="POST" class="space-y-4">
+                <input type="hidden" name="accion_perfil" value="solicitar_retiro">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Cantidad de Créditos a Retirar</label>
+                    <input type="number" name="creditos_retiro" min="0.1" step="0.1" required placeholder="Ej: 5" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
+                    <p class="text-[10px] text-slate-400 mt-1">Cada crédito equivale a $30,000 COP en tu cuenta.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Método de Transferencia Bancaria</label>
+                    <select name="metodo_pago" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition cursor-pointer">
+                        <option value="Nequi">Nequi</option>
+                        <option value="Daviplata">Daviplata</option>
+                        <option value="Bancolombia">Cuenta de Ahorros Bancolombia</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Detalles de la Cuenta (Número y Cédula)</label>
+                    <textarea name="detalles_cuenta" required rows="3" placeholder="Ingresa número de cuenta, tipo y nombres completos del titular..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition"></textarea>
+                </div>
+
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-[11px] text-amber-800 leading-relaxed">
+                    ⚠️ <strong>Nota operativa:</strong> Las transferencias se gestionan de manera manual por administración. Asegúrate de ingresar tus datos bancarios correctamente.
+                </div>
+
+                <div class="flex items-center space-x-3 pt-2">
+                    <button type="button" onclick="cerrarModalRetiro()" class="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition uppercase tracking-wide text-xs">Cancelar</button>
+                    <button type="submit" class="w-2/3 bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition uppercase tracking-wide text-xs shadow-md">Enviar Solicitud 💰</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function abrirModalRetiro() {
+            const modal = document.getElementById('modalRetiro');
+            if (modal) modal.classList.remove('hidden');
+        }
+        function cerrarModalRetiro() {
+            const modal = document.getElementById('modalRetiro');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        let ultimoConteoMensajesIndex = 0;
+        let primeraCargaIndex = true;
+
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+
+        const sonidoNotifIndex = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-600.wav");
+
+        function verificarAlertasDashboard() {
+            fetch('/api/notificaciones/globales')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const totalMensajes = data.mensajes_sin_leer;
+                        const badgeNav = document.getElementById('badge-nav-mensajes');
+                        
+                        if (badgeNav) {
+                            if (totalMensajes > 0) {
+                                badgeNav.innerText = totalMensajes;
+                                badgeNav.classList.remove('hidden');
+                            } else {
+                                badgeNav.classList.add('hidden');
+                            }
+                        }
+
+                        if (!primeraCargaIndex && totalMensajes > ultimoConteoMensajesIndex) {
+                            sonidoNotifIndex.play().catch(e => console.log("Audio en espera de interacción."));
+                            if (Notification.permission === "granted") {
+                                new Notification("💬 Nuevo Mensaje", {
+                                    body: "Tienes un nuevo mensaje entrante sin leer en tus chats.",
+                                    icon: "/static/img/logo.png?v=1"
+                                });
+                            }
+                        }
+                        ultimoConteoMensajesIndex = totalMensajes;
+                        primeraCargaIndex = false;
+                    }
+                })
+                .catch(err => console.error("Error en notificaciones index:", err));
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            verificarAlertasDashboard();
+            setInterval(verificarAlertasDashboard, 7000);
+        });
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => console.log('🚀 Service Worker registrado con éxito:', reg.scope))
+                    .catch(err => console.error('❌ Error al registrar el Service Worker:', err));
+            });
+        }
+    </script>
+</body>
+</html>
