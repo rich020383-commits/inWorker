@@ -1333,17 +1333,21 @@ def api_cargar_mensajes(tarea_id, canal):
     if 'usuario_correo' not in session:
         return jsonify({'success': False, 'error': 'No autenticado'}), 401
 
+    # Capturamos el ultimo_id que nos envía el JavaScript dinámico (?ultimo_id=X)
+    ultimo_id = request.args.get('ultimo_id', default=0, type=int)
+
     try:
         conexion = sqlite3.connect(ruta_db)
         conexion.row_factory = sqlite3.Row
         cursor = conexion.cursor()
 
+        # Agregamos "AND id > ?" a la consulta para que solo busque los mensajes nuevos
         cursor.execute("""
             SELECT id, remitente_correo, canal_trabajador, mensaje, tipo, fecha_envio 
             FROM mensajes 
-            WHERE tarea_id = ? AND canal_trabajador = ?
+            WHERE tarea_id = ? AND canal_trabajador = ? AND id > ?
             ORDER BY id ASC
-        """, (tarea_id, canal))
+        """, (tarea_id, canal, ultimo_id))
         
         filas = cursor.fetchall()
         mensajes_completos = []
@@ -1364,6 +1368,8 @@ def api_cargar_mensajes(tarea_id, canal):
             mensajes_completos.append(msg_dict)
 
         conexion.close()
+        
+        # Si no hay mensajes nuevos, devolverá la lista vacía [] de inmediato ahorrando CPU y RAM
         return jsonify({'success': True, 'mensajes': mensajes_completos})
 
     except Exception as e:

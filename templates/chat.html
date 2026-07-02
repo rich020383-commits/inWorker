@@ -415,7 +415,7 @@
             }
         }
 
-        function irAlFinalChat() {
+function irAlFinalChat() {
             if (cajaMensajes) {
                 cajaMensajes.scrollTop = cajaMensajes.scrollHeight;
             }
@@ -497,7 +497,7 @@
                     if (response.ok) {
                         if (mensajeInput) mensajeInput.value = ""; 
                         cancelarArchivo();                         
-                        cargarMensajes();                                   
+                        cargarMensajes();                                           
                     } else {
                         alert("Error al enviar el mensaje.");
                     }
@@ -512,6 +512,7 @@
             });
         }
 
+        // CONSTANTES Y CONFIGURACIÓN DEL CHAT DE INWORKER
         const tareaId = "{{ tarea.id if tarea.id else tarea['id'] }}";
         const canalActual = "{{ canal_actual }}";
         const URL_API_MENSAGES = `/api/chat/${tareaId}/${canalActual}`;
@@ -519,28 +520,87 @@
         const usuarioSesion = "{{ session['usuario_correo'] }}";
         const clienteCorreoTarea = "{{ tarea.cliente_correo }}";
 
+        // VARIABLES DE CONTROL PARA EL POLLING INTELIGENTE
+        let intervaloTiempo = 3000; // Inicia consultando cada 3 segundos
+        let miPollingTimer;
+        let tiempoUltimaActividad = Date.now();
+        let ultimoIdMensaje = 0; // Guardará el cursor del ID más alto en pantalla
+
+        // FUNCIÓN ADAPTATIVA: Ralentiza peticiones si la sala está inactiva
+        function ajustarIntervaloInactividad(huboMensajesNuevos) {
+            clearInterval(miPollingTimer);
+            
+            if (huboMensajesNuevos) {
+                intervaloTiempo = 3000; // Flujo constante si hay mensajes nuevos
+                tiempoUltimaActividad = Date.now();
+            } else {
+                let minutosInactivo = (Date.now() - tiempoUltimaActividad) / 60000;
+                
+                if (minutosInactivo > 5) {
+                    intervaloTiempo = 15000; // Si llevan > 5 min quietos, consulta cada 15s
+                } else if (minutosInactivo > 2) {
+                    intervaloTiempo = 7000;  // Si llevan > 2 min quietos, consulta cada 7s
+                }
+            }
+            
+            miPollingTimer = setInterval(cargarMensajes, intervaloTiempo);
+        }
+
+        // CONTROLADOR DE PESTAÑA OCULTA O CELULAR BLOQUEADO
+        document.addEventListener("visibilitychange", () => {
+            clearInterval(miPollingTimer);
+            if (document.hidden) {
+                intervaloTiempo = 30000; // Ahorra el 90% de recursos si la pestaña se oculta
+            } else {
+                intervaloTiempo = 3000; // Retorna a tiempo real al abrir de nuevo
+                tiempoUltimaActividad = Date.now();
+                cargarMensajes(); // Carga express inmediata
+            }
+            miPollingTimer = setInterval(cargarMensajes, intervaloTiempo);
+        });
+
         function cargarMensajes() {
             if (!cajaMensajes) return;
             
-            fetch(URL_API_MENSAGES)
+            // Le añadimos el query string ?ultimo_id= al endpoint
+            fetch(`${URL_API_MENSAGES}?ultimo_id=${ultimoIdMensaje}`)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    let nuevoHTML = "";
+                    
+                    // Ajustamos dinámicamente el polling según si hay data nueva o no
+                    ajustarIntervaloInactividad(data.mensajes.length > 0);
 
                     if (data.mensajes.length === 0) {
-                        nuevoHTML = `
-                            <div id="chat-vacio" class="h-full flex flex-col items-center justify-center text-center py-12 text-gray-500">
-                                <img src="/static/img/icono_conexion.png" alt="Conexión" class="w-14 h-14 mb-3 opacity-60">
-                                <p class="text-sm font-medium text-gray-400">Sala de negociación vacía.</p>
-                                <p class="text-xs text-gray-600">Envía un mensaje o lanza una oferta para arrancar.</p>
-                            </div>`;
+                        // Si la pantalla está totalmente vacía y la base de datos no tiene nada, pintamos el estado vacío
+                        if (cajaMensajes.children.length === 0 || document.getElementById('chat-vacio')) {
+                            cajaMensajes.innerHTML = `
+                                <div id="chat-vacio" class="h-full flex flex-col items-center justify-center text-center py-12 text-gray-500">
+                                    <img src="/static/img/icono_conexion.png" alt="Conexión" class="w-14 h-14 mb-3 opacity-60">
+                                    <p class="text-sm font-medium text-gray-400">Sala de negociación vacía.</p>
+                                    <p class="text-xs text-gray-600">Envía un mensaje o lanza una oferta para arrancar.</p>
+                                </div>`;
+                        }
                     } else {
+                        // Si antes estaba el mensaje de 'chat-vacio' y acaban de llegar mensajes, lo removemos
+                        const divVacio = document.getElementById('chat-vacio');
+                        if (divVacio) divVacio.remove();
+
                         data.mensajes.forEach(msg => {
+                            // Actualizamos el cursor al ID más alto registrado
+                            if (msg.id > ultimoIdMensaje) {
+                                ultimoIdMensaje = msg.id;
+                            }
+
+                            // Evitamos duplicar en el DOM si el mensaje ya existe pintado
+                            if (document.getElementById(`msg-${msg.id}`)) return;
+
                             const esPropio = (msg.remitente_correo === usuarioSesion || msg.remitente === nombreUsuarioActual);
                             const alineacionClase = esPropio ? 'items-end' : 'items-start';
                             const colorBurbujaClase = esPropio ? 'bg-teal-600 text-white rounded-tr-none' : 'bg-gray-700 text-gray-100 rounded-tl-none';
                             
+                            let mensajeHTML = "";
+
                             if (msg.tipo && msg.tipo.includes('cotizacion')) {
                                 let bordeCotizacion = 'border-gray-700';
                                 let footerCotizacion = '';
@@ -579,8 +639,8 @@
 
                                 const monto = msg.monto_pesos ? parseFloat(msg.monto_pesos) : parseFloat(msg.cotizacion_pesos);
 
-                                nuevoHTML += `
-                                    <div class="flex flex-col items-center my-4 w-full">
+                                mensajeHTML = `
+                                    <div id="msg-${msg.id}" class="flex flex-col items-center my-4 w-full">
                                         <div class="bg-gradient-to-b from-gray-800 to-gray-850 border-2 ${bordeCotizacion} rounded-2xl p-4 max-w-md w-full text-center shadow-2xl">
                                             <div class="text-xs font-bold uppercase tracking-widest text-purple-400 mb-1">💼 Propuesta Económica Formal</div>
                                             <div class="text-2xl font-black text-white my-2">
@@ -604,8 +664,8 @@
                                     cuerpoMensaje = `<p class="leading-relaxed break-words">${msg.mensaje}</p>`;
                                 }
 
-                                nuevoHTML += `
-                                    <div class="flex flex-col ${alineacionClase}">
+                                mensajeHTML = `
+                                    <div id="msg-${msg.id}" class="flex flex-col ${alineacionClase}">
                                         <div class="max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-2.5 shadow-md text-sm ${colorBurbujaClase}">
                                             <p class="text-[10px] font-bold uppercase tracking-wider opacity-75 mb-1">${msg.remitente}</p>
                                             ${cuerpoMensaje}
@@ -613,11 +673,11 @@
                                         <span class="text-[9px] text-gray-500 mt-0.5 px-1">${msg.fecha_envio}</span>
                                     </div>`;
                             }
-                        });
-                    }
 
-                    if (cajaMensajes.innerHTML.trim() !== nuevoHTML.trim()) {
-                        cajaMensajes.innerHTML = nuevoHTML;
+                            // Insertamos de manera incremental al final del contenedor sin reescribir todo
+                            cajaMensajes.insertAdjacentHTML('beforeend', mensajeHTML);
+                        });
+
                         irAlFinalChat();
                     }
                 }
@@ -625,6 +685,7 @@
             .catch(err => console.error("Error consultando nuevos mensajes:", err));
         }
 
+        // INICIALIZADOR SEGURO
         document.addEventListener("DOMContentLoaded", function() {
             irAlFinalChat();
             cargarMensajes();
@@ -634,7 +695,8 @@
                 inputArchivo.addEventListener('change', mostrarPrevisualizacion);
             }
             
-            setInterval(cargarMensajes, 3000);
+            // Disparador del bucle inteligente controlado
+            miPollingTimer = setInterval(cargarMensajes, intervaloTiempo);
         });
     </script>
 </body>
