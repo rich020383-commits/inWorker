@@ -9,19 +9,19 @@
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen font-sans">
 
-    <nav class="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-50 px-4 py-3 shadow-sm">
+    <nav class="bg-blue-600 px-4 py-3 sticky top-0 z-50 shadow-md">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center space-x-3">
-                <a href="/tareas" class="text-xl font-black tracking-wider text-blue-600 flex items-center gap-2">
-                    <i class="fas fa-wallet text-blue-600"></i> inWorker
+                <a href="/tareas" class="text-xl font-black tracking-wider text-white flex items-center gap-2">
+                    <i class="fas fa-wallet text-green-400"></i> inWorker
                 </a>
             </div>
             <div class="flex items-center space-x-6">
-                <a href="/tareas" class="text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-blue-600 transition flex items-center gap-1.5">
+                <a href="/tareas" class="text-xs font-bold uppercase tracking-wider text-blue-100 hover:text-white transition flex items-center gap-1.5">
                     <i class="fas fa-briefcase"></i> Ver Tablón
                 </a>
-                <span class="text-sm text-slate-700 font-medium hidden md:inline">Hola, <span class="text-blue-600 font-bold">{{ nombre_usuario }}</span></span>
-                <a href="/logout" class="text-xs font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-200 px-3 py-2 rounded-lg hover:bg-red-100 transition">
+                <span class="text-sm text-blue-500 font-medium hidden md:inline">Hola, <span class="text-white font-bold">{{ nombre_usuario }}</span></span>
+                <a href="/logout" class="text-xs font-bold uppercase tracking-wider bg-red-700/20 text-red-100 border border-red-500/30 px-3 py-2 rounded-lg hover:bg-red-600/40 transition">
                     Salir <i class="fas fa-sign-out-alt ml-1"></i>
                 </a>
             </div>
@@ -30,7 +30,7 @@
 
     <main class="max-w-7xl mx-auto px-4 py-8">
         <div class="mb-8">
-            <h1 class="text-2xl font-black text-slate-900 flex items-center gap-3">
+            <h1 class="text-2xl font-black text-slate-800 flex items-center gap-3">
                 <i class="fas fa-user-tie text-blue-600"></i> Especialistas Disponibles
             </h1>
             <p class="text-sm text-slate-500 mt-1">Conecta con los mejores técnicos calificados en la zona para tus proyectos y reparaciones.</p>
@@ -49,19 +49,19 @@
                             {% endif %}
                         </div>
                         <div>
-                            <h3 class="text-base font-bold text-slate-900">{{ tecnico.nombre }}</h3>
-                            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md mt-0.5 inline-block">
+                            <h3 class="text-base font-bold text-slate-800">{{ tecnico.nombre }}</h3>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-md mt-0.5 inline-block">
                                 {{ tecnico.profesion if tecnico.profesion else 'Técnico General' }}
                             </span>
                         </div>
                     </div>
 
                     <div class="flex items-center gap-2 mb-4 bg-slate-50 p-2 rounded-xl border border-slate-100">
-                        <div class="flex text-amber-500 text-xs">
+                        <div class="flex text-amber-400 text-xs">
                             <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                         </div>
-                        <span class="text-xs font-black text-slate-800">{{ "%.1f"|format(tecnico.promedio_estrellas) }}</span>
-                        <span class="text-[11px] text-slate-500">({{ tecnico.total_calificaciones }} opiniones)</span>
+                        <span class="text-xs font-black text-slate-700">{{ "%.1f"|format(tecnico.promedio_estrellas) }}</span>
+                        <span class="text-[11px] text-slate-400">({{ tecnico.total_calificaciones }} opiniones)</span>
                     </div>
 
                     <div class="mb-4">
@@ -69,10 +69,10 @@
                         <div class="flex flex-wrap gap-1.5">
                             {% if tecnico.habilidades %}
                                 {% for hab in tecnico.habilidades.split(',') %}
-                                <span class="text-[10px] bg-slate-50 text-slate-700 px-2 py-1 rounded-md border border-slate-200 font-medium">{{ hab.strip() }}</span>
+                                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md border border-slate-200">{{ hab.strip() }}</span>
                                 {% endfor %}
                             {% else %}
-                                <span class="text-[10px] bg-slate-50 text-slate-400 px-2 py-1 rounded-md italic">Soporte General</span>
+                                <span class="text-[10px] bg-slate-100 text-slate-400 px-2 py-1 rounded-md italic">Soporte General</span>
                             {% endif %}
                         </div>
                     </div>
@@ -86,7 +86,7 @@
                             data-foto="{% if tecnico.foto %}/static/uploads/{{ tecnico.foto }}{% endif %}"
                             data-portafolio="{% if tecnico.proyectos %}{% for p in tecnico.proyectos %}/static/uploads/{{ p.imagen_ruta }}|{{ p.descripcion if p.descripcion else 'Trabajo Realizado' }}{% if not loop.last %},{% endif %}{% endfor %}{% endif %}"
                             data-correo="{{ tecnico.correo }}"
-                            class="w-full text-center px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 shadow-sm active:scale-[0.99]">
+                            class="w-full text-center px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 shadow-sm shadow-green-100">
                         <i class="fas fa-eye text-sm"></i> Ver Perfil Completo
                     </button>
                 </div>
@@ -100,8 +100,8 @@
         </div>
     </main>
 
-    <div id="modalPerfil" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
-        <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl relative flex flex-col">
+    <div id="modalPerfil" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
+        <div class="bg-white border border-slate-100 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col">
             
             <button onclick="cerrarModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2 text-xl transition z-10">
                 <i class="fas fa-times"></i>
@@ -114,14 +114,14 @@
                         <i id="modalIcono" class="fas fa-user text-4xl text-slate-300"></i>
                     </div>
                     <div>
-                        <h2 id="modalNombre" class="text-2xl font-black text-slate-900"></h2>
-                        <span id="modalProfesion" class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md mt-1 inline-block"></span>
+                        <h2 id="modalNombre" class="text-2xl font-black text-slate-800"></h2>
+                        <span id="modalProfesion" class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-md mt-1 inline-block"></span>
                     </div>
                 </div>
 
                 <div class="mb-6">
                     <h4 class="text-xs uppercase font-black tracking-wider text-slate-400 mb-2">Sobre el Especialista</h4>
-                    <p id="modalDescripcion" class="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100"></p>
+                    <p id="modalDescripcion" class="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100"></p>
                 </div>
 
                 <div class="mb-8">
@@ -130,7 +130,7 @@
                 </div>
 
                 <div class="border-t border-slate-100 pt-6 flex flex-col sm:flex-row gap-3">
-                    <button onclick="activarFlujoCotizacion()" class="flex-1 text-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold uppercase tracking-wider text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm active:scale-[0.99]">
+                    <button onclick="activarFlujoCotizacion()" class="flex-1 text-center px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold uppercase tracking-wider text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-green-100">
                         <i class="fas fa-comments text-base"></i> Solicitar Cotización Privada Directa
                     </button>
                 </div>
@@ -138,12 +138,12 @@
         </div>
     </div>
 
-    <div id="modalCotizacionPrivada" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full overflow-hidden shadow-xl">
+    <div id="modalCotizacionPrivada" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl">
             
             <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fas fa-user-lock text-blue-600"></i> Orden Privada: <span id="nombreTecnicoCotizar" class="text-blue-600 font-black"></span>
+                <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fas fa-user-lock text-green-500"></i> Orden Privada: <span id="nombreTecnicoCotizar" class="text-blue-600"></span>
                 </h2>
                 <button onclick="document.getElementById('modalCotizacionPrivada').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">
                     <i class="fas fa-times"></i>
@@ -155,18 +155,18 @@
 
                 <div>
                     <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">¿Qué necesitas reparar o cotizar?</label>
-                    <input type="text" name="titulo" required placeholder="Ej: Reparación Tarjeta Nevera Whirlpool" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition">
+                    <input type="text" name="titulo" required placeholder="Ej: Reparación Tarjeta Nevera Whirlpool" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-blue-500 transition">
                 </div>
                 
                 <div>
                     <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Detalles o síntomas de la falla</label>
-                    <textarea name="descripcion" rows="3" required placeholder="Explica detalladamente para recibir una propuesta formal en el chat..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"></textarea>
+                    <textarea name="descripcion" rows="3" required placeholder="Explica detalladamente para recibir una propuesta..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-blue-500 transition"></textarea>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Categoría</label>
-                        <select name="categoria" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 transition">
+                        <select name="categoria" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs text-slate-700 focus:outline-none focus:border-blue-500 transition">
                             <option value="Soporte Técnico">Soporte Técnico</option>
                             <option value="Línea Blanca">Línea Blanca</option>
                             <option value="Electricidad">Electricidad</option>
@@ -175,8 +175,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Presupuesto Inicial (COP)</label>
-                        <input type="number" name="pago" required placeholder="Ej: 100000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Presupuesto (COP)</label>
+                        <input type="number" name="pago" required placeholder="Ej: 100000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-blue-500 transition">
                     </div>
                 </div>
 
@@ -185,7 +185,7 @@
                 <input type="hidden" name="zona" value="Barranquilla (Directo)">
 
                 <div class="pt-1">
-                    <button type="submit" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase tracking-wider rounded-xl transition text-[10px] shadow-sm">
+                    <button type="submit" class="w-full py-2.5 bg-green-500 hover:bg-green-600 text-white font-bold uppercase tracking-wider rounded-xl transition text-[10px] shadow-sm">
                         Enviar Requerimiento al Chat
                     </button>
                 </div>
@@ -232,7 +232,6 @@
                         const url = parts[0];
                         const text = parts[1] || 'Trabajo Realizado';
 
-                        // CAMBIO SUTIL: Cajas de las imágenes del portafolio en fondo claro acorde a la nueva estética
                         const container = document.createElement('div');
                         container.className = "bg-slate-50 p-1.5 rounded-xl border border-slate-200 text-center space-y-1";
 
@@ -241,7 +240,7 @@
                         img.className = "w-full h-24 object-cover rounded-lg border border-slate-200 hover:border-blue-500 transition cursor-pointer";
                         
                         const txt = document.createElement('p');
-                        txt.className = "text-[10px] text-slate-500 truncate px-1 font-medium";
+                        txt.className = "text-[10px] text-slate-500 truncate px-1";
                         txt.innerText = text;
 
                         container.appendChild(img);
@@ -250,7 +249,6 @@
                     }
                 });
             } else {
-                // CAMBIO SUTIL: Estado vacío del portafolio alineado
                 galeria.innerHTML = `<p class="text-xs text-slate-400 italic col-span-full bg-slate-50 p-4 text-center rounded-xl border border-slate-200 border-dashed">El técnico no ha subido fotos de sus trabajos todavía.</p>`;
             }
 
