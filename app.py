@@ -610,6 +610,17 @@ def home():
     usuario_db = cursor.fetchone() 
     saldo_real = round(usuario_db['saldo'], 2) if usuario_db else 0.0
     
+    # 🩹 PARCHE DE SEGURIDAD AUTOMÁTICO PARA DISPUTAS (Inyección limpia en caliente)
+    try:
+        cursor.execute("ALTER TABLE tareas ADD COLUMN reportado_por TEXT;")
+    except sqlite3.OperationalError:
+        pass  # Si la columna ya existe, se ignora el error de forma segura
+
+    try:
+        cursor.execute("ALTER TABLE tareas ADD COLUMN motivo_disputa TEXT;")
+    except sqlite3.OperationalError:
+        pass  # Si la columna ya existe, se ignora el error de forma segura
+    
     # ⚖️ CONSULTA DE DISPUTAS ACTIVAS PARA TU NUEVA CONSOLA DE ARBITRAJE
     cursor.execute("""
         SELECT id, titulo, estado, reportado_por, motivo_disputa, costo_creditos 
