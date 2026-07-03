@@ -839,8 +839,11 @@ def admin_retiros():
     # Métricas del lateral / contadores del panel administrativo
     total_workers = Usuario.query.filter_by(rol='Trabajador').count()
     ordenes_mediacion = Tarea.query.filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).count()
-    fondos_escrow = db.session.query(db.func.sum(db.func.cast(Tarea.pago, db.Float)))\
-        .filter(Tarea.estado == 'En Garantia').scalar() or 0.0
+    # 🛡️ CÁLCULO DE MÉTRICAS FALTANTES PARA EL DASHBOARD (CORREGIDO)
+        fondos_escrow = db.session.query(db.func.sum(Tarea.costo_creditos)).filter(
+            Tarea.estado == 'En Garantia',
+            or_(Tarea.cliente_correo == correo_logueado, Tarea.trabajador_correo == correo_logueado) # 👈 Cambiado a trabajador_correo
+        ).scalar() or 0.0
         
     return render_template('admin_retiros.html', 
                            solicitudes=lista_retiros, 
