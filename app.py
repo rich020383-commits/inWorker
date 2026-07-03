@@ -11,6 +11,7 @@ from werkzeug.utils import secure_filename
 from PIL import Image
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+from disputas_ia import analizar_disputa_chat
 
 ruta_actual = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, template_folder=os.path.join(ruta_actual, "templates"))
@@ -563,7 +564,6 @@ def home():
     conexion.row_factory = sqlite3.Row
     cursor = conexion.cursor()
     
-    
     if request.method == 'POST' and request.form.get('accion_perfil') == 'solicitar_retiro':
         try:
             creditos_retiro = float(request.form.get('creditos_retiro', 0))
@@ -595,6 +595,7 @@ def home():
         else:
             flash("❌ Fondos insuficientes o cantidad de créditos inválida.", "error")
     
+    # 📊 MÉTRICAS DEL DASHBOARD DEL ADMIN
     cursor.execute("SELECT COUNT(*) as total FROM usuarios WHERE rol = 'Trabajador'")
     total_workers = cursor.fetchone()['total'] or 0
     
@@ -604,30 +605,35 @@ def home():
     cursor.execute("SELECT SUM(CAST(pago AS REAL)) as total_escrow FROM tareas WHERE estado = 'En Garantia'")
     fondos_escrow = cursor.fetchone()['total_escrow'] or 0
     
+    # 💰 CONSULTA REAL DE SALDOS EN BASE DE DATOS (ELIMINADA LA INYECCIÓN FALSA)
     cursor.execute("SELECT IFNULL(saldo_creditos, 0.0) as saldo FROM usuarios WHERE correo = ?", (correo_logueado,))
     usuario_db = cursor.fetchone() 
-    saldo_usuario = round(usuario_db['saldo'], 2) if usuario_db else 0.0
+    saldo_real = round(usuario_db['saldo'], 2) if usuario_db else 0.0
+    
+    # ⚖️ CONSULTA DE DISPUTAS ACTIVAS PARA TU NUEVA CONSOLA DE ARBITRAJE
+    cursor.execute("""
+        SELECT id, titulo, estado, reportado_por, motivo_disputa, costo_creditos 
+        FROM tareas 
+        WHERE estado = 'En Arbitraje Admin'
+        ORDER BY id DESC
+    """)
+    lista_disputas = [dict(row) for row in cursor.fetchall()]
     
     conexion.close()
     
-    # =========================================================================
-    # 💰 INYECCIÓN BLINDADA DE 10 CRÉDITOS DE PRUEBA ($100.000 COP)
-    # =========================================================================
-    saldo_test = 10.00  
-    
-    # Armamos diccionarios falsos por si tus layouts de HTML buscan datos del perfil
-    perfil_falso = {'saldo_creditos': saldo_test, 'saldo': saldo_test}
-    # =========================================================================
+    # Armamos el diccionario dinámico real mapeando los balances verdaderos
+    perfil_real = {'saldo_creditos': saldo_real, 'saldo': saldo_real}
     
     return render_template('index.html', 
                            nombre_usuario=session['usuario_nombre'],
                            total_workers=total_workers,
                            ordenes_mediacion=ordenes_mediacion,
                            fondos_escrow=fondos_escrow,
-                           saldo=saldo_test,                 # 👈 Inyectado fijo
-                           saldo_usuario=saldo_test,         # 👈 Inyectado fijo
-                           cliente_perfil=perfil_falso,       # 👈 Evita NameErrors
-                           trabajador_perfil=perfil_falso)   # 👈 Evita NameErrors
+                           saldo=saldo_real,                           # 👈 Real desde BD
+                           saldo_usuario=saldo_real,                   # 👈 Real desde BD
+                           cliente_perfil=perfil_real,                 # 👈 Dinámico y seguro
+                           trabajador_perfil=perfil_real,               # 👈 Dinámico y seguro
+                           lista_disputas=lista_disputas)              # 👈 Tu nueva lista de arbitraje
 
 @app.route('/api/optimizar_perfil', methods=['POST'])
 def api_optimizar_perfil():
@@ -1688,13 +1694,13 @@ def webhook_nequi():
     return jsonify({"status": "failed", "message": "Pago rechazado o pendiente"}), 200
 
 # =====================================================================
-# ⚖️ ENDPOINT DE ARBITRAJE DE DISPUTAS CON IA (FASE 1.1)
+# ⚖️ ENDPOINT DE ARBITRAJE DE DISPUTAS CON IA (FASE 1.1 - OPTIMIZADO)
 # =====================================================================
 @app.route('/admin/disputa/<int:tarea_id>')
 def analizar_disputa_admin(tarea_id):
-    # (Opcional) Aquí podrías validar si el usuario en sesión es administrador
-    if 'usuario_nombre' not in session:
-        return redirect(url_for('index'))
+    # 🛡️ PROTECCIÓN AMIGABLE: Validar sesión y rol de administrador
+    if 'usuario_correo' not in session or session.get('usuario_rol') != 'Admin':
+        return jsonify({"error": "Acceso denegado. Se requieren permisos de administrador."}), 403
         
     conexion = sqlite3.connect(ruta_db)
     conexion.row_factory = sqlite3.Row
@@ -1721,17 +1727,97 @@ def analizar_disputa_admin(tarea_id):
     if not mensajes:
         return jsonify({"error": "No hay mensajes en el chat de esta tarea para analizar."}), 400
         
-    # Importamos el módulo que acabamos de crear y procesamos con la IA
+    # Importamos el módulo e invocamos a Gemini
     from disputas_ia import analizar_disputa_chat
     reporte_ia = analizar_disputa_chat(mensajes, dict(tarea))
     
-    # Retorna el JSON estructurado para que lo pintes en tu panel administrativo
+    # ✨ FORMATEO FORENSE INTEGRADO: Transforma el diccionario a texto limpio para tu frontend
+    texto_analisis = (
+        f"🤖 VEREDICTO RECOMENDADO: {reporte_ia.get('veredicto_sugerido', 'REVISIÓN_MANUAL')}\n"
+        f"📊 Propuesta de Distribución:\n"
+        f"   - Al Especialista (Trabajador): {reporte_ia.get('porcentaje_trabajador', 50)}%\n"
+        f"   - Al Cliente: {reporte_ia.get('porcentaje_cliente', 50)}%\n\n"
+        f"📝 Justificación Forense:\n"
+        f"{reporte_ia.get('justificacion', 'Sin observaciones adicionales por el motor.')}"
+    )
+        
+    # Retorna el JSON estructurado exactamente como lo espera tu index.html
     return jsonify({
+        "success": True,
         "tarea_id": tarea_id,
         "titulo_tarea": tarea['titulo'],
         "estado_actual": tarea['estado'],
-        "analisis_ia": reporte_ia
+        "analisis_ia": texto_analisis # 👈 Cadena formateada para inyección limpia
     })
+
+@app.route('/admin/resolver_disputa/<int:tarea_id>', methods=['POST'])
+def admin_resolver_disputa(tarea_id):
+    # 🛡️ VALIDACIÓN DE SEGURIDAD STRICTA
+    if 'usuario_correo' not in session or session.get('usuario_rol') != 'Admin':
+        flash("🔒 Acceso denegado. Se requieren permisos de administrador.", "error")
+        return redirect(url_for('login'))
+
+    resolucion = request.form.get('resolucion_tipo')
+    
+    conexion = sqlite3.connect(ruta_db)
+    conexion.row_factory = sqlite3.Row
+    cursor = conexion.cursor()
+
+    try:
+        # 1. Extraemos los datos del Escrow, el Cliente y el Especialista involucrado
+        cursor.execute("""
+            SELECT cliente_correo, tecnico_correo, costo_creditos, titulo 
+            FROM tareas 
+            WHERE id = ?
+        """, (tarea_id,))
+        tarea = cursor.fetchone()
+
+        if not tarea:
+            flash("❌ Orden de servicio no encontrada.", "error")
+            conexion.close()
+            return redirect(url_for('home'))
+
+        cliente = tarea['cliente_correo']
+        tecnico = tarea['tecnico_correo']
+        creditos = float(tarea['costo_creditos'] or 0.0)
+
+        # 2. Ejecución del veredicto manual según lo seleccionado en el Dashboard
+        if resolucion == 'reembolso_total':
+            # 100% de vuelta al balance del Cliente (Incumplimiento)
+            cursor.execute("UPDATE usuarios SET saldo_creditos = saldo_creditos + ? WHERE correo = ?", (creditos, cliente))
+            mensaje_flash = f"⚖️ Arbitraje finalizado: Se reembolsaron {creditos:,.1f} Cr al Cliente exitosamente."
+            
+        elif resolucion == 'pago_total':
+            # 100% liberado al Especialista/Trabajador (Labor completada correctamente)
+            cursor.execute("UPDATE usuarios SET saldo_creditos = saldo_creditos + ? WHERE correo = ?", (creditos, tecnico))
+            mensaje_flash = f"⚖️ Arbitraje finalizado: Se liberaron {creditos:,.1f} Cr al Especialista exitosamente."
+            
+        elif resolucion == 'mitad_mitad':
+            # División salomónica 50% / 50%
+            mitad = round(creditos / 2, 2)
+            cursor.execute("UPDATE usuarios SET saldo_creditos = saldo_creditos + ? WHERE correo = ?", (mitad, cliente))
+            cursor.execute("UPDATE usuarios SET saldo_creditos = saldo_creditos + ? WHERE correo = ?", (mitad, tecnico))
+            mensaje_flash = f"⚖️ Arbitraje finalizado: Fondos divididos equitativamente ({mitad:,.1f} Cr para cada uno)."
+            
+        else:
+            flash("❌ Tipo de resolución inválida en el formulario.", "error")
+            conexion.close()
+            return redirect(url_for('home'))
+
+        # 3. Sacamos la tarea de la sección de arbitraje pasándola a estado 'Finalizada'
+        cursor.execute("UPDATE tareas SET estado = 'Finalizada' WHERE id = ?", (tarea_id,))
+        
+        conexion.commit()
+        conexion.close()
+        
+        flash(mensaje_flash, "success")
+        
+    except Exception as e:
+        if conexion:
+            conexion.close()
+        flash(f"❌ Error crítico al ejecutar sentencia: {str(e)}", "error")
+
+    return redirect(url_for('home'))
 
 # =====================================================================
 # 🏁 BLOQUE FINAL DE ARRANQUE E INICIALIZACIÓN AUTOMÁTICA

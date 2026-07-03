@@ -47,22 +47,9 @@
                 </a>
 
                 <span class="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-[#2563EB] px-3 py-1.5 rounded-lg border border-blue-100">
-                    {{ session['usuario_role'] if 'usuario_role' in session else session['usuario_rol'] }}
-                </span>
-                <a href="{{ url_for('logout') }}" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs px-3 py-2 rounded-xl transition shadow-sm flex items-center space-x-1">
-                    <i class="fas fa-power-off text-[10px]"></i>
-                    <span class="hidden sm:inline">Cerrar Sesión</span>
-                </a>
-            </div>
-            
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 py-8 space-y-8 flex-grow w-full">
-        
-        {% if session['usuario_rol'] == 'Admin' %}
-        <div class="mb-8 p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
-            <div class="flex items-center space-x-3 mb-4">
+                    {% if session['usuario_rol'] == 'Admin' %}
+        <div class="mb-8 p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-6">
+            <div class="flex items-center space-x-3">
                 <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl border border-blue-100">
                     <i class="fas fa-user-shield text-xl"></i>
                 </div>
@@ -72,7 +59,7 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-blue-400 transition flex flex-col justify-between">
                     <div>
                         <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">📋 Módulo Cédulas</h3>
@@ -102,9 +89,49 @@
                         Gestionar Retiros
                     </a>
                 </div>
+
+                <div class="bg-slate-50 p-4 rounded-xl border border-amber-300 bg-amber-50/10 transition flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">⚖️ Arbitraje & Disputas</h3>
+                            <span class="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded animate-pulse">{{ lista_disputas|length }}</span>
+                        </div>
+                        <p class="text-[12px] text-slate-500 leading-relaxed mb-4">Auditar chats en conflicto congelados en escrow usando peritaje de Gemini IA.</p>
+                    </div>
+                    <a href="#seccion-arbitraje-dashboard" class="block w-full text-center bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-sm">
+                        Ver Casos Activos
+                    </a>
+                </div>
             </div>
-        </div>
-        {% endif %}
+
+            <div id="seccion-arbitraje-dashboard" class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50 pt-2">
+                <div class="p-4 bg-slate-100/80 border-b border-slate-200 flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Órdenes Bloqueadas Bajo Arbitraje</span>
+                    <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-bold uppercase">Requiere Dictamen Manual</span>
+                </div>
+                <div class="overflow-x-auto text-xs">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">ID</th>
+                                <th class="p-3">Servicio / Descripción de la Queja</th>
+                                <th class="p-3">Garantía Escrow</th>
+                                <th class="p-3 text-center">Acción Forense</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 bg-white">
+                            {% for disputa in lista_disputas %}
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="p-3 font-mono font-bold text-slate-400">#{{ disputa.id }}</td>
+                                <td class="p-3">
+                                    <span class="font-bold text-slate-900 block text-sm">{{ disputa.titulo }}</span>
+                                    <span class="text-slate-500 italic block mt-1 bg-slate-50 p-2 border border-slate-100 rounded-lg">"{{ disputa.motivo_disputa if disputa.motivo_disputa else 'Sin detalles descritos.' }}"</span>
+                                    <span class="text-[10px] text-slate-400 block mt-1 font-semibold">🚨 Alerta escalada por: {{ disputa.reportado_por }}</span>
+                                </td>
+                                <td class="p-3 font-black text-amber-600 text-sm">${{ "{:,.0f}".format(disputa.costo_creditos * 30000) }} COP</td>
+                                <td class="p-3 text-center">
+                                    <button type="button" onclick="lanzarAuditoriaIA('{{ disputa.id }}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-2 rounded-xl uppercase tracking-wider transition text-[10px] flex items-center gap-1 mx-auto shadow-sm">
+                                        <i class="fas fa-brain">
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
@@ -244,6 +271,7 @@
     </div>
 
     <script>
+        // Funciones del Módulo de Retiro Existente
         function abrirModalRetiro() {
             const modal = document.getElementById('modalRetiro');
             if (modal) modal.classList.remove('hidden');
@@ -253,15 +281,36 @@
             if (modal) modal.classList.add('hidden');
         }
 
+        // Configuración y Estados de Notificaciones
         let ultimoConteoMensajesIndex = 0;
         let primeraCargaIndex = true;
+        let audioDesbloqueado = false;
 
         if (Notification.permission !== "granted" && Notification.permission !== "denied") {
             Notification.requestPermission();
         }
 
+        // Instancia del sonido institucional
         const sonidoNotifIndex = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-600.wav");
 
+        // 🔥 OPTIMIZACIÓN DE AUDIO: Desbloquea el canal con la primera interacción del usuario
+        function desbloquearAudioInstancia() {
+            if (!audioDesbloqueado) {
+                sonidoNotifIndex.play().then(() => {
+                    // Silenciamos e inmediatamente pausamos para dejar el canal activo
+                    sonidoNotifIndex.pause();
+                    sonidoNotifIndex.currentTime = 0;
+                    audioDesbloqueado = true;
+                    // Limpiamos los listeners una vez desbloqueado por rendimiento
+                    document.removeEventListener('click', desbloquearAudioInstancia);
+                    document.removeEventListener('keydown', desbloquearAudioInstancia);
+                }).catch(e => console.log("Esperando interacción real para habilitar audio."));
+            }
+        }
+        document.addEventListener('click', desbloquearAudioInstancia);
+        document.addEventListener('keydown', desbloquearAudioInstancia);
+
+        // Ciclo inteligente de polleo de alertas del Dashboard
         function verificarAlertasDashboard() {
             fetch('/api/notificaciones/globales')
                 .then(response => response.json())
@@ -279,8 +328,13 @@
                             }
                         }
 
+                        // Si hay un incremento real en los hilos de conversación entrantes
                         if (!primeraCargaIndex && totalMensajes > ultimoConteoMensajesIndex) {
-                            sonidoNotifIndex.play().catch(e => console.log("Audio en espera de interacción."));
+                            // Se ejecuta de manera segura si ya hubo interacción previa
+                            if (audioDesbloqueado) {
+                                sonidoNotifIndex.play().catch(err => console.log("Error al reproducir alerta:", err));
+                            }
+                            
                             if (Notification.permission === "granted") {
                                 new Notification("💬 Nuevo Mensaje", {
                                     body: "Tienes un nuevo mensaje entrante sin leer en tus chats.",
@@ -295,6 +349,60 @@
                 .catch(err => console.error("Error en notificaciones index:", err));
         }
 
+        // 🧠 ACCIÓN FORENSE: Consume tu endpoint e inyecta el análisis de Gemini en el Dashboard
+        function lanzarAuditoriaIA(tareaId) {
+            const contenedor = document.getElementById('contenedorInformeIA');
+            const cuerpo = document.getElementById('cuerpoInformeIA');
+            
+            if (!contenedor || !cuerpo) return;
+
+            // Despliega el bloque y monta el loader
+            contenedor.classList.remove('hidden');
+            cuerpo.innerHTML = `
+                <div class="py-6 text-center text-slate-400 font-bold uppercase tracking-wider flex flex-col items-center justify-center gap-2">
+                    <i class="fas fa-spinner animate-spin text-xl text-blue-400"></i>
+                    <span>Auditando el historial de chat con Inteligencia Artificial...</span>
+                </div>`;
+            
+            // Consumo directo al endpoint pericial que me pasaste previamente
+            fetch(`/admin/disputa/${tareaId}`)
+            .then(res => {
+                if (!res.ok) throw new Error("No se pudo estructurar el peritaje clínico.");
+                return res.json();
+            })
+            .then(data => {
+                cuerpo.innerHTML = `
+                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-800/80 mb-4">
+                        <span class="text-[10px] uppercase font-bold text-slate-500 block"><i class="fas fa-search mr-1"></i> Análisis Forense Detallado:</span>
+                        <div class="whitespace-pre-line text-xs font-medium text-slate-300 mt-2 bg-slate-900/40 p-3 rounded border border-slate-800/50 leading-relaxed font-mono">
+                            ${data.analisis_ia}
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div>
+                            <h4 class="text-xs font-black text-white uppercase tracking-wide">Dictar Sentencia Manual</h4>
+                            <p class="text-[10px] text-slate-500">Elige la distribución de fondos definitiva para liberar el Escrow.</p>
+                        </div>
+                        <form action="/admin/resolver_disputa/${data.tarea_id}" method="POST" class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                            <select name="resolucion_tipo" class="bg-slate-900 border border-slate-700 text-xs font-bold text-white rounded-xl p-2.5 focus:outline-none focus:border-blue-500 transition cursor-pointer">
+                                <option value="reembolso_total">Devolver 100% al Cliente (Incumplido)</option>
+                                <option value="pago_total">Liberar 100% al Especialista (Completado)</option>
+                                <option value="mitad_mitad">Dividir 50% / 50% (Salomónico)</option>
+                            </select>
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-4 py-2.5 rounded-xl uppercase tracking-wider transition text-[10px] shadow-sm whitespace-nowrap">
+                                ⚖️ Ejecutar
+                            </button>
+                        </form>
+                    </div>
+                `;
+            })
+            .catch(err => {
+                cuerpo.innerHTML = `<div class="bg-rose-950 text-rose-400 border border-rose-900 p-3 rounded-lg text-center font-bold">❌ Error en la pericia: ${err.message}</div>`;
+            });
+        }
+
+        // Inicializador del Ciclo Global del Dashboard
         document.addEventListener("DOMContentLoaded", function() {
             verificarAlertasDashboard();
             setInterval(verificarAlertasDashboard, 7000);

@@ -365,55 +365,111 @@
     </main>
 
     <div id="modalControversia" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl p-6 transform scale-95 opacity-0 transition-all duration-300" id="contenidoModalControversia">
-            <div class="text-center">
-                <div class="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-100">
-                    <i class="fas fa-shield-alt text-2xl"></i>
-                </div>
-                <h3 class="text-base font-black text-slate-900 uppercase tracking-wide">¿Iniciar Mediación por Disputa?</h3>
-                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
-                    Si abres este caso, los fondos en garantía de <strong>${{ "{:,.0f}".format(saldo * 10000) }} COP</strong> se congelarán administrativamente de inmediato. Nuestro Árbitro con Inteligencia Artificial leerá el historial de este chat para dictar un veredicto justo.
-                </p>
+    
+    <div id="contenidoModalControversia" class="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl p-6 transform scale-95 opacity-0 transition-all duration-300" id="contenidoModalControversia">
+        
+        <div class="flex items-center space-x-3 border-b border-slate-100 pb-3 mb-4">
+            <div class="bg-rose-50 p-2 rounded-xl text-rose-600 border border-rose-100">
+                <i class="fas fa-gavel text-lg"></i>
             </div>
-            
-            <div class="mt-6 flex items-center space-x-3">
-                <button onclick="cerrarModalControversia()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wide transition border border-slate-200">
-                    Cancelar
-                </button>
-                <a href="/abrir_disputa/{{ tarea.id }}" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wide transition text-center shadow-md shadow-rose-600/20">
-                    🚨 Sí, Activar IA
-                </a>
+            <div>
+                <h3 class="text-base font-black text-slate-900 uppercase tracking-wide">Solicitar Arbitraje Admin</h3>
+                <p class="text-xs text-slate-500">El equipo de inWorker auditará el caso de forma imparcial.</p>
             </div>
         </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Motivo del reporte / Alerta de incumplimiento:</label>
+                <textarea 
+                    id="motivo_reporte_admin" 
+                    rows="3" 
+                    required 
+                    placeholder="Describe aquí qué parte del contrato se incumplió o qué problema surgió para que el administrador lo revise..."
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:bg-white resize-none transition"
+                ></textarea>
+            </div>
+
+            <p class="text-[11px] text-slate-500 leading-relaxed bg-amber-50 border border-amber-200 p-3 rounded-xl">
+                ⚠️ <strong class="text-amber-800 font-bold">Importante:</strong> Al enviar este reporte, los fondos en garantía de <strong>${{ "{:,.0f}".format(saldo * 10000) }} COP</strong> quedarán congelados inmediatamente por seguridad hasta que inWorker dicte el veredicto oficial.
+            </p>
+
+            <div class="flex items-center space-x-3 pt-2">
+                <button 
+                    type="button" 
+                    onclick="cerrarModalControversia()" 
+                    class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wide transition border border-slate-200"
+                >
+                    Volver al Chat
+                </button>
+                <button 
+                    type="button" 
+                    onclick="enviarControversiaAAdmin('{{ tarea.id }}')" 
+                    class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wide transition text-center shadow-md shadow-rose-600/20"
+                >
+                    🚨 Enviar a Admin
+                </button>
+            </div>
+        </div>
+
     </div>
+</div>
 
     <script>
         const cajaMensajes = document.getElementById('cajaMensajes');
 
-        // FUNCIONES DEL MODAL DE CONTROVERSIA
-        function abrirModalControversia() {
-            const modal = document.getElementById('modalControversia');
-            const contenido = document.getElementById('contenidoModalControversia');
-            if (modal && contenido) {
-                modal.classList.remove('hidden');
-                setTimeout(() => {
-                    contenido.classList.remove('scale-95', 'opacity-0');
-                    contenido.classList.add('scale-100', 'opacity-100');
-                }, 50);
-            }
-        }
+        // // =========================================================================
+// 🚨 FUNCIONES DEL MODAL DE CONTROVERSIA E INTERVENCIÓN ADMIN (INWORKER)
+// =========================================================================
+function abrirModalControversia() {
+    const modal = document.getElementById('modalControversia');
+    const contenido = document.getElementById('contenidoModalControversia');
+    if (modal && contenido) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            contenido.classList.remove('scale-95', 'opacity-0');
+            contenido.classList.add('scale-100', 'opacity-100');
+        }, 50);
+    }
+}
 
-        function cerrarModalControversia() {
-            const modal = document.getElementById('modalControversia');
-            const contenido = document.getElementById('contenidoModalControversia');
-            if (modal && contenido) {
-                contenido.classList.remove('scale-100', 'opacity-100');
-                contenido.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                }, 300);
-            }
-        }
+function cerrarModalControversia() {
+    const modal = document.getElementById('modalControversia');
+    const contenido = document.getElementById('contenidoModalControversia');
+    if (modal && contenido) {
+        contenido.classList.remove('scale-100', 'opacity-100');
+        contenido.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+}
+
+// Envío manual simulando el formulario para no romper tu estructura HTML
+function enviarControversiaAAdmin(tareaId) {
+    const motivoTextarea = document.getElementById('motivo_reporte_admin');
+    
+    if (!motivoTextarea || motivoTextarea.value.trim() === "") {
+        alert("Por favor, describe detalladamente el motivo del incumplimiento antes de solicitar la intervención.");
+        return;
+    }
+
+    // Creamos un formulario dinámico en memoria para enviarlo al backend de Python mediante POST
+    const formDinamico = document.createElement('form');
+    formDinamico.method = 'POST';
+    formDinamico.action = `/escalar_disputa/${tareaId}`;
+
+    const inputMotivo = document.createElement('input');
+    inputMotivo.type = 'hidden';
+    inputMotivo.name = 'motivo_reporte';
+    inputMotivo.value = motivoTextarea.value.trim();
+
+    formDinamico.appendChild(inputMotivo);
+    document.body.appendChild(formDinamico);
+    
+    // Se envía directamente a tu app.py
+    formDinamico.submit();
+}
 
 function irAlFinalChat() {
             if (cajaMensajes) {
