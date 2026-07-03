@@ -36,19 +36,26 @@
                 </a>
             </div>
 
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2 md:space-x-3">
                 <span class="text-xs text-slate-500 hidden md:inline">Bienvenido, <strong class="text-slate-900">{{ nombre_usuario }}</strong></span>
                 
-                <a href="{{ url_for('ver_tareas') }}" class="relative p-2 text-slate-500 hover:text-blue-600 transition mr-1 flex items-center justify-center">
+                <a href="{{ url_for('ver_tareas') }}" class="relative p-2 text-slate-500 hover:text-blue-600 transition flex items-center justify-center">
                     <i class="fas fa-envelope text-lg"></i>
                     <span id="badge-nav-mensajes" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">
                         0
                     </span>
                 </a>
 
-                <span class="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-[#2563EB] px-3 py-1.5 rounded-lg border border-blue-100">
+                <span class="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-[#2563EB] px-2.5 py-1.5 rounded-lg border border-blue-100">
                     {{ session['usuario_rol'] }}
                 </span>
+
+                <a href="{{ url_for('logout') }}" 
+                   class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 p-2 rounded-lg transition flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider" 
+                   title="Cerrar Sesión">
+                    <i class="fas fa-sign-out-alt text-sm"></i>
+                    <span class="hidden sm:inline">Salir</span>
+                </a>
             </div>
         </div>
     </header>
