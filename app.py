@@ -9,6 +9,7 @@ from disputas_ia import analizar_disputa_chat
 # 🔧 CONFIGURACIÓN AVANZADA CON FLASK-SQLALCHEMY PARA OPTIMIZAR EL PLAN STARTER
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, current_app, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import or_  # 👈 ¡ESTA ES LA LÍNEA MÁGICA QUE FALTA!
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash 
 from PIL import Image
