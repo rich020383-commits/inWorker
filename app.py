@@ -781,6 +781,9 @@ def admin_retiros():
     if 'usuario_nombre' not in session or session.get('usuario_rol') != 'Admin':
         return redirect(url_for('index'))
         
+    # ⚡ Definimos la variable para que el filtro de Escrow no lance NameError
+    correo_logueado = session.get('usuario_correo', '')
+        
     if request.method == 'POST':
         solicitud_id = request.form.get('id_retiro')
         accion = request.form.get('accion')
@@ -815,7 +818,6 @@ def admin_retiros():
             flash("❌ Ocurrió un error interno al procesar el estado del retiro.", "error")
 
     # 📊 CONSTRUCCIÓN DE LA LISTA DE RETIROS PENDIENTES CON JOIN DE MODELOS
-    # Hacemos una consulta uniendo las solicitudes de retiro con los datos del usuario
     solicitudes_pendientes = db.session.query(BilleteraRetiro, Usuario)\
         .outerjoin(Usuario, db.func.lower(db.func.trim(BilleteraRetiro.usuario_correo)) == db.func.lower(db.func.trim(Usuario.correo)))\
         .filter(BilleteraRetiro.estado == 'Pendiente')\
@@ -839,15 +841,16 @@ def admin_retiros():
     # Métricas del lateral / contadores del panel administrativo
     total_workers = Usuario.query.filter_by(rol='Trabajador').count()
     ordenes_mediacion = Tarea.query.filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).count()
-    # 🛡️ CÁLCULO DE MÉTRICAS FALTANTES PARA EL DASHBOARD (CORREGIDO)
-        fondos_escrow = db.session.query(db.func.sum(Tarea.costo_creditos)).filter(
-            Tarea.estado == 'En Garantia',
-            or_(Tarea.cliente_correo == correo_logueado, Tarea.trabajador_correo == correo_logueado) # 👈 Cambiado a trabajador_correo
-        ).scalar() or 0.0
+    
+    # 🛡️ CÁLCULO DE MÉTRICAS FALTANTES PARA EL DASHBOARD (ALINEADO Y CORREGIDO)
+    fondos_escrow = db.session.query(db.func.sum(Tarea.costo_creditos)).filter(
+        Tarea.estado == 'En Garantia',
+        or_(Tarea.cliente_correo == correo_logueado, Tarea.trabajador_correo == correo_logueado)
+    ).scalar() or 0.0
         
     return render_template('admin_retiros.html', 
                            solicitudes=lista_retiros, 
-                           nombre_usuario=session['usuario_nombre'],
+                           nombre_usuario=session.get('usuario_nombre', 'Admin'),
                            total_workers=total_workers, 
                            ordenes_mediacion=ordenes_mediacion, 
                            fondos_escrow=fondos_escrow)
