@@ -1021,8 +1021,9 @@ def publicar_tarea():
     # Retorno seguro si entran por GET sin parámetros
     return render_template('tareas.html')
 
+
 # =====================================================================
-# 👤 GESTIÓN DE PERFIL Y PORTAFOLIO MULTIMEDIA - OPTIMIZADO
+# 👤 GESTIÓN DE PERFIL Y PORTAFOLIO MULTIMEDIA - OPTIMIZADO COMPLETO
 # =====================================================================
 @app.route('/perfil', methods=['GET', 'POST'])
 def ver_perfil():
@@ -1101,27 +1102,51 @@ def ver_perfil():
             return redirect(url_for('home'))
 
     # --- FLUJO GET: RENDERIZADO DEL PERFIL ---
-    usuario_info = Usuario.query.filter_by(correo=correo_logueado).first()
-    
-    # Traemos las imágenes del portafolio del usuario si existen
-    imagenes_usuario = Portafolio.query.filter_by(usuario_correo=correo_logueado).all() if usuario_info else []
-    lista_portafolio = [{
-        'id': p.id,
-        'imagen_ruta': p.imagen_ruta,
-        'descripcion': p.descripcion,
-        'tipo': p.tipo
-    } for p in imagenes_usuario]
-    
-    saldo_real = round(usuario_info.saldo_creditos, 2) if usuario_info else 0.0
-    perfil_real = {'saldo_creditos': saldo_real, 'saldo': saldo_real}
-    
-    return render_template('index.html',  # Cambia a tu plantilla de perfil si es diferente
-                           usuario=usuario_info,
-                           portafolio=lista_portafolio,
-                           nombre_usuario=session['usuario_nombre'],
-                           saldo=saldo_real,
-                           cliente_perfil=perfil_real,
-                           trabajador_perfil=perfil_real)
+    try:
+        usuario_info = Usuario.query.filter_by(correo=correo_logueado).first()
+        
+        # Traemos las imágenes del portafolio del usuario si existen
+        imagenes_usuario = Portafolio.query.filter_by(usuario_correo=correo_logueado).all() if usuario_info else []
+        lista_portafolio = [{
+            'id': p.id,
+            'imagen_ruta': p.imagen_ruta,
+            'descripcion': p.descripcion,
+            'tipo': p.tipo
+        } for p in imagenes_usuario]
+        
+        saldo_real = round(usuario_info.saldo_creditos, 2) if usuario_info and usuario_info.saldo_creditos else 0.0
+        perfil_real = {'saldo_creditos': saldo_real, 'saldo': saldo_real}
+        
+        # 🛡️ CÁLCULO DE MÉTRICAS FALTANTES PARA EL DASHBOARD
+        fondos_escrow = db.session.query(db.func.sum(Tarea.costo_creditos)).filter(
+            Tarea.estado == 'En Garantia',
+            or_(Tarea.cliente_correo == correo_logueado, Tarea.tecnico_correo == correo_logueado)
+        ).scalar() or 0.0
+        
+        total_workers = Usuario.query.filter(Usuario.rol.in_(['Worker', 'Trabajador'])).count()
+        ordenes_mediacion = Tarea.query.filter_by(estado='En Mediacion').count()
+        
+        return render_template('index.html',  
+                               usuario=usuario_info,
+                               portafolio=lista_portafolio,
+                               nombre_usuario=session['usuario_nombre'],
+                               saldo=saldo_real,
+                               cliente_perfil=perfil_real,
+                               trabajador_perfil=perfil_real,
+                               # 👇 Inyección de variables para evitar el Error 500
+                               fondos_escrow=fondos_escrow,
+                               total_workers=total_workers,
+                               ordenes_mediacion=ordenes_mediacion)
+                               
+    except Exception as e:
+        print(f"⚠️ ERROR CRÍTICO EN GET PERFIL: {e}")
+        # En caso de fallo en la BD, la vista no explota, carga con datos por defecto
+        return render_template('index.html', 
+                               nombre_usuario=session.get('usuario_nombre', 'Usuario'),
+                               saldo=0.0,
+                               fondos_escrow=0.0,
+                               total_workers=0,
+                               ordenes_mediacion=0)
 
     # =====================================================================
     # 👤 MÉTODO GET: RENDERIZAR VISTA NORMAL DEL PERFIL - OPTIMIZADO

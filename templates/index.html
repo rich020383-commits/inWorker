@@ -11,10 +11,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- ⚡ GSAP Core para la coreografía de animaciones -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
-    <!-- 🎨 ESTILOS CSS PERSONALIZADOS PARA EFECTOS DE ALTA TECNOLOGÍA -->
     <style>
         body.intro-activa {
             overflow: hidden;
@@ -54,9 +52,6 @@
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col intro-activa">
 
-    <!-- ======================================================== -->
-    <!-- 🌌 INTRO ANIMADA SÚPER TECNOLOGÍA (PRELOADER CHROME)      -->
-    <!-- ======================================================== -->
     <div id="cyber-intro" class="fixed inset-0 bg-slate-950 z-[9999] flex flex-col items-center justify-center overflow-hidden grid-cyber">
         <div class="laser-line absolute left-0 w-full h-1 pointer-events-none"></div>
 
@@ -92,12 +87,8 @@
     </div>
 
 
-    <!-- ======================================================== -->
-    <!-- 🏢 PLATAFORMA PRINCIPAL (SE REVELA DESPUÉS)                -->
-    <!-- ======================================================== -->
     <div id="contenido-plataforma" class="opacity-0 w-full flex flex-col flex-grow">
         
-        <!-- HEADER -->
         <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm px-4 py-3">
             <div class="max-w-7xl mx-auto flex justify-between items-center">
                 <div class="flex items-center space-x-3">
@@ -110,7 +101,7 @@
                 </div>
 
                 <div class="flex items-center space-x-3">
-                    <span class="text-xs text-slate-500 hidden md:inline">Bienvenido, <strong class="text-slate-900">{{ nombre_usuario }}</strong></span>
+                    <span class="text-xs text-slate-500 hidden md:inline">Bienvenido, <strong class="text-slate-900">{{ nombre_usuario | default('Usuario') }}</strong></span>
                     <span class="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-[#2563EB] px-3 py-1.5 rounded-lg border border-blue-100">
                         {{ session['usuario_role'] if 'usuario_role' in session else session['usuario_rol'] }}
                     </span>
@@ -122,11 +113,9 @@
             </div>
         </header>
 
-        <!-- CONTENIDO CENTRAL -->
         <main class="max-w-7xl mx-auto px-4 py-8 space-y-6 flex-grow w-full">
             
             {% if session['usuario_rol'] == 'Admin' %}
-            <!-- CONSOLA ADMINISTRATIVA -->
             <div class="tarjeta-main p-6 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-all">
                 <div class="flex items-center space-x-3 mb-4">
                     <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl border border-blue-100"><i class="fas fa-user-shield text-xl"></i></div>
@@ -161,22 +150,19 @@
             </div>
             {% endif %}
 
-            <!-- SECCIÓN CENTRAL DE ACCIONES -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- BILLETERA DE CRÉDITOS BLANCO/VERDE -->
                 <div class="tarjeta-main bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between h-44 relative overflow-hidden transition-all hover:shadow-lg group">
                     <div class="absolute -right-6 -bottom-6 text-slate-100/70 text-9xl font-black pointer-events-none select-none">CR</div>
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-widest text-blue-600">Billetera de Créditos</span>
-                        <h2 class="text-4xl font-black text-slate-900 tracking-tight mt-1">{{ saldo }} <span class="text-xs font-normal text-slate-400">Cr</span></h2>
+                        <h2 class="text-4xl font-black text-slate-900 tracking-tight mt-1">{{ saldo | default(0) | float }} <span class="text-xs font-normal text-slate-400">Cr</span></h2>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex justify-between items-center">
                         <span class="text-xs text-slate-500">Equivalente Estimado (COP):</span>
-                        <span class="text-base font-bold text-green-600">${{ "{:,.0f}".format(saldo * 30000) }} COP</span>
+                        <span class="text-base font-bold text-green-600">${{ "{:,.0f}".format((saldo | default(0) | float) * 10000) }} COP</span>
                     </div>
                 </div>
 
-                <!-- ACCESO INMEDIATO -->
                 <div class="tarjeta-main lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between transition-all hover:shadow-lg">
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Acceso Inmediato</span>
@@ -207,40 +193,30 @@
                 </div>
             </div>
 
-            <!-- ======================================================== -->
-            <!-- 🚀 NUEVA SECCIÓN: RADAR DE POSICIONAMIENTO & FEED EN VIVO -->
-            <!-- ======================================================== -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
-                <!-- 📡 COMPONENTE 1: RADAR DIGITAL DE GEOLOCALIZACIÓN -->
                 <div class="tarjeta-main bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between transition hover:shadow-lg relative overflow-hidden">
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-widest text-[#2563EB]">Posicionamiento Global</span>
                         <h3 class="text-xs font-bold text-slate-900 mt-0.5">Escáner de Cobertura Activo</h3>
                     </div>
                     
-                    <!-- Contenedor del Radar Gráfico -->
                     <div class="my-4 flex justify-center items-center relative h-32 w-full bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-                        <!-- Líneas circulares concéntricas -->
                         <div class="absolute w-28 h-28 border border-emerald-500/20 rounded-full"></div>
                         <div class="absolute w-16 h-16 border border-emerald-500/30 rounded-full"></div>
                         <div class="absolute w-6 h-6 border border-emerald-500/40 rounded-full"></div>
                         
-                        <!-- Ejes en cruz -->
                         <div class="absolute w-full h-[1px] bg-slate-800/60"></div>
                         <div class="absolute w-[1px] h-full bg-slate-800/60"></div>
                         
-                        <!-- Línea rotativa del radar -->
                         <div class="radar-linea absolute w-32 h-32 origin-center rounded-full pointer-events-none" style="background: conic-gradient(from 0deg, rgba(34,197,94,0.15) 0%, transparent 40%);"></div>
                         
-                        <!-- Puntos de Especialistas Simulados (Pings) -->
                         <div class="absolute top-1/4 left-1/3 w-2 h-2 bg-emerald-400 rounded-full animate-ping"></div>
                         <div class="absolute top-1/4 left-1/3 w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
 
                         <div class="absolute bottom-1/3 right-1/4 w-2 h-2 bg-blue-400 rounded-full animate-ping" style="animation-delay: 0.7s;"></div>
                         <div class="absolute bottom-1/3 right-1/4 w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
 
-                        <!-- Nodo Central -->
                         <div class="w-2 h-2 bg-white rounded-full shadow-md z-10"></div>
                     </div>
 
@@ -250,16 +226,13 @@
                     </div>
                 </div>
 
-                <!-- 🟢 COMPONENTE 2: FEED DE ACTIVIDAD DE OPERACIONES EN VIVO -->
                 <div class="tarjeta-main lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between transition hover:shadow-lg">
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-widest text-[#22C55E]">Ecosistema inWorker</span>
                         <h3 class="text-xs font-bold text-slate-900 mt-0.5">Flujo de Garantías y Órdenes en Tiempo Real</h3>
                     </div>
 
-                    <!-- Lista del Feed dinámico -->
                     <div id="live-activity-feed" class="my-4 space-y-3 h-32 overflow-hidden relative text-xs">
-                        <!-- El script inyectará dinámicamente las filas simulando el backend activo -->
                         <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-100 rounded-xl transition-all duration-300">
                             <div class="flex items-center space-x-2.5">
                                 <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -284,13 +257,12 @@
 
             </div>
 
-            <!-- MÉTRICAS INFERIORES -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="tarjeta-main bg-white border border-slate-200 rounded-2xl p-5 flex items-center space-x-4 shadow-sm transition hover:shadow-lg">
                     <div class="p-3 bg-blue-50 rounded-xl text-blue-600 border border-blue-100"><i class="fas fa-users text-lg"></i></div>
                     <div>
                         <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Especialistas Activos</span>
-                        <span class="text-xl font-black text-slate-900">{{ total_workers }}</span>
+                        <span class="text-xl font-black text-slate-900">{{ total_workers | default(0) }}</span>
                     </div>
                 </div>
                 
@@ -299,7 +271,7 @@
                         <div class="p-3 bg-amber-50 text-amber-500 border border-amber-100 rounded-xl"><i class="fas fa-gavel text-lg"></i></div>
                         <div>
                             <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Órdenes en Mediación</span>
-                            <span class="text-xl font-black text-slate-900">{{ ordenes_mediacion }}</span>
+                            <span class="text-xl font-black text-slate-900">{{ ordenes_mediacion | default(0) }}</span>
                         </div>
                     </div>
                 </div>
@@ -308,14 +280,13 @@
                     <div class="p-3 bg-green-50 rounded-xl text-green-600 border border-green-100"><i class="fas fa-lock text-lg"></i></div>
                     <div>
                         <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Garantías en Escrow🛡️</span>
-                        <span class="text-xl font-black text-green-600">${{ "{:,.0f}".format(fondos_escrow) }} <span class="text-xs font-normal text-slate-500">COP</span></span>
+                        <span class="text-xl font-black text-green-600">${{ "{:,.0f}".format(fondos_escrow | default(0) | float) }} <span class="text-xs font-normal text-slate-500">COP</span></span>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- MODAL DE RETIRO (Oculto) -->
     <div id="modalRetiro" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
         <div class="bg-white border border-slate-200 w-full max-w-lg rounded-2xl shadow-xl p-6 relative">
             <div class="flex justify-between items-start mb-4">
@@ -349,9 +320,6 @@
         </div>
     </div>
 
-    <!-- ======================================================== -->
-    <!-- 🧠 LÓGICA DE COREOGRAFÍA GSAP & GENERADOR DE ACTIVIDAD     -->
-    <!-- ======================================================== -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const masterTimeline = gsap.timeline();
