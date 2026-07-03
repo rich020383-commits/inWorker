@@ -1782,7 +1782,6 @@ def listar_tecnicos():
 
 
 # =====================================================================
-# =====================================================================
 # 🚀 RUTA PROPIA PARA LA CONSULTA PRIVADA (CIERRE DIRECTO) - OPTIMIZADO
 # =====================================================================
 @app.route('/solicitar_cotizacion_privada', methods=['POST'])
@@ -1828,7 +1827,7 @@ def consultar_tecnico():
             latitud=lat,
             longitud=lng,
             zona=zona,
-            tecnico_correo=tecnico_correo  # Campo nativo del modelo ORM
+            trabajador_correo=tecnico_correo  # 👈 ¡ESTA ES LA LÍNEA CORREGIDA!
         )
         
         db.session.add(nueva_tarea)
