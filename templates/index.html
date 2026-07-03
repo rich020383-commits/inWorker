@@ -16,8 +16,6 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col">
 
@@ -38,25 +36,48 @@
                 </a>
             </div>
 
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2 md:space-x-3">
                 <span class="text-xs text-slate-500 hidden md:inline">Bienvenido, <strong class="text-slate-900">{{ nombre_usuario }}</strong></span>
-                <span class="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-[#2563EB] px-3 py-1.5 rounded-lg border border-blue-100">
-                    {{ session['usuario_role'] if 'usuario_role' in session else session['usuario_rol'] }}
+                
+                <a href="{{ url_for('ver_tareas') }}" class="relative p-2 text-slate-500 hover:text-blue-600 transition flex items-center justify-center">
+                    <i class="fas fa-envelope text-lg"></i>
+                    <span id="badge-nav-mensajes" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">
+                        0
+                    </span>
+                </a>
+
+                <span class="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-[#2563EB] px-2.5 py-1.5 rounded-lg border border-blue-100">
+                    {{ session['usuario_rol'] }}
                 </span>
-                <a href="{{ url_for('logout') }}" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs px-3 py-2 rounded-xl transition shadow-sm flex items-center space-x-1">
-                    <i class="fas fa-power-off text-[10px]"></i>
-                    <span class="hidden sm:inline">Cerrar Sesión</span>
+
+                <a href="{{ url_for('logout') }}" 
+                   class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 p-2 rounded-lg transition flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider" 
+                   title="Cerrar Sesión">
+                    <i class="fas fa-sign-out-alt text-sm"></i>
+                    <span class="hidden sm:inline">Salir</span>
                 </a>
             </div>
-            
         </div>
     </header>
 
-    <main id="panel-contenedor" class="max-w-7xl mx-auto px-4 py-8 space-y-8 flex-grow w-full opacity-0">
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
         
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="space-y-3 mb-6">
+                    {% for category, message in messages %}
+                        <div class="p-4 rounded-xl text-xs font-bold uppercase tracking-wide flex items-center space-x-2 shadow-sm border {% if category == 'error' %}bg-rose-50 border-rose-200 text-rose-800{% else %}bg-emerald-50 border-emerald-200 text-emerald-800{% endif %}">
+                            <i class="fas {% if category == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} text-base"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
         {% if session['usuario_rol'] == 'Admin' %}
-        <div class="tarjeta-premium p-6 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
-            <div class="flex items-center space-x-3 mb-4">
+        <div class="mb-8 p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-6">
+            <div class="flex items-center space-x-3">
                 <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl border border-blue-100">
                     <i class="fas fa-user-shield text-xl"></i>
                 </div>
@@ -66,7 +87,7 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-blue-400 transition flex flex-col justify-between">
                     <div>
                         <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">📋 Módulo Cédulas</h3>
@@ -96,17 +117,81 @@
                         Gestionar Retiros
                     </a>
                 </div>
+
+                <div class="bg-slate-50 p-4 rounded-xl border border-amber-300 bg-amber-50/10 transition flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">⚖️ Arbitraje & Disputas</h3>
+                            <span class="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded animate-pulse">{{ lista_disputas|length }}</span>
+                        </div>
+                        <p class="text-[12px] text-slate-500 leading-relaxed mb-4">Auditar chats en conflicto congelados en escrow usando peritaje de Gemini IA.</p>
+                    </div>
+                    <a href="#seccion-arbitraje-dashboard" class="block w-full text-center bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-sm">
+                        Ver Casos Activos
+                    </a>
+                </div>
+            </div>
+
+            <div id="seccion-arbitraje-dashboard" class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50 pt-2">
+                <div class="p-4 bg-slate-100/80 border-b border-slate-200 flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Órdenes Bloqueadas Bajo Arbitraje</span>
+                    <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-bold uppercase">Requiere Dictamen Manual</span>
+                </div>
+                <div class="overflow-x-auto text-xs">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">ID</th>
+                                <th class="p-3">Servicio / Descripción de la Queja</th>
+                                <th class="p-3">Garantía Escrow</th>
+                                <th class="p-3 text-center">Acción Forense</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 bg-white">
+                            {% for disputa in lista_disputas %}
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="p-3 font-mono font-bold text-slate-400">#{{ disputa.id }}</td>
+                                <td class="p-3">
+                                    <span class="font-bold text-slate-900 block text-sm">{{ disputa.titulo }}</span>
+                                    <span class="text-slate-500 italic block mt-1 bg-slate-50 p-2 border border-slate-100 rounded-lg">"{{ disputa.motivo_disputa if disputa.motivo_disputa else 'Sin detalles descritos.' }}"</span>
+                                    <span class="text-[10px] text-slate-400 block mt-1 font-semibold">🚨 Alerta escalada por: {{ disputa.reportado_por }}</span>
+                                </td>
+                                <td class="p-3 font-black text-amber-600 text-sm">${{ "{:,.0f}".format(disputa.costo_creditos * 30000) }} COP</td>
+                                <td class="p-3 text-center">
+                                    <button type="button" onclick="lanzarAuditoriaIA('{{ disputa.id }}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-2 rounded-xl uppercase tracking-wider transition text-[10px] flex items-center gap-1 mx-auto shadow-sm">
+                                        <i class="fas fa-brain mr-1"></i> Audit IA
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="p-6 text-center text-slate-400 font-medium">No hay ningún caso congelado en arbitraje actualmente.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="contenedorInformeIA" class="hidden border border-blue-200 rounded-xl overflow-hidden bg-blue-50/10 p-5 mt-4 space-y-3">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fas fa-balance-scale text-blue-600"></i> Dictamen Clínico de Mediación Inteligente
+                    </h3>
+                    <button type="button" onclick="document.getElementById('contenedorInformeIA').classList.add('hidden')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times-circle"></i></button>
+                </div>
+                <div id="cuerpoInformeIA"></div>
             </div>
         </div>
         {% endif %}
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             
-            <div class="tarjeta-premium bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between h-44 relative overflow-hidden transition-all duration-500 hover:shadow-xl hover:border-emerald-500/50 group">
-                <div class="absolute -right-6 -bottom-6 text-slate-100/70 text-9xl font-black pointer-events-none select-none transition-transform duration-500 group-hover:scale-110">CR</div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between h-44 relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 text-slate-100 text-9xl font-black pointer-events-none select-none">CR</div>
                 <div>
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-blue-600 group-hover:text-emerald-600 transition-colors">Billetera de Créditos</span>
-                    <h2 class="text-4xl font-black text-slate-900 tracking-tight mt-1 group-hover:scale-[1.02] transition-transform origin-left">{{ saldo }} <span class="text-xs font-normal text-slate-400">Cr</span></h2>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-blue-600">Billetera de Créditos</span>
+                    <h2 class="text-4xl font-black text-slate-900 tracking-tight mt-1">{{ saldo }} <span class="text-xs font-normal text-slate-400">Cr</span></h2>
                 </div>
                 <div class="pt-4 border-t border-slate-100 flex justify-between items-center z-10">
                     <span class="text-xs text-slate-500">Equivalente Estimado (COP):</span>
@@ -114,40 +199,40 @@
                 </div>
             </div>
 
-            <div class="tarjeta-premium lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between transition-all duration-500 hover:shadow-xl hover:border-blue-500/40">
+            <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
                 <div>
                     <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Acceso Inmediato</span>
                     <h2 class="text-base font-bold text-slate-900 mt-0.5">¿Qué operación deseas realizar hoy?</h2>
                 </div>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                    <a href="{{ url_for('ver_tareas') }}" class="bg-slate-50 hover:bg-white border border-slate-200 hover:border-blue-400 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5">
-                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                    <a href="{{ url_for('ver_tareas') }}" class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:scale-105 transition">
                             <i class="fas fa-briefcase text-lg"></i>
                         </div>
                         <span class="text-xs font-bold text-slate-900">Ver Servicios</span>
                         <span class="text-[10px] text-slate-500 mt-0.5">Explorar tablero</span>
                     </a>
 
-                    <a href="{{ url_for('ver_perfil') }}" class="bg-slate-50 hover:bg-white border border-slate-200 hover:border-blue-400 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5">
-                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                    <a href="{{ url_for('ver_perfil') }}" class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:scale-105 transition">
                             <i class="fas fa-user-circle text-lg"></i>
                         </div>
                         <span class="text-xs font-bold text-slate-900">Mi Perfil</span>
                         <span class="text-[10px] text-slate-500 mt-0.5">Editar mis datos</span>
                     </a>
 
-                    <a href="{{ url_for('ver_perfil') }}?autostart_copilot=true" class="bg-gradient-to-br from-blue-50 to-indigo-50/30 hover:from-white hover:to-white border border-blue-200 hover:border-indigo-400 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden">
-                        <div class="absolute -right-2 -top-2 bg-indigo-500 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg shadow-sm">IA</div>
-                        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center mb-2 group-hover:rotate-12 transition-all duration-300 shadow-sm">
+                    <a href="{{ url_for('ver_perfil') }}?autostart_copilot=true" class="bg-gradient-to-br from-blue-50 to-indigo-50/50 hover:from-indigo-100/60 hover:to-blue-100/60 border border-blue-200 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm relative overflow-hidden">
+                        <div class="absolute -right-2 -top-2 bg-indigo-500 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">IA</div>
+                        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center mb-2 group-hover:rotate-6 transition">
                             <i class="fas fa-magic text-sm"></i>
                         </div>
                         <span class="text-xs font-bold text-slate-900">Copilot IA</span>
-                        <span class="text-[10px] text-indigo-600 font-bold mt-0.5">Optimizar mi perfil</span>
+                        <span class="text-[10px] text-indigo-600 font-semibold mt-0.5">Optimizar mi perfil</span>
                     </a>
 
-                    <button type="button" onclick="abrirModalRetiro()" class="bg-slate-50 hover:bg-white border border-slate-200 hover:border-emerald-500 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5 focus:outline-none w-full">
-                        <div class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center mb-2 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                    <button type="button" onclick="abrirModalRetiro()" class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm focus:outline-none">
+                        <div class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center mb-2 group-hover:scale-105 transition">
                             <i class="fas fa-money-check-alt text-lg"></i>
                         </div>
                         <span class="text-xs font-bold text-slate-900">Retirar Fondos</span>
@@ -158,17 +243,16 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="tarjeta-premium bg-white border border-slate-200 rounded-2xl p-5 flex items-center space-x-4 shadow-sm transition-all duration-500 hover:shadow-xl hover:border-blue-500/30 group">
-                <div class="p-3 bg-blue-50 rounded-xl text-blue-600 border border-blue-100 group-hover:scale-105 transition-transform"><i class="fas fa-users text-lg"></i></div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 flex items-center space-x-4 shadow-sm">
+                <div class="p-3 bg-blue-50 rounded-xl text-blue-600"><i class="fas fa-users text-lg"></i></div>
                 <div>
                     <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Especialistas Activos</span>
                     <span class="text-xl font-black text-slate-900">{{ total_workers }}</span>
                 </div>
             </div>
-            
-            <div class="tarjeta-premium bg-white border border-slate-200 rounded-2xl p-5 flex items-center justify-between shadow-sm transition-all duration-500 hover:shadow-xl {% if ordenes_mediacion > 0 %}border-amber-300 bg-amber-50/20 hover:border-amber-500{% else %}hover:border-amber-500/30{% endif %} group">
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 flex items-center justify-between shadow-sm {% if ordenes_mediacion > 0 %}border-amber-300 bg-amber-50/20{% endif %}">
                 <div class="flex items-center space-x-4">
-                    <div class="p-3 {% if ordenes_mediacion > 0 %}bg-amber-500 text-white{% else %}bg-amber-50 text-amber-500 border border-amber-100{% endif %} rounded-xl group-hover:scale-105 transition-transform">
+                    <div class="p-3 {% if ordenes_mediacion > 0 %}bg-amber-500 text-white{% else %}bg-amber-50 text-amber-500{% endif %} rounded-xl">
                         <i class="fas fa-gavel text-lg"></i>
                     </div>
                     <div>
@@ -177,14 +261,13 @@
                     </div>
                 </div>
                 {% if ordenes_mediacion > 0 %}
-                <a href="{{ url_for('ver_tareas', filtro='mediacion') }}" class="text-[10px] bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold px-2 py-1 rounded-lg transition uppercase tracking-wider shadow-sm">
+                <a href="{{ url_for('ver_tareas', filtro='mediacion') }}" class="text-[10px] bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold px-2 py-1 rounded-lg transition uppercase tracking-wider">
                     Ver Casos
                 </a>
                 {% endif %}
             </div>
-
-            <div class="tarjeta-premium bg-white border border-slate-200 rounded-2xl p-5 flex items-center space-x-4 shadow-sm transition-all duration-500 hover:shadow-xl hover:border-emerald-500/30 group">
-                <div class="p-3 bg-green-50 rounded-xl text-green-600 border border-green-100 group-hover:scale-105 transition-transform"><i class="fas fa-lock text-lg"></i></div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 flex items-center space-x-4 shadow-sm">
+                <div class="p-3 bg-green-50 rounded-xl text-green-600"><i class="fas fa-lock text-lg"></i></div>
                 <div>
                     <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Garantías en Escrow🛡️</span>
                     <span class="text-xl font-black text-green-600">${{ "{:,.0f}".format(fondos_escrow) }} <span class="text-xs font-normal text-slate-500">COP</span></span>
@@ -238,18 +321,19 @@
         </div>
     </div>
 
+    <!-- SCRIPTS DE INTERACCIÓN Y ANIMACIONES (CORREGIDO) -->
     <script>
         // ✨ ANIMACIÓN CON GSAP AL CARGAR EL PANEL
         document.addEventListener("DOMContentLoaded", function() {
             const tl = gsap.timeline();
             
-            // Aparece el lienzo principal con fluidez
+            // 1. Aparece el lienzo principal con fluidez cambiando la opacidad a 1
             tl.to("#panel-contenedor", { opacity: 1, duration: 0.4 });
             
-            // Las tarjetas y bloques principales saltan escalonadamente desde abajo con un leve rebote profesional
+            // 2. Las tarjetas y bloques principales saltan escalonadamente con un rebote profesional
             tl.fromTo(".tarjeta-premium", 
                 { y: 25, opacity: 0, scale: 0.98 }, 
-                { y: 0, opacity: 1, scale: 1, duration: 0.5,延 stagger: 0.1, ease: "back.out(1.1)" }
+                { y: 0, opacity: 1, scale: 1, duration: 0.5, stagger: 0.1, ease: "back.out(1.1)" }
             );
         });
 
@@ -310,5 +394,14 @@
         });
     </script>
 
-    </body>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => console.log('🚀 Service Worker registrado con éxito:', reg.scope))
+                    .catch(err => console.error('❌ Error al registrar el Service Worker:', err));
+            });
+        }
+    </script>
+</body>
 </html>
