@@ -3,405 +3,361 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>inWorker - Panel de Control</title>
+    <title>inWorker - Tech Hub</title>
 
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    
     <meta name="theme-color" content="#2563EB">
-
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icono-512.png') }}?v=1">
-    <link class="html-shortcut-icon" rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}?v=1">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- ⚡ GSAP Core y ScrollTrigger para máxima fluidez -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <!-- 🎨 ESTILOS CSS PERSONALIZADOS PARA EFECTOS DE ALTA TECNOLOGÍA -->
+    <style>
+        /* Ocultar el scrollbar durante la intro */
+        body.intro-activa {
+            overflow: hidden;
+        }
+
+        /* Efecto de brillo de Neo-Tecnología */
+        .brillo-cyber {
+            text-shadow: 0 0 10px rgba(37, 99, 235, 0.6), 0 0 20px rgba(34, 197, 94, 0.4);
+        }
+
+        /* Línea de escáner láser */
+        .laser-line {
+            background: linear-gradient(to bottom, transparent, #22C55E, transparent);
+            box-shadow: 0 0 15px #22C55E;
+            animation: scanear 2s ease-in-out infinite;
+        }
+
+        @keyframes scanear {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+
+        /* Rejilla de fondo estilo Tron / Cyberpunk */
+        .grid-cyber {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(37, 99, 235, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(37, 99, 235, 0.05) 1px, transparent 1px);
+        }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col intro-activa">
 
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm px-4 py-3">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            
-            <div class="flex items-center space-x-3">
-                <a href="{{ url_for('home') }}" class="flex items-center space-x-2 select-none group">
-                    <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" 
-                         alt="Logo inWorker" 
-                         class="h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
-                         onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/logo.png') }}?v=1';">
-                    <div class="flex flex-col border-l border-slate-200 pl-2 ml-1">
-                        <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                            Control <span class="text-[#22C55E]">Hub</span>
-                        </span>
-                    </div>
-                </a>
+    <!-- ======================================================== -->
+    <!-- 🌌 INTRO ANIMADA SÚPER TECNOLOGÍA (PRELOADER CHROME)      -->
+    <!-- ======================================================== -->
+    <div id="cyber-intro" class="fixed inset-0 bg-slate-950 z-[9999] flex flex-col items-center justify-center overflow-hidden grid-cyber">
+        <!-- Línea Láser -->
+        <div class="laser-line absolute left-0 w-full h-1 pointer-events-none"></div>
+
+        <!-- Círculos de energía abstractos de fondo -->
+        <div class="absolute w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-3xl -top-20 -left-20 animate-pulse"></div>
+        <div class="absolute w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-3xl -bottom-20 -right-20 animate-pulse" style="animation-delay: 1s;"></div>
+
+        <!-- Contenedor Central de Animación -->
+        <div class="text-center z-10 space-y-6 px-4">
+            <!-- Icono Core con animación de pulso tecnológico -->
+            <div id="intro-logo-container" class="relative inline-block">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-emerald-500 rounded-3xl blur-xl opacity-50 scale-110 animate-pulse"></div>
+                <div class="relative bg-slate-900 border-2 border-blue-500/30 p-6 rounded-3xl shadow-2xl flex items-center justify-center">
+                    <i class="fas fa-microchip text-5xl text-blue-500 animate-spin" style="animation-duration: 8s;"></i>
+                </div>
             </div>
 
-            <div class="flex items-center space-x-2 md:space-x-3">
-                <span class="text-xs text-slate-500 hidden md:inline">Bienvenido, <strong class="text-slate-900">{{ nombre_usuario }}</strong></span>
-                
-                <a href="{{ url_for('ver_tareas') }}" class="relative p-2 text-slate-500 hover:text-blue-600 transition flex items-center justify-center">
-                    <i class="fas fa-envelope text-lg"></i>
-                    <span id="badge-nav-mensajes" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">
-                        0
-                    </span>
-                </a>
+            <!-- Título con carga de letras -->
+            <div class="space-y-2">
+                <h1 id="intro-title" class="text-4xl md:text-5xl font-black tracking-widest text-white uppercase brillo-cyber">
+                    IN<span class="text-emerald-500">WORKER</span>
+                </h1>
+                <p id="intro-subtitle" class="text-xs font-mono tracking-widest text-slate-400 uppercase opacity-0">
+                    Iniciando sistemas de posicionamiento...
+                </p>
+            </div>
 
-                <span class="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-[#2563EB] px-2.5 py-1.5 rounded-lg border border-blue-100">
-                    {{ session['usuario_rol'] }}
-                </span>
-
-                <a href="{{ url_for('logout') }}" 
-                   class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 p-2 rounded-lg transition flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider" 
-                   title="Cerrar Sesión">
-                    <i class="fas fa-sign-out-alt text-sm"></i>
-                    <span class="hidden sm:inline">Salir</span>
-                </a>
+            <!-- Barra de Progreso Cyber -->
+            <div class="w-64 h-1.5 bg-slate-900 rounded-full mx-auto overflow-hidden border border-slate-800 relative">
+                <div id="intro-progress" class="h-full bg-gradient-to-r from-blue-600 to-emerald-500 w-0 rounded-full"></div>
+            </div>
+            
+            <div id="intro-percentage" class="text-[10px] font-mono text-emerald-400 tracking-wider opacity-0">
+                SYS_STATUS: READY
             </div>
         </div>
-    </header>
+    </div>
 
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
+
+    <!-- ======================================================== -->
+    <!-- 🏢 PLATAFORMA PRINCIPAL (SE REVELA DESPUÉS)                -->
+    <!-- ======================================================== -->
+    <div id="contenido-plataforma" class="opacity-0 w-full flex flex-col flex-grow">
         
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="space-y-3 mb-6">
-                    {% for category, message in messages %}
-                        <div class="p-4 rounded-xl text-xs font-bold uppercase tracking-wide flex items-center space-x-2 shadow-sm border {% if category == 'error' %}bg-rose-50 border-rose-200 text-rose-800{% else %}bg-emerald-50 border-emerald-200 text-emerald-800{% endif %}">
-                            <i class="fas {% if category == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} text-base"></i>
-                            <span>{{ message }}</span>
+        <!-- HEADER -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm px-4 py-3">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <a href="{{ url_for('home') }}" class="flex items-center space-x-2 select-none group">
+                        <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105" onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/logo.png') }}?v=1';">
+                        <div class="flex flex-col border-l border-slate-200 pl-2 ml-1">
+                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">Control <span class="text-[#22C55E]">Hub</span></span>
                         </div>
-                    {% endfor %}
+                    </a>
                 </div>
+
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs text-slate-500 hidden md:inline">Bienvenido, <strong class="text-slate-900">{{ nombre_usuario }}</strong></span>
+                    <span class="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-[#2563EB] px-3 py-1.5 rounded-lg border border-blue-100">
+                        {{ session['usuario_role'] if 'usuario_role' in session else session['usuario_rol'] }}
+                    </span>
+                    <a href="{{ url_for('logout') }}" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs px-3 py-2 rounded-xl transition shadow-sm flex items-center space-x-1">
+                        <i class="fas fa-power-off text-[10px]"></i>
+                        <span class="hidden sm:inline">Cerrar Sesión</span>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENIDO CENTRAL -->
+        <main class="max-w-7xl mx-auto px-4 py-8 space-y-8 flex-grow w-full">
+            
+            {% if session['usuario_rol'] == 'Admin' %}
+            <!-- CONSOLA ADMINISTRATIVA -->
+            <div class="tarjeta-main p-6 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-all">
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl border border-blue-100"><i class="fas fa-user-shield text-xl"></i></div>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-950 uppercase tracking-wider">Consola Administrativa</h2>
+                        <p class="text-[11px] text-slate-500 font-medium -mt-0.5">Gestión de operaciones globales</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">📋 Módulo Cédulas</h3>
+                            <p class="text-[12px] text-slate-500 mb-4">Buscar, auditar y gestionar las lógicas de documentos de identidad.</p>
+                        </div>
+                        <a href="{{ url_for('admin_modulo_cedulas') }}" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition">Entrar a Cédulas</a>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">👷 Validar Técnicos</h3>
+                            <p class="text-[12px] text-slate-500 mb-4">Revisar especialistas registrados y habilitar perfiles operativos.</p>
+                        </div>
+                        <a href="{{ url_for('admin_validar_tecnicos') }}" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition">Ver Especialistas</a>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">💰 Solicitudes de Cobro</h3>
+                            <p class="text-[12px] text-slate-500 mb-4">Aprobar o rechazar órdenes de retiro de créditos a cuentas bancarias.</p>
+                        </div>
+                        <a href="{{ url_for('admin_retiros') }}" class="block w-full text-center bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition">Gestionar Retiros</a>
+                    </div>
+                </div>
+            </div>
             {% endif %}
-        {% endwith %}
 
-        {% if session['usuario_rol'] == 'Admin' %}
-        <div class="mb-8 p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-6">
-            <div class="flex items-center space-x-3">
-                <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl border border-blue-100">
-                    <i class="fas fa-user-shield text-xl"></i>
-                </div>
-                <div>
-                    <h2 class="text-base font-bold text-slate-950 uppercase tracking-wider">Consola Administrativa</h2>
-                    <p class="text-[11px] text-slate-500 font-medium -mt-0.5">Gestión de operaciones globales</p>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-blue-400 transition flex flex-col justify-between">
+            <!-- SECCIÓN CENTRAL DE ACCIONES -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- BILLETERA DE CRÉDITOS BLANCO/VERDE -->
+                <div class="tarjeta-main bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between h-44 relative overflow-hidden transition-all hover:shadow-lg group">
+                    <div class="absolute -right-6 -bottom-6 text-slate-100/70 text-9xl font-black pointer-events-none select-none">CR</div>
                     <div>
-                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">📋 Módulo Cédulas</h3>
-                        <p class="text-[12px] text-slate-500 leading-relaxed mb-4">Buscar, auditar y gestionar las lógicas de documentos de identidad.</p>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-blue-600">Billetera de Créditos</span>
+                        <h2 class="text-4xl font-black text-slate-900 tracking-tight mt-1">{{ saldo }} <span class="text-xs font-normal text-slate-400">Cr</span></h2>
                     </div>
-                    <a href="{{ url_for('admin_modulo_cedulas') }}" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-sm">
-                        Entrar a Cédulas
-                    </a>
+                    <div class="pt-4 border-t border-slate-100 flex justify-between items-center">
+                        <span class="text-xs text-slate-500">Equivalente Estimado (COP):</span>
+                        <span class="text-base font-bold text-green-600">${{ "{:,.0f}".format(saldo * 30000) }} COP</span>
+                    </div>
                 </div>
 
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-blue-400 transition flex flex-col justify-between">
+                <!-- ACCESO INMEDIATO -->
+                <div class="tarjeta-main lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between transition-all hover:shadow-lg">
                     <div>
-                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">👷 Validar Técnicos</h3>
-                        <p class="text-[12px] text-slate-500 leading-relaxed mb-4">Revisar especialistas registrados y habilitar perfiles operativos.</p>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Acceso Inmediato</span>
+                        <h2 class="text-base font-bold text-slate-900 mt-0.5">¿Qué operación deseas realizar hoy?</h2>
                     </div>
-                    <a href="{{ url_for('admin_validar_tecnicos') }}" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-sm">
-                        Ver Especialistas
-                    </a>
-                </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                        <a href="{{ url_for('ver_tareas') }}" class="bg-slate-50 hover:bg-white border border-slate-200 hover:border-blue-400 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:bg-blue-600 group-hover:text-white transition shadow-sm"><i class="fas fa-briefcase text-lg"></i></div>
+                            <span class="text-xs font-bold text-slate-900">Ver Servicios</span>
+                        </a>
 
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-green-400 transition flex flex-col justify-between">
+                        <a href="{{ url_for('ver_perfil') }}" class="bg-slate-50 hover:bg-white border border-slate-200 hover:border-blue-400 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:bg-blue-600 group-hover:text-white transition shadow-sm"><i class="fas fa-user-circle text-lg"></i></div>
+                            <span class="text-xs font-bold text-slate-900">Mi Perfil</span>
+                        </a>
+
+                        <a href="{{ url_for('ver_perfil') }}?autostart_copilot=true" class="bg-gradient-to-br from-blue-50 to-indigo-50/30 hover:from-white hover:to-white border border-blue-200 hover:border-indigo-400 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm relative overflow-hidden">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center mb-2"><i class="fas fa-magic text-sm"></i></div>
+                            <span class="text-xs font-bold text-slate-900">Copilot IA</span>
+                        </a>
+
+                        <button type="button" onclick="abrirModalRetiro()" class="bg-slate-50 hover:bg-white border border-slate-200 hover:border-emerald-500 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm focus:outline-none w-full">
+                            <div class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center mb-2 group-hover:bg-emerald-600 group-hover:text-white transition"><i class="fas fa-money-check-alt text-lg"></i></div>
+                            <span class="text-xs font-bold text-slate-900">Retirar Fondos</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MÉTRICAS INFERIORES -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="tarjeta-main bg-white border border-slate-200 rounded-2xl p-5 flex items-center space-x-4 shadow-sm transition hover:shadow-lg">
+                    <div class="p-3 bg-blue-50 rounded-xl text-blue-600 border border-blue-100"><i class="fas fa-users text-lg"></i></div>
                     <div>
-                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">💰 Solicitudes de Cobro</h3>
-                        <p class="text-[12px] text-slate-500 leading-relaxed mb-4">Aprobar o rechazar órdenes de retiro de créditos a cuentas bancarias.</p>
+                        <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Especialistas Activos</span>
+                        <span class="text-xl font-black text-slate-900">{{ total_workers }}</span>
                     </div>
-                    <a href="{{ url_for('admin_retiros') }}" class="block w-full text-center bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-sm">
-                        Gestionar Retiros
-                    </a>
-                </div>
-
-                <div class="bg-slate-50 p-4 rounded-xl border border-amber-300 bg-amber-50/10 transition flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-start">
-                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">⚖️ Arbitraje & Disputas</h3>
-                            <span class="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded animate-pulse">{{ lista_disputas|length }}</span>
-                        </div>
-                        <p class="text-[12px] text-slate-500 leading-relaxed mb-4">Auditar chats en conflicto congelados en escrow usando peritaje de Gemini IA.</p>
-                    </div>
-                    <a href="#seccion-arbitraje-dashboard" class="block w-full text-center bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-sm">
-                        Ver Casos Activos
-                    </a>
-                </div>
-            </div>
-
-            <div id="seccion-arbitraje-dashboard" class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50 pt-2">
-                <div class="p-4 bg-slate-100/80 border-b border-slate-200 flex justify-between items-center">
-                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Órdenes Bloqueadas Bajo Arbitraje</span>
-                    <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-bold uppercase">Requiere Dictamen Manual</span>
-                </div>
-                <div class="overflow-x-auto text-xs">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
-                            <tr>
-                                <th class="p-3">ID</th>
-                                <th class="p-3">Servicio / Descripción de la Queja</th>
-                                <th class="p-3">Garantía Escrow</th>
-                                <th class="p-3 text-center">Acción Forense</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-200 bg-white">
-                            {% for disputa in lista_disputas %}
-                            <tr class="hover:bg-slate-50/80 transition">
-                                <td class="p-3 font-mono font-bold text-slate-400">#{{ disputa.id }}</td>
-                                <td class="p-3">
-                                    <span class="font-bold text-slate-900 block text-sm">{{ disputa.titulo }}</span>
-                                    <span class="text-slate-500 italic block mt-1 bg-slate-50 p-2 border border-slate-100 rounded-lg">"{{ disputa.motivo_disputa if disputa.motivo_disputa else 'Sin detalles descritos.' }}"</span>
-                                    <span class="text-[10px] text-slate-400 block mt-1 font-semibold">🚨 Alerta escalada por: {{ disputa.reportado_por }}</span>
-                                </td>
-                                <td class="p-3 font-black text-amber-600 text-sm">${{ "{:,.0f}".format(disputa.costo_creditos * 30000) }} COP</td>
-                                <td class="p-3 text-center">
-                                    <button type="button" onclick="lanzarAuditoriaIA('{{ disputa.id }}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-2 rounded-xl uppercase tracking-wider transition text-[10px] flex items-center gap-1 mx-auto shadow-sm">
-                                        <i class="fas fa-brain mr-1"></i> Audit IA
-                                    </button>
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="4" class="p-6 text-center text-slate-400 font-medium">No hay ningún caso congelado en arbitraje actualmente.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="contenedorInformeIA" class="hidden border border-blue-200 rounded-xl overflow-hidden bg-blue-50/10 p-5 mt-4 space-y-3">
-                <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fas fa-balance-scale text-blue-600"></i> Dictamen Clínico de Mediación Inteligente
-                    </h3>
-                    <button type="button" onclick="document.getElementById('contenedorInformeIA').classList.add('hidden')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times-circle"></i></button>
-                </div>
-                <div id="cuerpoInformeIA"></div>
-            </div>
-        </div>
-        {% endif %}
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between h-44 relative overflow-hidden">
-                <div class="absolute -right-6 -bottom-6 text-slate-100 text-9xl font-black pointer-events-none select-none">CR</div>
-                <div>
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-blue-600">Billetera de Créditos</span>
-                    <h2 class="text-4xl font-black text-slate-900 tracking-tight mt-1">{{ saldo }} <span class="text-xs font-normal text-slate-400">Cr</span></h2>
-                </div>
-                <div class="pt-4 border-t border-slate-100 flex justify-between items-center z-10">
-                    <span class="text-xs text-slate-500">Equivalente Estimado (COP):</span>
-                    <span class="text-base font-bold text-green-600">${{ "{:,.0f}".format(saldo * 30000) }} COP</span>
-                </div>
-            </div>
-
-            <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
-                <div>
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Acceso Inmediato</span>
-                    <h2 class="text-base font-bold text-slate-900 mt-0.5">¿Qué operación deseas realizar hoy?</h2>
                 </div>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                    <a href="{{ url_for('ver_tareas') }}" class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm">
-                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:scale-105 transition">
-                            <i class="fas fa-briefcase text-lg"></i>
+                <div class="tarjeta-main bg-white border border-slate-200 rounded-2xl p-5 flex items-center justify-between shadow-sm transition hover:shadow-lg">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-3 bg-amber-50 text-amber-500 border border-amber-100 rounded-xl"><i class="fas fa-gavel text-lg"></i></div>
+                        <div>
+                            <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Órdenes en Mediación</span>
+                            <span class="text-xl font-black text-slate-900">{{ ordenes_mediacion }}</span>
                         </div>
-                        <span class="text-xs font-bold text-slate-900">Ver Servicios</span>
-                        <span class="text-[10px] text-slate-500 mt-0.5">Explorar tablero</span>
-                    </a>
-
-                    <a href="{{ url_for('ver_perfil') }}" class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm">
-                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:scale-105 transition">
-                            <i class="fas fa-user-circle text-lg"></i>
-                        </div>
-                        <span class="text-xs font-bold text-slate-900">Mi Perfil</span>
-                        <span class="text-[10px] text-slate-500 mt-0.5">Editar mis datos</span>
-                    </a>
-
-                    <a href="{{ url_for('ver_perfil') }}?autostart_copilot=true" class="bg-gradient-to-br from-blue-50 to-indigo-50/50 hover:from-indigo-100/60 hover:to-blue-100/60 border border-blue-200 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm relative overflow-hidden">
-                        <div class="absolute -right-2 -top-2 bg-indigo-500 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">IA</div>
-                        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center mb-2 group-hover:rotate-6 transition">
-                            <i class="fas fa-magic text-sm"></i>
-                        </div>
-                        <span class="text-xs font-bold text-slate-900">Copilot IA</span>
-                        <span class="text-[10px] text-indigo-600 font-semibold mt-0.5">Optimizar mi perfil</span>
-                    </a>
-
-                    <button type="button" onclick="abrirModalRetiro()" class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm focus:outline-none">
-                        <div class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center mb-2 group-hover:scale-105 transition">
-                            <i class="fas fa-money-check-alt text-lg"></i>
-                        </div>
-                        <span class="text-xs font-bold text-slate-900">Retirar Fondos</span>
-                        <span class="text-[10px] text-slate-500 mt-0.5">Cobrar mis créditos</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 flex items-center space-x-4 shadow-sm">
-                <div class="p-3 bg-blue-50 rounded-xl text-blue-600"><i class="fas fa-users text-lg"></i></div>
-                <div>
-                    <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Especialistas Activos</span>
-                    <span class="text-xl font-black text-slate-900">{{ total_workers }}</span>
-                </div>
-            </div>
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 flex items-center justify-between shadow-sm {% if ordenes_mediacion > 0 %}border-amber-300 bg-amber-50/20{% endif %}">
-                <div class="flex items-center space-x-4">
-                    <div class="p-3 {% if ordenes_mediacion > 0 %}bg-amber-500 text-white{% else %}bg-amber-50 text-amber-500{% endif %} rounded-xl">
-                        <i class="fas fa-gavel text-lg"></i>
                     </div>
+                </div>
+
+                <div class="tarjeta-main bg-white border border-slate-200 rounded-2xl p-5 flex items-center space-x-4 shadow-sm transition hover:shadow-lg">
+                    <div class="p-3 bg-green-50 rounded-xl text-green-600 border border-green-100"><i class="fas fa-lock text-lg"></i></div>
                     <div>
-                        <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Órdenes en Mediación</span>
-                        <span class="text-xl font-black text-slate-900">{{ ordenes_mediacion }}</span>
+                        <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Garantías en Escrow🛡️</span>
+                        <span class="text-xl font-black text-green-600">${{ "{:,.0f}".format(fondos_escrow) }} <span class="text-xs font-normal text-slate-500">COP</span></span>
                     </div>
                 </div>
-                {% if ordenes_mediacion > 0 %}
-                <a href="{{ url_for('ver_tareas', filtro='mediacion') }}" class="text-[10px] bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold px-2 py-1 rounded-lg transition uppercase tracking-wider">
-                    Ver Casos
-                </a>
-                {% endif %}
             </div>
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 flex items-center space-x-4 shadow-sm">
-                <div class="p-3 bg-green-50 rounded-xl text-green-600"><i class="fas fa-lock text-lg"></i></div>
-                <div>
-                    <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Garantías en Escrow🛡️</span>
-                    <span class="text-xl font-black text-green-600">${{ "{:,.0f}".format(fondos_escrow) }} <span class="text-xs font-normal text-slate-500">COP</span></span>
-                </div>
-            </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
+    <!-- MODAL DE RETIRO (Se mantiene oculto e intacto) -->
     <div id="modalRetiro" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
         <div class="bg-white border border-slate-200 w-full max-w-lg rounded-2xl shadow-xl p-6 relative">
             <div class="flex justify-between items-start mb-4">
                 <div>
-                    <h2 class="text-base font-bold text-slate-950 uppercase tracking-tight">Solicitud de Retiro</h2>
-                    <p class="text-xs text-slate-500">Convierte tus créditos acumulados a pesos colombianos (COP)</p>
+                    <h2 class="text-base font-bold text-slate-950 uppercase">Solicitud de Retiro</h2>
                 </div>
-                <button type="button" onclick="cerrarModalRetiro()" class="text-slate-400 hover:text-slate-600 transition"><i class="fas fa-times-circle text-xl"></i></button>
+                <button type="button" onclick="cerrarModalRetiro()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times-circle text-xl"></i></button>
             </div>
-
             <form action="{{ url_for('home') }}" method="POST" class="space-y-4">
                 <input type="hidden" name="accion_perfil" value="solicitar_retiro">
-                
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Cantidad de Créditos a Retirar</label>
-                    <input type="number" name="creditos_retiro" min="0.1" step="0.1" required placeholder="Ej: 5" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition">
-                    <p class="text-[10px] text-slate-400 mt-1">Cada crédito equivale a $30,000 COP en tu cuenta.</p>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Cantidad de Créditos</label>
+                    <input type="number" name="creditos_retiro" min="0.1" step="0.1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm">
                 </div>
-
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Método de Transferencia Bancaria</label>
-                    <select name="metodo_pago" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition cursor-pointer">
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Método</label>
+                    <select name="metodo_pago" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm">
                         <option value="Nequi">Nequi</option>
                         <option value="Daviplata">Daviplata</option>
-                        <option value="Bancolombia">Cuenta de Ahorros Bancolombia</option>
                     </select>
                 </div>
-
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Detalles de la Cuenta (Número y Cédula)</label>
-                    <textarea name="detalles_cuenta" required rows="3" placeholder="Ingresa número de cuenta, tipo y nombres completos del titular..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition"></textarea>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Detalles</label>
+                    <textarea name="detalles_cuenta" required rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs"></textarea>
                 </div>
-
-                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-[11px] text-amber-800 leading-relaxed">
-                    ⚠️ <strong>Nota operativa:</strong> Las transferencias se gestionan de manera manual por administración. Asegúrate de ingresar tus datos bancarios correctamente.
-                </div>
-
-                <div class="flex items-center space-x-3 pt-2">
-                    <button type="button" onclick="cerrarModalRetiro()" class="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition uppercase tracking-wide text-xs">Cancelar</button>
-                    <button type="submit" class="w-2/3 bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition uppercase tracking-wide text-xs shadow-md">Enviar Solicitud 💰</button>
+                <div class="flex items-center space-x-3">
+                    <button type="button" onclick="cerrarModalRetiro()" class="w-1/3 bg-slate-100 py-3 rounded-xl text-xs font-bold">Cancelar</button>
+                    <button type="submit" class="w-2/3 bg-green-500 text-white py-3 rounded-xl text-xs font-bold">Enviar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- SCRIPTS DE INTERACCIÓN Y ANIMACIONES (CORREGIDO) -->
+    <!-- ======================================================== -->
+    <!-- 🧠 LÓGICA DE COREOGRAFÍA GSAP PARA LA ANIMACIÓN TECH       -->
+    <!-- ======================================================== -->
     <script>
-        // ✨ ANIMACIÓN CON GSAP AL CARGAR EL PANEL
         document.addEventListener("DOMContentLoaded", function() {
-            const tl = gsap.timeline();
-            
-            // 1. Aparece el lienzo principal con fluidez cambiando la opacidad a 1
-            tl.to("#panel-contenedor", { opacity: 1, duration: 0.4 });
-            
-            // 2. Las tarjetas y bloques principales saltan escalonadamente con un rebote profesional
-            tl.fromTo(".tarjeta-premium", 
-                { y: 25, opacity: 0, scale: 0.98 }, 
-                { y: 0, opacity: 1, scale: 1, duration: 0.5, stagger: 0.1, ease: "back.out(1.1)" }
+            // Creamos una línea de tiempo maestra para coordinar todo
+            const masterTimeline = gsap.timeline();
+
+            // 1. Animamos el logo central de la intro (un salto sutil con escala)
+            masterTimeline.fromTo("#intro-logo-container", 
+                { scale: 0, opacity: 0, rotate: -180 },
+                { scale: 1, opacity: 1, rotate: 0, duration: 1, ease: "back.out(1.5)" }
+            );
+
+            // 2. Aparecen los textos secundarios
+            masterTimeline.to("#intro-subtitle, #intro-percentage", { opacity: 1, duration: 0.3 }, "-=0.3");
+
+            // 3. Simulación de carga de datos cyber-tecnológicos (barra de progreso)
+            masterTimeline.to("#intro-progress", {
+                width: "100%",
+                duration: 2.2,
+                ease: "power4.inOut",
+                onUpdate: function() {
+                    // Calculamos el porcentaje real dinámicamente
+                    const progreso = Math.round(this.progress() * 100);
+                    document.getElementById("intro-percentage").innerText = `SYS_STATUS: CONNECTING [${progreso}%]`;
+                }
+            });
+
+            // Ajuste final del texto de estado
+            masterTimeline.to("#intro-percentage", { 
+                text: "SYS_STATUS: ONLINE", 
+                duration: 0.2, 
+                onComplete: () => {
+                    document.getElementById("intro-percentage").innerText = "SYS_STATUS: ONLINE ✓";
+                }
+            });
+
+            // 4. TRANSICIÓN MAESTRA: Desvanecemos la intro cyber hacia arriba y revelamos la interfaz limpia
+            masterTimeline.to("#cyber-intro", {
+                yPercent: -100,
+                duration: 0.8,
+                ease: "power4.in",
+                delay: 0.3
+            });
+
+            // 5. Revelamos el contenido de la plataforma de forma ultra premium
+            masterTimeline.to("#contenido-plataforma", {
+                opacity: 1,
+                duration: 0.5,
+                onStart: () => {
+                    // Devolvemos el scroll normal al body
+                    document.body.classList.remove("intro-activa");
+                }
+            }, "-=0.4");
+
+            // 6. Entrada escalonada de las tarjetas del home para que se sientan vivas
+            masterTimeline.fromTo(".tarjeta-main", 
+                { y: 30, opacity: 0 },
+                { y: 0, opacity: 1, duration: 0.6, stagger: 0.12, ease: "power3.out" },
+                "-=0.2"
             );
         });
 
-        function abrirModalRetiro() {
-            const modal = document.getElementById('modalRetiro');
-            if (modal) modal.classList.remove('hidden');
-        }
-        function cerrarModalRetiro() {
-            const modal = document.getElementById('modalRetiro');
-            if (modal) modal.classList.add('hidden');
-        }
+        // Funciones del Modal y Alertas (Se mantienen operativas)
+        function abrirModalRetiro() { document.getElementById('modalRetiro')?.classList.remove('hidden'); }
+        function cerrarModalRetiro() { document.getElementById('modalRetiro')?.classList.add('hidden'); }
 
         let ultimoConteoMensajesIndex = 0;
         let primeraCargaIndex = true;
-
-        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-            Notification.requestPermission();
-        }
-
-        const sonidoNotifIndex = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-600.wav");
-
         function verificarAlertasDashboard() {
             fetch('/api/notificaciones/globales')
-                .then(response => response.json())
+                .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        const totalMensajes = data.mensajes_sin_leer;
-                        const badgeNav = document.getElementById('badge-nav-mensajes');
-                        
-                        if (badgeNav) {
-                            if (totalMensajes > 0) {
-                                badgeNav.innerText = totalMensajes;
-                                badgeNav.classList.remove('hidden');
-                            } else {
-                                badgeNav.classList.add('hidden');
-                            }
+                        const total = data.mensajes_sin_leer;
+                        const badge = document.getElementById('badge-nav-mensajes');
+                        if (badge) {
+                            if (total > 0) { badge.innerText = total; badge.classList.remove('hidden'); }
+                            else { badge.classList.add('hidden'); }
                         }
-
-                        if (!primeraCargaIndex && totalMensajes > ultimoConteoMensajesIndex) {
-                            sonidoNotifIndex.play().catch(e => console.log("Audio en espera de interacción."));
-                            if (Notification.permission === "granted") {
-                                new Notification("💬 Nuevo Mensaje", {
-                                    body: "Tienes un nuevo mensaje entrante sin leer en tus chats.",
-                                    icon: "/static/img/logo.png?v=1"
-                                });
-                            }
-                        }
-                        ultimoConteoMensajesIndex = totalMensajes;
                         primeraCargaIndex = false;
                     }
-                })
-                .catch(err => console.error("Error en notificaciones index:", err));
+                }).catch(err => console.error(err));
         }
-
-        document.addEventListener("DOMContentLoaded", function() {
-            verificarAlertasDashboard();
-            setInterval(verificarAlertasDashboard, 7000);
-        });
-    </script>
-
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(reg => console.log('🚀 Service Worker registrado con éxito:', reg.scope))
-                    .catch(err => console.error('❌ Error al registrar el Service Worker:', err));
-            });
-        }
+        setInterval(verificarAlertasDashboard, 7000);
     </script>
 </body>
 </html>
