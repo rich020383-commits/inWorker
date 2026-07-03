@@ -1,17 +1,19 @@
 import os
-from google import genai
-import sqlite3
 import math
 import time
 import threading
+from google import genai
 from moderacion import es_mensaje_seguro
-# 🔧 SE AGREGA 'send_from_directory' PARA SERVIR EL MANIFEST CORRECTAMENTE
+from disputas_ia import analizar_disputa_chat
+
+# 🔧 CONFIGURACIÓN AVANZADA CON FLASK-SQLALCHEMY PARA OPTIMIZAR EL PLAN STARTER
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, current_app, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash 
 from PIL import Image
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
-from disputas_ia import analizar_disputa_chat
 
 ruta_actual = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, template_folder=os.path.join(ruta_actual, "templates"))
@@ -31,11 +33,10 @@ app.config['MAIL_DEFAULT_SENDER'] = ('inWorker Soporte', app.config['MAIL_USERNA
 mail = Mail(app)
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
-# 📸 CONFIGURACIÓN Y VALIDACIÓN DE IMÁGENES PERMITIDAS (Solución al Error 500)
+# 📸 CONFIGURACIÓN Y VALIDACIÓN DE IMÁGENES PERMITIDAS
 EXTENSIONES_PERMITIDAS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 app.config['UPLOAD_FOLDER'] = os.path.join(ruta_actual, 'static', 'uploads')
 
-# Crea la carpeta automáticamente si no existe en el servidor de Render para evitar NameError/FileNotFound
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
@@ -43,9 +44,9 @@ def archivo_permitido(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in EXTENSIONES_PERMITIDAS
 
-# 🔧 CORRECCIÓN AQUÍ: Recibe el objeto 'app' para no perder el contexto en hilos secundarios
+# 🔧 ENVÍO DE CORREOS EN SEGUNDO PLANO SIN PERDER EL CONTEXTO
 def enviar_bienvenida_tecnico(app_contexto, correo_destino, nombre_usuario):
-    with app_contexto.app_context(): # 👈 Esto activa el contexto dentro del hilo
+    with app_contexto.app_context():
         try:
             msg = Message(
                 '¡Bienvenido a inWorker! Transforma tu talento en oportunidades',
@@ -75,124 +76,126 @@ def enviar_bienvenida_tecnico(app_contexto, correo_destino, nombre_usuario):
         except Exception as e:
             print(f"❌ Error real en el envío del correo por SMTP: {e}")
 
-ruta_db = os.path.join(ruta_actual, "inworker_prod.db")
-# 💰 NUEVO PRECIO DEL CRÉDITO NACIONAL
+# ========================================================
+# 📦 REDIRECCIÓN AL DISCO PERSISTENTE SEGURO DE RENDER
+# ========================================================
+# Detecta si corre en Render para meter la BD en el disco externo /data. Si es local, usa la raíz.
+if os.environ.get("RENDER"):
+    uri = "sqlite:////data/inworker_prod.db"  # Ruta absoluta dentro de tu SSD asignado
+else:
+    uri = os.environ.get("DATABASE_URL", "sqlite:///inworker_prod.db")
+
+# Ajuste por compatibilidad general de cadenas
+if uri.startswith("postgres://"):
+    uri = uri.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = uri
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+# 💰 CONFIGURACIÓN DE PRECIOS NACIONALES
 VALOR_CREDITO_COP = 10000.0  
 
-def construir_base_datos():
-    conexion = sqlite3.connect(ruta_db)
-    cursor = conexion.cursor()
-    
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS usuarios (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            nombre TEXT NOT NULL, 
-            cedula TEXT UNIQUE NOT NULL, 
-            correo TEXT UNIQUE NOT NULL, 
-            contrasena TEXT NOT NULL, 
-            rol TEXT NOT NULL, 
-            profesion TEXT DEFAULT 'Técnico General', 
-            habilidades TEXT DEFAULT 'Sin especificar', 
-            foto TEXT, 
-            telefono TEXT DEFAULT 'Sin especificar',
-            verificado INTEGER DEFAULT 0,
-            saldo_creditos REAL DEFAULT 0.0, -- 🛑 NUEVOS USUARIOS INICIAN EN 0 Cr
-            puntuacion_total REAL DEFAULT 0.0,
-            total_calificaciones INTEGER DEFAULT 0,
-            descripcion TEXT DEFAULT ''
-        )
-    ''')
-    
-    columnas_usuarios = [
-        ("telefono", "TEXT DEFAULT 'Sin especificar'"),
-        ("verificado", "INTEGER DEFAULT 0"),
-        ("puntuacion_total", "REAL DEFAULT 0.0"),
-        ("total_calificaciones", "INTEGER DEFAULT 0"),
-        ("saldo_creditos", "REAL DEFAULT 10.0"),
-        ("descripcion", "TEXT DEFAULT ''") 
-    ]
-    
-    for col, definicion in columnas_usuarios:
-        try: 
-            cursor.execute(f"ALTER TABLE usuarios ADD COLUMN {col} {definicion}")
-        except sqlite3.OperationalError: 
-            pass
-        
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS tareas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            titulo TEXT NOT NULL, 
-            descripcion TEXT NOT NULL, 
-            pago TEXT NOT NULL, 
-            categoria TEXT NOT NULL, 
-            estado TEXT DEFAULT 'Disponible', 
-            cliente_correo TEXT, 
-            trabajador_nombre TEXT, 
-            trabajador_correo TEXT, 
-            costo_creditos REAL DEFAULT 1.0, 
-            latitud REAL DEFAULT 10.9639, 
-            longitud REAL DEFAULT -74.7964,
-            confirmacion_cliente INTEGER DEFAULT 0,
-            confirmacion_trabajador INTEGER DEFAULT 0,
-            calificada INTEGER DEFAULT 0,
-            zona TEXT DEFAULT 'Barranquilla (Norte)'
-        )
-    ''')
-    try: cursor.execute("ALTER TABLE tareas ADD COLUMN calificada INTEGER DEFAULT 0")
-    except sqlite3.OperationalError: pass
-    try: cursor.execute("ALTER TABLE tareas ADD COLUMN zona TEXT DEFAULT 'Barranquilla (Norte)'")
-    except sqlite3.OperationalError: pass
-    
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS mensajes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            tarea_id INTEGER, 
-            canal_trabajador TEXT, 
-            remitente_correo TEXT, 
-            mensaje TEXT, 
-            tipo TEXT DEFAULT 'texto', 
-            leido INTEGER DEFAULT 0,
-            fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    try: cursor.execute("ALTER TABLE mensajes ADD COLUMN leido INTEGER DEFAULT 0")
-    except sqlite3.OperationalError: pass
-    
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS portafolio (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            usuario_correo TEXT NOT NULL,
-            imagen_ruta TEXT NOT NULL,
-            descripcion TEXT,
-            tipo TEXT DEFAULT 'Trabajo Realizado',
-            fecha_subida TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
+# ========================================================
+# 📐 MODELOS DE LA BASE DE DATOS (ESTRUCTURA DE TABLAS)
+# ========================================================
+class Usuario(db.Model):
+    __tablename__ = 'usuarios'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(150), nullable=False)
+    cedula = db.Column(db.String(50), unique=True, nullable=False)
+    correo = db.Column(db.String(150), unique=True, nullable=False)
+    contrasena = db.Column(db.String(255), nullable=False)
+    rol = db.Column(db.String(50), nullable=False)
+    profesion = db.Column(db.String(150), default='Técnico General')
+    habilidades = db.Column(db.Text, default='Sin especificar')
+    foto = db.Column(db.String(255))
+    telefono = db.Column(db.String(50), default='Sin especificar')
+    verificado = db.Column(db.Integer, default=0)
+    saldo_creditos = db.Column(db.Float, default=0.0) # Inician en 0 Cr
+    puntuacion_total = db.Column(db.Float, default=0.0)
+    total_calificaciones = db.Column(db.Integer, default=0)
+    descripcion = db.Column(db.Text, default='')
 
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS billetera_retiros (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            usuario_correo TEXT NOT NULL,
-            monto_creditos REAL NOT NULL,
-            equivalente_pesos REAL NOT NULL,
-            metodo_pago TEXT NOT NULL,
-            detalles_cuenta TEXT NOT NULL,
-            estado TEXT DEFAULT 'Pendiente',
-            fecha_solicitud TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    try: cursor.execute("ALTER TABLE billetera_retiros ADD COLUMN estado TEXT DEFAULT 'Pendiente'")
-    except sqlite3.OperationalError: pass
-    
-    cursor.execute('''
-        INSERT OR IGNORE INTO usuarios (nombre, cedula, correo, contrasena, rol, profesion, telefono, verificado, saldo_creditos) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, 1, 999.0)
-    ''', ('baraka', '99999999', 'baraka@inworker.com', 'baraka123', 'Admin', 'Administrador Principal', '3000000000'))
-    
-    conexion.commit()
-    conexion.close()
+class Tarea(db.Model):
+    __tablename__ = 'tareas'
+    id = db.Column(db.Integer, primary_key=True)
+    titulo = db.Column(db.String(200), nullable=False)
+    descripcion = db.Column(db.Text, nullable=False)
+    pago = db.Column(db.String(50), nullable=False)
+    categoria = db.Column(db.String(100), nullable=False)
+    estado = db.Column(db.String(50), default='Disponible')
+    cliente_correo = db.Column(db.String(150))
+    trabajador_nombre = db.Column(db.String(150))
+    trabajador_correo = db.Column(db.String(150))
+    costo_creditos = db.Column(db.Float, default=1.0)
+    latitud = db.Column(db.Float, default=10.9639)
+    longitud = db.Column(db.Float, default=-74.7964)
+    confirmacion_cliente = db.Column(db.Integer, default=0)
+    confirmacion_trabajador = db.Column(db.Integer, default=0)
+    calificada = db.Column(db.Integer, default=0)
+    zona = db.Column(db.String(100), default='Barranquilla (Norte)')
 
-construir_base_datos()
+class Mensaje(db.Model):
+    __tablename__ = 'mensajes'
+    id = db.Column(db.Integer, primary_key=True)
+    tarea_id = db.Column(db.Integer, index=True) # ⚡ INDEXADO para velocidad de Polling extrema
+    canal_trabajador = db.Column(db.String(150), index=True) # ⚡ INDEXADO para velocidad de Polling extrema
+    remitente_correo = db.Column(db.String(150))
+    mensaje = db.Column(db.Text)
+    tipo = db.Column(db.String(50), default='texto')
+    leido = db.Column(db.Integer, default=0)
+    fecha_envio = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+class Portafolio(db.Model):
+    __tablename__ = 'portafolio'
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_correo = db.Column(db.String(150), nullable=False)
+    imagen_ruta = db.Column(db.String(255), nullable=False)
+    descripcion = db.Column(db.Text)
+    tipo = db.Column(db.String(100), default='Trabajo Realizado')
+    fecha_subida = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+class BilleteraRetiro(db.Model):
+    __tablename__ = 'billetera_retiros'
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_correo = db.Column(db.String(150), nullable=False)
+    monto_creditos = db.Column(db.Float, nullable=False)
+    equivalente_pesos = db.Column(db.Float, nullable=False)
+    metodo_pago = db.Column(db.String(50), nullable=False)
+    detalles_cuenta = db.Column(db.Text, nullable=False)
+    estado = db.Column(db.String(50), default='Pendiente')
+    fecha_solicitud = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+
+# ========================================================
+# 🚀 EJECUCIÓN DEL CONTEXTO Y SEEDING DE SEGURIDAD
+# ========================================================
+with app.app_context():
+    # 1. Crea automáticamente el archivo físico dentro del SSD (/data/) con las tablas indexadas
+    db.create_all()
+    print("¡Estructura de Base de Datos persistente e indexada montada con éxito!")
+    
+    # 2. Sembrado automático del Administrador Principal 'baraka'
+    admin_existe = Usuario.query.filter_by(correo='baraka@inworker.com').first()
+    if not admin_existe:
+        print("Creando usuario Administrador predeterminado en almacenamiento persistente...")
+        nuevo_admin = Usuario(
+            nombre='baraka',
+            cedula='99999999',
+            correo='baraka@inworker.com',
+            contrasena='baraka123', # Conserva tu credencial exacta actual
+            rol='Admin',
+            profesion='Administrador Principal',
+            telefono='3000000000',
+            verificado=1,
+            saldo_creditos=999.0
+        )
+        db.session.add(nuevo_admin)
+        db.session.commit()
+        print("¡Administrador 'baraka' blindado y registrado con éxito!")
+    else:
+        print("El Administrador principal ya está operativo en el almacenamiento persistente.")
 
 # =========================================================================
 # ENDPOINT API PARA POLLEO ASÍNCRONO DE NOTIFICACIONES GLOBALES
