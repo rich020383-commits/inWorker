@@ -1219,7 +1219,7 @@ def ver_chat(tarea_id):
         'latitud': tarea_obj.latitud,
         'longitud': tarea_obj.longitud,
         'zona': tarea_obj.zona,
-        'tecnico_correo': tarea_obj.tecnico_correo
+        'tecnico_correo': tarea_obj.trabajador_correo
     }
 
     canal_sala = f"sala_{tarea_id}"        
