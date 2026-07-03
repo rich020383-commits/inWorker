@@ -64,12 +64,11 @@
         <div class="absolute w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-3xl -bottom-20 -right-20 animate-pulse" style="animation-delay: 1s;"></div>
 
         <div class="text-center z-10 space-y-6 px-4">
-            <div id="intro-logo-container" class="relative inline-block">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-emerald-500 rounded-3xl blur-xl opacity-50 scale-110 animate-pulse"></div>
-                <div class="relative bg-slate-900 border-2 border-blue-500/30 p-6 rounded-3xl shadow-2xl flex items-center justify-center">
-                    <i class="fas fa-microchip text-5xl text-blue-500 animate-spin" style="animation-duration: 8s("{{ url_for('static', filename='img/logo.png') }}?v=1" con fallback) -->
-                    <!-- Si prefieres usar la imagen de tu logo en la intro, puedes descomentar la línea de abajo y comentar el icono fa-microchip -->
-                    <!-- <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo" class="h-14 w-auto object-contain"> -->
+            <div id="intro-logo-container" class="relative inline-block select-none">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-emerald-500 rounded-3xl blur-xl opacity-40 scale-110"></div>
+                
+                <div class="relative bg-slate-900 border border-blue-500/30 p-6 rounded-3xl shadow-2xl flex items-center justify-center w-24 h-24 mx-auto">
+                    <i class="fas fa-microchip text-4xl text-blue-500 animate-spin" style="animation-duration: 6s;"></i>
                 </div>
             </div>
 
