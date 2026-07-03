@@ -1,23 +1,22 @@
 # disputas_ia.py
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import os
-
-# Configuración de la API (Gemini es gratis para desarrollo en Google AI Studio)
-# Debes configurar la variable de entorno GEMINI_API_KEY en Render o local
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY", "TU_API_KEY_TEMPORAL"))
 
 def analizar_disputa_chat(historial_mensajes, datos_tarea):
     """
-    Envía el historial de un chat en conflicto a Gemini para evaluar quién tiene la razón
-    según los términos de Barakah Tech Hub S.A.S.
+    Envía el historial de un chat en conflicto a la API de Gemini para evaluar quién tiene la razón
+    según los términos de Barakah Tech Hub S.A.S. utilizando el nuevo SDK 'google-genai'.
     """
+    api_key = os.environ.get("GEMINI_API_KEY", "TU_API_KEY_TEMPORAL")
+
     # Si no hay API KEY configurada todavía, devolvemos una simulación segura para que no se caiga
-    if not os.environ.get("GEMINI_API_KEY") and "TU_API_KEY_TEMPORAL" in os.environ.get("GEMINI_API_KEY", "TU_API_KEY_TEMPORAL"):
+    if not os.environ.get("GEMINI_API_KEY") or api_key == "TU_API_KEY_TEMPORAL":
         return {
             "veredicto_sugerido": "REVISIÓN_MANUAL",
             "porcentaje_trabajador": 50,
             "porcentaje_cliente": 50,
-            "justificacion": "API Key de Gemini no configurada en el servidor. Se requiere revisión manual."
+            "justificacion": "API Key de Gemini no configurada en el entorno de Render. Se requiere revisión manual."
         }
 
     # Formateamos el historial del chat para la IA
@@ -25,18 +24,18 @@ def analizar_disputa_chat(historial_mensajes, datos_tarea):
     for msg in historial_mensajes:
         chat_plano += f"[{msg['fecha_envio']}] {msg['remitente_correo']}: {msg['mensaje']}\n"
 
-    # Diseñamos el prompt del sistema para el arbitraje
+    # Construimos el Prompt Pericial
     prompt = f"""
-    Actúa como un Árbitro Legal y Mediador Comercial Privado para la plataforma inWorker (propiedad de BARAKAH TECH HUB S.A.S. en Colombia).
-    Tu trabajo es analizar de forma imparcial el siguiente chat de negociación para resolver una disputa por créditos congelados (Escrow).
+    Eres el árbitro de mediación automatizado de la plataforma inWorker (desarrollado por BARAKAH TECH HUB S.A.S.).
+    Tu labor es auditar las conversaciones de un servicio que entró en disputa para decidir cómo liberar los fondos retenidos en Escrow de forma justa.
 
-    DATOS DE LA ORDEN DE SERVICIO (TAREA):
-    - Título: {datos_tarea['titulo']}
-    - Descripción: {datos_tarea['descripcion']}
-    - Valor Pactado (COP): {datos_tarea['pago']}
-    - Créditos en disputa: {datos_tarea['costo_creditos']} Cr
+    DATOS DEL CONTRATO/SERVICIO:
+    - ID de Tarea: {datos_tarea.get('id')}
+    - Título del Servicio: {datos_tarea.get('titulo')}
+    - Descripción Original: {datos_tarea.get('descripcion')}
+    - Presupuesto en Custodia: {datos_tarea.get('costo_creditos')} Créditos
 
-    HISTORIAL DEL CHAT DE NEGOCIACIÓN:
+    HISTORIAL DE NEGOCIACIÓN EN EL CHAT:
     {chat_plano}
 
     INSTRUCCIONES DE EVALUACIÓN:
@@ -44,7 +43,7 @@ def analizar_disputa_chat(historial_mensajes, datos_tarea):
     2. Determina si el Cliente está reteniendo el pago de manera injustificada o si tiene motivos reales de insatisfacción.
     3. Recomienda una división justa de los Créditos en custodia (0% a 100%).
 
-    RESPONDE ESTRICTAMENTE EN EL SIGUIENTE FORMATO JSON (No agregues texto afuera del JSON):
+    RESPONDE ESTRICTAMENTE EN EL SIGUIENTE FORMATO JSON:
     {{
       "veredicto_sugerido": "LIBERAR_AL_TECNICO" o "REEMBOLSAR_AL_CLIENTE" o "DIVIDIR_FONDOS",
       "porcentaje_trabajador": número de 0 a 100,
@@ -54,17 +53,26 @@ def analizar_disputa_chat(historial_mensajes, datos_tarea):
     """
 
     try:
-        model = genai.GenerativeModel("gemini-2.5-flash") # El modelo más rápido y óptimo
-        response = model.generate_content(prompt)
+        # Inicializamos el cliente moderno del paquete 'google-genai'
+        client = genai.Client(api_key=api_key)
         
-        # Limpieza simple de la respuesta para asegurar que sea JSON puro
-        texto_limpio = response.text.strip().replace("```json", "").replace("```", "")
+        # Consumo con estructura estricta de JSON en el nuevo SDK
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json"
+            )
+        )
+        
         import json
-        return json.loads(texto_limpio)
+        return json.loads(response.text.strip())
+        
     except Exception as e:
+        # Resguardo de seguridad por si falla la conexión de red o parsing
         return {
-            "veredicto_sugerido": "ERROR_PROCESAMIENTO",
+            "veredicto_sugerido": "REVISIÓN_MANUAL",
             "porcentaje_trabajador": 50,
             "porcentaje_cliente": 50,
-            "justificacion": f"Error técnico al invocar el motor de IA: {str(e)}"
+            "justificacion": f"Falla técnica en el motor de arbitraje: {str(e)}"
         }
