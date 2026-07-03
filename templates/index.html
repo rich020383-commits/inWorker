@@ -11,22 +11,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- ⚡ GSAP Core y ScrollTrigger para máxima fluidez -->
+    <!-- ⚡ GSAP Core para la coreografía de animaciones -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
     <!-- 🎨 ESTILOS CSS PERSONALIZADOS PARA EFECTOS DE ALTA TECNOLOGÍA -->
     <style>
-        /* Ocultar el scrollbar durante la intro */
         body.intro-activa {
             overflow: hidden;
         }
 
-        /* Efecto de brillo de Neo-Tecnología */
         .brillo-cyber {
             text-shadow: 0 0 10px rgba(37, 99, 235, 0.6), 0 0 20px rgba(34, 197, 94, 0.4);
         }
 
-        /* Línea de escáner láser */
         .laser-line {
             background: linear-gradient(to bottom, transparent, #22C55E, transparent);
             box-shadow: 0 0 15px #22C55E;
@@ -38,12 +35,20 @@
             100% { top: 110%; }
         }
 
-        /* Rejilla de fondo estilo Tron / Cyberpunk */
         .grid-cyber {
             background-size: 40px 40px;
             background-image: 
                 linear-gradient(to right, rgba(37, 99, 235, 0.05) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(37, 99, 235, 0.05) 1px, transparent 1px);
+        }
+
+        /* Animación para el barrido circular del radar */
+        @keyframes radar-sweep {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .radar-linea {
+            animation: radar-sweep 4s linear infinite;
         }
     </style>
 </head>
@@ -53,24 +58,21 @@
     <!-- 🌌 INTRO ANIMADA SÚPER TECNOLOGÍA (PRELOADER CHROME)      -->
     <!-- ======================================================== -->
     <div id="cyber-intro" class="fixed inset-0 bg-slate-950 z-[9999] flex flex-col items-center justify-center overflow-hidden grid-cyber">
-        <!-- Línea Láser -->
         <div class="laser-line absolute left-0 w-full h-1 pointer-events-none"></div>
 
-        <!-- Círculos de energía abstractos de fondo -->
         <div class="absolute w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-3xl -top-20 -left-20 animate-pulse"></div>
         <div class="absolute w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-3xl -bottom-20 -right-20 animate-pulse" style="animation-delay: 1s;"></div>
 
-        <!-- Contenedor Central de Animación -->
         <div class="text-center z-10 space-y-6 px-4">
-            <!-- Icono Core con animación de pulso tecnológico -->
             <div id="intro-logo-container" class="relative inline-block">
                 <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-emerald-500 rounded-3xl blur-xl opacity-50 scale-110 animate-pulse"></div>
                 <div class="relative bg-slate-900 border-2 border-blue-500/30 p-6 rounded-3xl shadow-2xl flex items-center justify-center">
-                    <i class="fas fa-microchip text-5xl text-blue-500 animate-spin" style="animation-duration: 8s;"></i>
+                    <i class="fas fa-microchip text-5xl text-blue-500 animate-spin" style="animation-duration: 8s("{{ url_for('static', filename='img/logo.png') }}?v=1" con fallback) -->
+                    <!-- Si prefieres usar la imagen de tu logo en la intro, puedes descomentar la línea de abajo y comentar el icono fa-microchip -->
+                    <!-- <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo" class="h-14 w-auto object-contain"> -->
                 </div>
             </div>
 
-            <!-- Título con carga de letras -->
             <div class="space-y-2">
                 <h1 id="intro-title" class="text-4xl md:text-5xl font-black tracking-widest text-white uppercase brillo-cyber">
                     IN<span class="text-emerald-500">WORKER</span>
@@ -80,7 +82,6 @@
                 </p>
             </div>
 
-            <!-- Barra de Progreso Cyber -->
             <div class="w-64 h-1.5 bg-slate-900 rounded-full mx-auto overflow-hidden border border-slate-800 relative">
                 <div id="intro-progress" class="h-full bg-gradient-to-r from-blue-600 to-emerald-500 w-0 rounded-full"></div>
             </div>
@@ -123,7 +124,7 @@
         </header>
 
         <!-- CONTENIDO CENTRAL -->
-        <main class="max-w-7xl mx-auto px-4 py-8 space-y-8 flex-grow w-full">
+        <main class="max-w-7xl mx-auto px-4 py-8 space-y-6 flex-grow w-full">
             
             {% if session['usuario_rol'] == 'Admin' %}
             <!-- CONSOLA ADMINISTRATIVA -->
@@ -207,6 +208,83 @@
                 </div>
             </div>
 
+            <!-- ======================================================== -->
+            <!-- 🚀 NUEVA SECCIÓN: RADAR DE POSICIONAMIENTO & FEED EN VIVO -->
+            <!-- ======================================================== -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- 📡 COMPONENTE 1: RADAR DIGITAL DE GEOLOCALIZACIÓN -->
+                <div class="tarjeta-main bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between transition hover:shadow-lg relative overflow-hidden">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[#2563EB]">Posicionamiento Global</span>
+                        <h3 class="text-xs font-bold text-slate-900 mt-0.5">Escáner de Cobertura Activo</h3>
+                    </div>
+                    
+                    <!-- Contenedor del Radar Gráfico -->
+                    <div class="my-4 flex justify-center items-center relative h-32 w-full bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+                        <!-- Líneas circulares concéntricas -->
+                        <div class="absolute w-28 h-28 border border-emerald-500/20 rounded-full"></div>
+                        <div class="absolute w-16 h-16 border border-emerald-500/30 rounded-full"></div>
+                        <div class="absolute w-6 h-6 border border-emerald-500/40 rounded-full"></div>
+                        
+                        <!-- Ejes en cruz -->
+                        <div class="absolute w-full h-[1px] bg-slate-800/60"></div>
+                        <div class="absolute w-[1px] h-full bg-slate-800/60"></div>
+                        
+                        <!-- Línea rotativa del radar -->
+                        <div class="radar-linea absolute w-32 h-32 origin-center rounded-full pointer-events-none" style="background: conic-gradient(from 0deg, rgba(34,197,94,0.15) 0%, transparent 40%);"></div>
+                        
+                        <!-- Puntos de Especialistas Simulados (Pings) -->
+                        <div class="absolute top-1/4 left-1/3 w-2 h-2 bg-emerald-400 rounded-full animate-ping"></div>
+                        <div class="absolute top-1/4 left-1/3 w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+
+                        <div class="absolute bottom-1/3 right-1/4 w-2 h-2 bg-blue-400 rounded-full animate-ping" style="animation-delay: 0.7s;"></div>
+                        <div class="absolute bottom-1/3 right-1/4 w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+
+                        <!-- Nodo Central -->
+                        <div class="w-2 h-2 bg-white rounded-full shadow-md z-10"></div>
+                    </div>
+
+                    <div class="flex justify-between items-center text-[11px] text-slate-500 border-t border-slate-100 pt-3">
+                        <span class="flex items-center"><span class="w-2 h-2 bg-emerald-500 rounded-full inline-block mr-1.5 animate-pulse"></span> Red Operativa Online</span>
+                        <span class="font-mono text-slate-700 font-bold">Ping: 14ms</span>
+                    </div>
+                </div>
+
+                <!-- 🟢 COMPONENTE 2: FEED DE ACTIVIDAD DE OPERACIONES EN VIVO -->
+                <div class="tarjeta-main lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between transition hover:shadow-lg">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[#22C55E]">Ecosistema inWorker</span>
+                        <h3 class="text-xs font-bold text-slate-900 mt-0.5">Flujo de Garantías y Órdenes en Tiempo Real</h3>
+                    </div>
+
+                    <!-- Lista del Feed dinámico -->
+                    <div id="live-activity-feed" class="my-4 space-y-3 h-32 overflow-hidden relative text-xs">
+                        <!-- El script inyectará dinámicamente las filas simulando el backend activo -->
+                        <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-100 rounded-xl transition-all duration-300">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                <span class="text-slate-600 font-medium">Fondo de Garantía en Escrow asegurado para Orden <strong class="text-slate-900">#3482</strong></span>
+                            </div>
+                            <span class="text-[10px] font-mono text-slate-400">Ahora mismo</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                <span class="text-slate-600 font-medium">Especialista técnico verificado exitosamente mediante módulo de identidad</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-slate-400">Hace 3 min</span>
+                        </div>
+                    </div>
+
+                    <div class="text-[10px] font-mono tracking-wider text-slate-400 border-t border-slate-100 pt-3 flex justify-between">
+                        <span>LIVE_STREAM: CONNECTED</span>
+                        <span class="text-emerald-600 font-bold">ACTIVO</span>
+                    </div>
+                </div>
+
+            </div>
+
             <!-- MÉTRICAS INFERIORES -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="tarjeta-main bg-white border border-slate-200 rounded-2xl p-5 flex items-center space-x-4 shadow-sm transition hover:shadow-lg">
@@ -238,7 +316,7 @@
         </main>
     </div>
 
-    <!-- MODAL DE RETIRO (Se mantiene oculto e intacto) -->
+    <!-- MODAL DE RETIRO (Oculto) -->
     <div id="modalRetiro" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
         <div class="bg-white border border-slate-200 w-full max-w-lg rounded-2xl shadow-xl p-6 relative">
             <div class="flex justify-between items-start mb-4">
@@ -273,35 +351,29 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- 🧠 LÓGICA DE COREOGRAFÍA GSAP PARA LA ANIMACIÓN TECH       -->
+    <!-- 🧠 LÓGICA DE COREOGRAFÍA GSAP & GENERADOR DE ACTIVIDAD     -->
     <!-- ======================================================== -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Creamos una línea de tiempo maestra para coordinar todo
             const masterTimeline = gsap.timeline();
 
-            // 1. Animamos el logo central de la intro (un salto sutil con escala)
             masterTimeline.fromTo("#intro-logo-container", 
                 { scale: 0, opacity: 0, rotate: -180 },
                 { scale: 1, opacity: 1, rotate: 0, duration: 1, ease: "back.out(1.5)" }
             );
 
-            // 2. Aparecen los textos secundarios
             masterTimeline.to("#intro-subtitle, #intro-percentage", { opacity: 1, duration: 0.3 }, "-=0.3");
 
-            // 3. Simulación de carga de datos cyber-tecnológicos (barra de progreso)
             masterTimeline.to("#intro-progress", {
                 width: "100%",
                 duration: 2.2,
                 ease: "power4.inOut",
                 onUpdate: function() {
-                    // Calculamos el porcentaje real dinámicamente
                     const progreso = Math.round(this.progress() * 100);
                     document.getElementById("intro-percentage").innerText = `SYS_STATUS: CONNECTING [${progreso}%]`;
                 }
             });
 
-            // Ajuste final del texto de estado
             masterTimeline.to("#intro-percentage", { 
                 text: "SYS_STATUS: ONLINE", 
                 duration: 0.2, 
@@ -310,7 +382,6 @@
                 }
             });
 
-            // 4. TRANSICIÓN MAESTRA: Desvanecemos la intro cyber hacia arriba y revelamos la interfaz limpia
             masterTimeline.to("#cyber-intro", {
                 yPercent: -100,
                 duration: 0.8,
@@ -318,46 +389,68 @@
                 delay: 0.3
             });
 
-            // 5. Revelamos el contenido de la plataforma de forma ultra premium
             masterTimeline.to("#contenido-plataforma", {
                 opacity: 1,
                 duration: 0.5,
                 onStart: () => {
-                    // Devolvemos el scroll normal al body
                     document.body.classList.remove("intro-activa");
                 }
             }, "-=0.4");
 
-            // 6. Entrada escalonada de las tarjetas del home para que se sientan vivas
             masterTimeline.fromTo(".tarjeta-main", 
                 { y: 30, opacity: 0 },
-                { y: 0, opacity: 1, duration: 0.6, stagger: 0.12, ease: "power3.out" },
+                { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power3.out" },
                 "-=0.2"
             );
         });
 
-        // Funciones del Modal y Alertas (Se mantienen operativas)
+        // 🟢 SCRIPT SIMULADOR DE ACTIVIDAD EN VIVO PARA EL ECOSISTEMA
+        const eventosSimulados = [
+            { texto: "Retiro aprobado y enviado a cuenta Nequi de especialista", color: "bg-green-500", min: "Hace 1 min" },
+            { texto: "Nueva solicitud de servicio registrada en zona de cobertura", color: "bg-blue-500", min: "Hace 4 min" },
+            { texto: "Liberación automática de fondos en Escrow retenidos por seguridad", color: "bg-emerald-500", min: "Hace 8 min" },
+            { texto: "Recarga de billetera exitosa mediante procesamiento directo", color: "bg-blue-500", min: "Hace 12 min" }
+        ];
+
+        function rotarFeedActividad() {
+            const feed = document.getElementById("live-activity-feed");
+            if (!feed) return;
+
+            // Elegir un evento aleatorio de la lista
+            const evento = eventosSimulados[Math.floor(Math.random() * eventosSimulados.length)];
+            
+            // Crear el nuevo elemento contenedor
+            const nuevaFila = document.createElement("div");
+            nuevaFila.className = "flex items-center justify-between p-2.5 bg-slate-50 border border-slate-100 rounded-xl opacity-0 -translate-y-2 transition-all duration-500";
+            nuevaFila.innerHTML = `
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-2 h-2 rounded-full ${evento.color} animate-pulse"></div>
+                    <span class="text-slate-600 font-medium">${evento.texto}</span>
+                </div>
+                <span class="text-[10px] font-mono text-slate-400">Ahora mismo</span>
+            `;
+
+            // Insertar de primero en la lista
+            feed.insertBefore(nuevaFila, feed.firstChild);
+
+            // Animación de entrada fluida con CSS (retraso para que el navegador procese el render)
+            setTimeout(() => {
+                nuevaFila.classList.remove("opacity-0", "-translate-y-2");
+            }, 50);
+
+            // Remover el último elemento si excede la capacidad visual de la caja
+            if (feed.children.length > 3) {
+                const ultimo = feed.lastChild;
+                ultimo.classList.add("opacity-0", "translate-y-2");
+                setTimeout(() => ultimo.remove(), 500);
+            }
+        }
+
+        // Ejecutar rotación cada 9 segundos para mantener el dinamismo visual
+        setInterval(rotarFeedActividad, 9000);
+
         function abrirModalRetiro() { document.getElementById('modalRetiro')?.classList.remove('hidden'); }
         function cerrarModalRetiro() { document.getElementById('modalRetiro')?.classList.add('hidden'); }
-
-        let ultimoConteoMensajesIndex = 0;
-        let primeraCargaIndex = true;
-        function verificarAlertasDashboard() {
-            fetch('/api/notificaciones/globales')
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        const total = data.mensajes_sin_leer;
-                        const badge = document.getElementById('badge-nav-mensajes');
-                        if (badge) {
-                            if (total > 0) { badge.innerText = total; badge.classList.remove('hidden'); }
-                            else { badge.classList.add('hidden'); }
-                        }
-                        primeraCargaIndex = false;
-                    }
-                }).catch(err => console.error(err));
-        }
-        setInterval(verificarAlertasDashboard, 7000);
     </script>
 </body>
 </html>
