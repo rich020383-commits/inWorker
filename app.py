@@ -1030,7 +1030,7 @@ def publicar_tarea():
 
 
 # =====================================================================
-# 👤 GESTIÓN DE PERFIL Y PORTAFOLIO MULTIMEDIA - OPTIMIZADO COMPLETO
+# 👤 GESTIÓN DE PERFIL Y PORTAFOLIO MULTIMEDIA - UNIFICADO Y LIMPIO
 # =====================================================================
 @app.route('/perfil', methods=['GET', 'POST'])
 def ver_perfil():
@@ -1105,118 +1105,87 @@ def ver_perfil():
             return redirect(url_for('ver_perfil'))
             
         elif accion_perfil == 'solicitar_retiro':
-            # Redirigimos al flujo unificado y seguro de retiros en el Dashboard
             return redirect(url_for('home'))
 
-    # --- FLUJO GET: RENDERIZADO DEL PERFIL ---
+    # =====================================================================
+    # 👤 FLUJO GET: RENDERIZAR VISTA DEL PERFIL (UNIFICADO)
+    # =====================================================================
     try:
         usuario_info = Usuario.query.filter_by(correo=correo_logueado).first()
         
-        # Traemos las imágenes del portafolio del usuario si existen
-        imagenes_usuario = Portafolio.query.filter_by(usuario_correo=correo_logueado).all() if usuario_info else []
-        lista_portafolio = [{
+        if not usuario_info:
+            flash("❌ El perfil solicitado no se encuentra registrado.", "error")
+            return redirect(url_for('home'))
+            
+        # Reconstruimos el diccionario del usuario para la vista
+        usuario = {
+            'nombre': usuario_info.nombre,
+            'cedula': usuario_info.cedula,
+            'correo': usuario_info.correo,
+            'rol': usuario_info.rol,
+            'profesion': usuario_info.profesion,
+            'habilidades': usuario_info.habilidades,
+            'foto': usuario_info.foto,
+            'telefono': usuario_info.telefono,
+            'verificado': usuario_info.verificado,
+            'descripcion': usuario_info.descripcion,
+            'puntuacion_total': usuario_info.puntuacion_total or 0.0,
+            'total_calificaciones': usuario_info.total_calificaciones or 0,
+            'saldo_creditos': round(usuario_info.saldo_creditos or 0.0, 2)
+        }
+        
+        # Cálculo preciso del promedio de estrellas
+        if usuario['total_calificaciones'] > 0:
+            usuario['promedio_estrellas'] = round(usuario['puntuacion_total'] / usuario['total_calificaciones'], 1)
+        else:
+            usuario['promedio_estrellas'] = 0.0
+
+        # ⚡ Consulta del Portafolio
+        proyectos_db = Portafolio.query.filter_by(usuario_correo=correo_logueado).order_by(Portafolio.id.desc()).all()
+        proyectos = [{
             'id': p.id,
             'imagen_ruta': p.imagen_ruta,
             'descripcion': p.descripcion,
-            'tipo': p.tipo
-        } for p in imagenes_usuario]
+            'tipo': p.tipo,
+            'fecha_subida': p.fecha_subida if hasattr(p, 'fecha_subida') else None
+        } for p in proyectos_db]
         
-        saldo_real = round(usuario_info.saldo_creditos, 2) if usuario_info and usuario_info.saldo_creditos else 0.0
-        perfil_real = {'saldo_creditos': saldo_real, 'saldo': saldo_real}
-        
-        # 🛡️ CÁLCULO DE MÉTRICAS FALTANTES PARA EL DASHBOARD
+        # ⚡ Consulta del Historial de Retiros/Cobros
+        retiros_db = BilleteraRetiro.query.filter_by(usuario_correo=correo_logueado).order_by(BilleteraRetiro.id.desc()).all()
+        retiros = [{
+            'id': r.id,
+            'monto_creditos': r.monto_creditos,
+            'equivalente_pesos': r.equivalente_pesos,
+            'metodo_pago': r.metodo_pago,
+            'detalles_cuenta': r.detalles_cuenta,
+            'estado': r.estado,
+            'fecha_solicitud': r.fecha_solicitud if hasattr(r, 'fecha_solicitud') else None
+        } for r in retiros_db]
+
+        # 🛡️ Métricas del sistema (por si perfil.html comparte el sidebar del dashboard)
         fondos_escrow = db.session.query(db.func.sum(Tarea.costo_creditos)).filter(
             Tarea.estado == 'En Garantia',
-            or_(Tarea.cliente_correo == correo_logueado, Tarea.tecnico_correo == correo_logueado)
+            or_(Tarea.cliente_correo == correo_logueado, Tarea.trabajador_correo == correo_logueado)
         ).scalar() or 0.0
         
         total_workers = Usuario.query.filter(Usuario.rol.in_(['Worker', 'Trabajador'])).count()
         ordenes_mediacion = Tarea.query.filter_by(estado='En Mediacion').count()
         
-        return render_template('index.html',  
-                               usuario=usuario_info,
-                               portafolio=lista_portafolio,
+        # Un solo return limpio y directo a perfil.html con TODOS los datos
+        return render_template('perfil.html', 
+                               usuario=usuario, 
+                               proyectos=proyectos, 
+                               retiros=retiros,
+                               saldo=usuario['saldo_creditos'],
                                nombre_usuario=session['usuario_nombre'],
-                               saldo=saldo_real,
-                               cliente_perfil=perfil_real,
-                               trabajador_perfil=perfil_real,
-                               # 👇 Inyección de variables para evitar el Error 500
                                fondos_escrow=fondos_escrow,
                                total_workers=total_workers,
                                ordenes_mediacion=ordenes_mediacion)
                                
     except Exception as e:
         print(f"⚠️ ERROR CRÍTICO EN GET PERFIL: {e}")
-        # En caso de fallo en la BD, la vista no explota, carga con datos por defecto
-        return render_template('index.html', 
-                               nombre_usuario=session.get('usuario_nombre', 'Usuario'),
-                               saldo=0.0,
-                               fondos_escrow=0.0,
-                               total_workers=0,
-                               ordenes_mediacion=0)
-
-    # =====================================================================
-    # 👤 MÉTODO GET: RENDERIZAR VISTA NORMAL DEL PERFIL - OPTIMIZADO
-    # =====================================================================
-    # ⚡ Consulta limpia utilizando el modelo de SQLAlchemy para traer al usuario
-    usuario_info = Usuario.query.filter_by(correo=correo_logueado).first()
-    
-    if not usuario_info:
-        flash("❌ El perfil solicitado no se encuentra registrado.", "error")
+        flash("Ocurrió un error al intentar cargar los datos del perfil.", "error")
         return redirect(url_for('home'))
-        
-    # Reconstruimos el diccionario con fallback por defecto idéntico a tu lógica
-    usuario = {
-        'nombre': usuario_info.nombre,
-        'cedula': usuario_info.cedula,
-        'correo': usuario_info.correo,
-        'rol': usuario_info.rol,
-        'profesion': usuario_info.profesion,
-        'habilidades': usuario_info.habilidades,
-        'foto': usuario_info.foto,
-        'telefono': usuario_info.telefono,
-        'verificado': usuario_info.verificado,
-        'descripcion': usuario_info.descripcion,
-        'puntuacion_total': usuario_info.puntuacion_total or 0.0,
-        'total_calificaciones': usuario_info.total_calificaciones or 0,
-        'saldo_creditos': round(usuario_info.saldo_creditos or 0.0, 2)
-    }
-    
-    # Cálculo preciso del promedio de estrellas
-    if usuario['total_calificaciones'] > 0:
-        usuario['promedio_estrellas'] = round(usuario['puntuacion_total'] / usuario['total_calificaciones'], 1)
-    else:
-        usuario['promedio_estrellas'] = 0.0
-
-    # ⚡ Consulta del Portafolio asociada al correo del técnico
-    proyectos_db = Portafolio.query.filter_by(usuario_correo=correo_logueado).order_by(Portafolio.id.desc()).all()
-    proyectos = [{
-        'id': p.id,
-        'imagen_ruta': p.imagen_ruta,
-        'descripcion': p.descripcion,
-        'tipo': p.tipo,
-        'fecha_subida': p.fecha_subida if hasattr(p, 'fecha_subida') else None
-    } for p in proyectos_db]
-    
-    # ⚡ Consulta del Historial de Retiros/Cobros asociados
-    retiros_db = BilleteraRetiro.query.filter_by(usuario_correo=correo_logueado).order_by(BilleteraRetiro.id.desc()).all()
-    retiros = [{
-        'id': r.id,
-        'monto_creditos': r.monto_creditos,
-        'equivalente_pesos': r.equivalente_pesos,
-        'metodo_pago': r.metodo_pago,
-        'detalles_cuenta': r.detalles_cuenta,
-        'estado': r.estado,
-        'fecha_solicitud': r.fecha_solicitud if hasattr(r, 'fecha_solicitud') else None
-    } for r in retiros_db]
-    
-    return render_template('perfil.html', 
-                           usuario=usuario, 
-                           proyectos=proyectos, 
-                           retiros=retiros,
-                           saldo=usuario['saldo_creditos'],
-                           nombre_usuario=session['usuario_nombre'])
-
 
 # =====================================================================
 # 💬 MÓDULO DE COMUNICACIÓN API HTTP (PROCESAMIENTO ASÍNCRONO) - OPTIMIZADO
