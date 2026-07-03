@@ -576,24 +576,16 @@ function irAlFinalChat() {
         const usuarioSesion = "{{ session['usuario_correo'] }}";
         const clienteCorreoTarea = "{{ tarea.cliente_correo }}";
 
-        // VARIABLES DE CONTROL PARA EL POLLING INTELIGENTE
-let intervaloTiempo = 3000; // Inicia consultando cada 3 segundos
-let miPollingTimer;
+        // VARIABLES DE CONTROL PARA EL POLLING INTELIGENTE SECUENCIAL
+let intervaloTiempo = 4000; // Iniciamos en 4s mínimos para darle un respiro saludable a SQLite
+let miPollingTimer = null;
 let tiempoUltimaActividad = Date.now();
 let ultimoIdMensaje = 0; // Guardará el cursor del ID más alto en pantalla
 
-// FUNCIÓN ADAPTATIVA: Ralentiza peticiones si la sala está inactiva
+// NUEVA FUNCIÓN ADAPTATIVA: Modifica el retraso sin crear intervalos paralelos
 function ajustarIntervaloInactividad(huboMensajesNuevos) {
-    // Si la caja de mensajes ya no existe en el DOM, destruimos el timer por completo
-    if (!document.getElementById('cajaMensajes')) {
-        clearInterval(miPollingTimer);
-        return;
-    }
-
-    clearInterval(miPollingTimer);
-    
     if (huboMensajesNuevos) {
-        intervaloTiempo = 3000; // Flujo constante si hay mensajes nuevos
+        intervaloTiempo = 4000; // Flujo constante si hay mensajes nuevos
         tiempoUltimaActividad = Date.now();
     } else {
         let minutosInactivo = (Date.now() - tiempoUltimaActividad) / 60000;
@@ -601,39 +593,42 @@ function ajustarIntervaloInactividad(huboMensajesNuevos) {
         if (minutosInactivo > 5) {
             intervaloTiempo = 15000; // Si llevan > 5 min quietos, consulta cada 15s
         } else if (minutosInactivo > 2) {
-            intervaloTiempo = 7000;  // Si llevan > 2 min quietos, consulta cada 7s
+            intervaloTiempo = 8000;  // Si llevan > 2 min quietos, consulta cada 8s
+        } else {
+            intervaloTiempo = 4000;  // Tiempo por defecto si no hay mensajes nuevos pero está activo
         }
     }
-    
-    miPollingTimer = setInterval(cargarMensajes, intervaloTiempo);
 }
 
-// CONTROLADOR DE PESTAÑA OCULTA O CELULAR BLOQUEADO
+// CONTROLADOR DE PESTAÑA OCULTA O CELULAR BLOQUEADO (SEGURO)
 document.addEventListener("visibilitychange", () => {
-    // Si ya no estamos en la página del chat, salimos y limpiamos
+    // Matamos cualquier petición agendada para que no se pisen
+    clearTimeout(miPollingTimer);
+
+    // Si ya no estamos en la página del chat, salimos sin reprogramar nada
     if (!document.getElementById('cajaMensajes')) {
-        clearInterval(miPollingTimer);
         return;
     }
 
-    clearInterval(miPollingTimer);
     if (document.hidden) {
-        intervaloTiempo = 30000; // Ahorra el 90% de recursos si la pestaña se oculta
+        intervaloTiempo = 30000; // Ahorra el 95% de recursos si la pestaña se oculta (30s)
+        miPollingTimer = setTimeout(cargarMensajes, intervaloTiempo);
     } else {
-        intervaloTiempo = 3000; // Retorna a tiempo real al abrir de nuevo
+        intervaloTiempo = 4000; // Retorna al flujo normal
         tiempoUltimaActividad = Date.now();
-        cargarMensajes(); // Carga express inmediata
+        cargarMensajes(); // Disparo express inmediato
     }
-    miPollingTimer = setInterval(cargarMensajes, intervaloTiempo);
 });
 
 function cargarMensajes() {
     const contenedorChat = document.getElementById('cajaMensajes');
     
-    // CANDADO ABSOLUTO: Si el elemento no existe en pantalla, apaga el reloj inmediatamente
+    // CANDADO ASÍNCRONO: Limpiamos cualquier timer pendiente antes de continuar
+    clearTimeout(miPollingTimer);
+    
+    // CANDADO ABSOLUTO: Si el elemento ya no existe en pantalla, matamos el ciclo de una
     if (!contenedorChat) {
         console.log("🤖 Polling inactivo: El contenedor de chat ya no existe.");
-        clearInterval(miPollingTimer);
         return;
     }
     
@@ -642,7 +637,6 @@ function cargarMensajes() {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            
             // Ajustamos dinámicamente el polling según si hay data nueva o no
             ajustarIntervaloInactividad(data.mensajes.length > 0);
 
@@ -757,17 +751,26 @@ function cargarMensajes() {
             }
         }
     })
-    .catch(err => console.error("Error consultando nuevos mensajes:", err));
+    .catch(err => {
+        console.error("❌ Error consultando nuevos mensajes:", err);
+        intervaloTiempo = 10000; // Si hay microcorte del servidor, frena el acoso por 10s
+    })
+    .finally(() => {
+        // 🔥 PROGRAMACIÓN SECUENCIAL SEGURA: Solo cuando la petición terminó por completo,
+        // agenda la siguiente llamada garantizando que vayan en fila india.
+        if (document.getElementById('cajaMensajes') && !document.hidden) {
+            miPollingTimer = setTimeout(cargarMensajes, intervaloTiempo);
+        }
+    });
 }
 
-// INICIALIZADOR SEGURO
+// INICIALIZADOR SEGURO (CORREGIDO DE MULTIPLE TIMER)
 document.addEventListener("DOMContentLoaded", function() {
     irAlFinalChat();
     
-    // Verificamos antes de encender el ciclo inicial
+    // Verificamos antes de encender el flujo de polling inteligente inicial
     if (document.getElementById('cajaMensajes')) {
-        cargarMensajes();
-        miPollingTimer = setInterval(cargarMensajes, intervaloTiempo);
+        cargarMensajes(); // Arranca la cadena de consultas secuenciales usando setTimeout
     }
     
     const inputArchivo = document.getElementById('imagen_adjunta');
@@ -775,6 +778,6 @@ document.addEventListener("DOMContentLoaded", function() {
         inputArchivo.addEventListener('change', mostrarPrevisualizacion);
     }
 });
-    </script>
+</script>
 </body>
 </html>
