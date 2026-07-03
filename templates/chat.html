@@ -521,183 +521,204 @@ function irAlFinalChat() {
         const clienteCorreoTarea = "{{ tarea.cliente_correo }}";
 
         // VARIABLES DE CONTROL PARA EL POLLING INTELIGENTE
-        let intervaloTiempo = 3000; // Inicia consultando cada 3 segundos
-        let miPollingTimer;
-        let tiempoUltimaActividad = Date.now();
-        let ultimoIdMensaje = 0; // Guardará el cursor del ID más alto en pantalla
+let intervaloTiempo = 3000; // Inicia consultando cada 3 segundos
+let miPollingTimer;
+let tiempoUltimaActividad = Date.now();
+let ultimoIdMensaje = 0; // Guardará el cursor del ID más alto en pantalla
 
-        // FUNCIÓN ADAPTATIVA: Ralentiza peticiones si la sala está inactiva
-        function ajustarIntervaloInactividad(huboMensajesNuevos) {
-            clearInterval(miPollingTimer);
-            
-            if (huboMensajesNuevos) {
-                intervaloTiempo = 3000; // Flujo constante si hay mensajes nuevos
-                tiempoUltimaActividad = Date.now();
-            } else {
-                let minutosInactivo = (Date.now() - tiempoUltimaActividad) / 60000;
-                
-                if (minutosInactivo > 5) {
-                    intervaloTiempo = 15000; // Si llevan > 5 min quietos, consulta cada 15s
-                } else if (minutosInactivo > 2) {
-                    intervaloTiempo = 7000;  // Si llevan > 2 min quietos, consulta cada 7s
-                }
-            }
-            
-            miPollingTimer = setInterval(cargarMensajes, intervaloTiempo);
+// FUNCIÓN ADAPTATIVA: Ralentiza peticiones si la sala está inactiva
+function ajustarIntervaloInactividad(huboMensajesNuevos) {
+    // Si la caja de mensajes ya no existe en el DOM, destruimos el timer por completo
+    if (!document.getElementById('cajaMensajes')) {
+        clearInterval(miPollingTimer);
+        return;
+    }
+
+    clearInterval(miPollingTimer);
+    
+    if (huboMensajesNuevos) {
+        intervaloTiempo = 3000; // Flujo constante si hay mensajes nuevos
+        tiempoUltimaActividad = Date.now();
+    } else {
+        let minutosInactivo = (Date.now() - tiempoUltimaActividad) / 60000;
+        
+        if (minutosInactivo > 5) {
+            intervaloTiempo = 15000; // Si llevan > 5 min quietos, consulta cada 15s
+        } else if (minutosInactivo > 2) {
+            intervaloTiempo = 7000;  // Si llevan > 2 min quietos, consulta cada 7s
         }
+    }
+    
+    miPollingTimer = setInterval(cargarMensajes, intervaloTiempo);
+}
 
-        // CONTROLADOR DE PESTAÑA OCULTA O CELULAR BLOQUEADO
-        document.addEventListener("visibilitychange", () => {
-            clearInterval(miPollingTimer);
-            if (document.hidden) {
-                intervaloTiempo = 30000; // Ahorra el 90% de recursos si la pestaña se oculta
-            } else {
-                intervaloTiempo = 3000; // Retorna a tiempo real al abrir de nuevo
-                tiempoUltimaActividad = Date.now();
-                cargarMensajes(); // Carga express inmediata
-            }
-            miPollingTimer = setInterval(cargarMensajes, intervaloTiempo);
-        });
+// CONTROLADOR DE PESTAÑA OCULTA O CELULAR BLOQUEADO
+document.addEventListener("visibilitychange", () => {
+    // Si ya no estamos en la página del chat, salimos y limpiamos
+    if (!document.getElementById('cajaMensajes')) {
+        clearInterval(miPollingTimer);
+        return;
+    }
 
-        function cargarMensajes() {
-            if (!cajaMensajes) return;
+    clearInterval(miPollingTimer);
+    if (document.hidden) {
+        intervaloTiempo = 30000; // Ahorra el 90% de recursos si la pestaña se oculta
+    } else {
+        intervaloTiempo = 3000; // Retorna a tiempo real al abrir de nuevo
+        tiempoUltimaActividad = Date.now();
+        cargarMensajes(); // Carga express inmediata
+    }
+    miPollingTimer = setInterval(cargarMensajes, intervaloTiempo);
+});
+
+function cargarMensajes() {
+    const contenedorChat = document.getElementById('cajaMensajes');
+    
+    // CANDADO ABSOLUTO: Si el elemento no existe en pantalla, apaga el reloj inmediatamente
+    if (!contenedorChat) {
+        console.log("🤖 Polling inactivo: El contenedor de chat ya no existe.");
+        clearInterval(miPollingTimer);
+        return;
+    }
+    
+    // Le añadimos el query string ?ultimo_id= al endpoint
+    fetch(`${URL_API_MENSAGES}?ultimo_id=${ultimoIdMensaje}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
             
-            // Le añadimos el query string ?ultimo_id= al endpoint
-            fetch(`${URL_API_MENSAGES}?ultimo_id=${ultimoIdMensaje}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    
-                    // Ajustamos dinámicamente el polling según si hay data nueva o no
-                    ajustarIntervaloInactividad(data.mensajes.length > 0);
+            // Ajustamos dinámicamente el polling según si hay data nueva o no
+            ajustarIntervaloInactividad(data.mensajes.length > 0);
 
-                    if (data.mensajes.length === 0) {
-                        // Si la pantalla está totalmente vacía y la base de datos no tiene nada, pintamos el estado vacío
-                        if (cajaMensajes.children.length === 0 || document.getElementById('chat-vacio')) {
-                            cajaMensajes.innerHTML = `
-                                <div id="chat-vacio" class="h-full flex flex-col items-center justify-center text-center py-12 text-gray-500">
-                                    <img src="/static/img/icono_conexion.png" alt="Conexión" class="w-14 h-14 mb-3 opacity-60">
-                                    <p class="text-sm font-medium text-gray-400">Sala de negociación vacía.</p>
-                                    <p class="text-xs text-gray-600">Envía un mensaje o lanza una oferta para arrancar.</p>
+            if (data.mensajes.length === 0) {
+                // Si la pantalla está totalmente vacía y la base de datos no tiene nada, pintamos el estado vacío
+                if (contenedorChat.children.length === 0 || document.getElementById('chat-vacio')) {
+                    contenedorChat.innerHTML = `
+                        <div id="chat-vacio" class="h-full flex flex-col items-center justify-center text-center py-12 text-gray-500">
+                            <img src="/static/img/icono_conexion.png" alt="Conexión" class="w-14 h-14 mb-3 opacity-60">
+                            <p class="text-sm font-medium text-gray-400">Sala de negociación vacía.</p>
+                            <p class="text-xs text-gray-600">Envía un mensaje o lanza una oferta para arrancar.</p>
+                        </div>`;
+                }
+            } else {
+                // Si antes estaba el mensaje de 'chat-vacio' y acaban de llegar mensajes, lo removemos
+                const divVacio = document.getElementById('chat-vacio');
+                if (divVacio) divVacio.remove();
+
+                data.mensajes.forEach(msg => {
+                    // Actualizamos el cursor al ID más alto registrado
+                    if (msg.id > ultimoIdMensaje) {
+                        ultimoIdMensaje = msg.id;
+                    }
+
+                    // Evitamos duplicar en el DOM si el mensaje ya existe pintado
+                    if (document.getElementById(`msg-${msg.id}`)) return;
+
+                    const esPropio = (msg.remitente_correo === usuarioSesion || msg.remitente === nombreUsuarioActual);
+                    const alineacionClase = esPropio ? 'items-end' : 'items-start';
+                    const colorBurbujaClase = esPropio ? 'bg-teal-600 text-white rounded-tr-none' : 'bg-gray-700 text-gray-100 rounded-tl-none';
+                    
+                    let mensajeHTML = "";
+
+                    if (msg.tipo && msg.tipo.includes('cotizacion')) {
+                        let bordeCotizacion = 'border-gray-700';
+                        let footerCotizacion = '';
+
+                        if (msg.tipo === 'cotizacion_pendiente') {
+                            bordeCotizacion = 'border-purple-600';
+                            if (usuarioSesion === clienteCorreoTarea) {
+                                footerCotizacion = `
+                                    <form action="/chat/${tareaId}/responder_cotizacion/${msg.id}" method="POST" class="flex items-center justify-center space-x-3">
+                                        <input type="hidden" name="canal_actual" value="${canalActual}">
+                                        <button type="submit" name="accion" value="Aceptar" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-5 py-2 rounded-xl text-xs uppercase tracking-wide transition shadow">
+                                            ✔ Aceptar e Iniciar
+                                        </button>
+                                        <button type="submit" name="accion" value="Rechazar" class="bg-gray-700 hover:bg-rose-600 text-gray-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs uppercase transition">
+                                            Declinado
+                                        </button>
+                                    </form>`;
+                            } else {
+                                footerCotizacion = `
+                                    <span class="text-xs font-semibold text-purple-400 bg-purple-950/40 px-3 py-1 rounded-full border border-purple-900 animate-pulse">
+                                        ⏳ Esperando respuesta del cliente...
+                                    </span>`;
+                            }
+                        } else if (msg.tipo === 'cotizacion_aceptada') {
+                            bordeCotizacion = 'border-emerald-600';
+                            footerCotizacion = `
+                                <div class="text-xs font-black text-emerald-400 bg-emerald-950/50 py-1.5 rounded-xl border border-emerald-900 uppercase tracking-wide flex items-center justify-center space-x-1">
+                                    <i class="fas fa-lock"></i> <span>Garantía Congelada & Contrato Firmado</span>
+                                </div>`;
+                        } else {
+                            footerCotizacion = `
+                                <div class="text-xs font-medium text-gray-400 bg-gray-900/50 py-1.5 rounded-xl border border-gray-800 uppercase tracking-wide">
+                                    ❌ Oferta Declinada / Caducada
                                 </div>`;
                         }
+
+                        const monto = msg.monto_pesos ? parseFloat(msg.monto_pesos) : parseFloat(msg.cotizacion_pesos);
+
+                        mensajeHTML = `
+                            <div id="msg-${msg.id}" class="flex flex-col items-center my-4 w-full">
+                                <div class="bg-gradient-to-b from-gray-800 to-gray-850 border-2 ${bordeCotizacion} rounded-2xl p-4 max-w-md w-full text-center shadow-2xl">
+                                    <div class="text-xs font-bold uppercase tracking-widest text-purple-400 mb-1">💼 Propuesta Económica Formal</div>
+                                    <div class="text-2xl font-black text-white my-2">
+                                        $${monto.toLocaleString('es-CO', { maximumFractionDigits: 0 })} <span class="text-xs font-normal text-gray-400">COP</span>
+                                    </div>
+                                    <p class="text-xs text-gray-300 italic px-2 mb-3">"${msg.cotizacion_concepto}"</p>
+                                    <div class="text-[10px] text-gray-500 mb-3">Equivalente en Plataforma: ${msg.cotizacion_creditos} Créditos</div>
+                                    ${footerCotizacion}
+                                </div>
+                                <span class="text-[9px] text-gray-600 mt-1">${msg.fecha_envio}</span>
+                            </div>`;
+
                     } else {
-                        // Si antes estaba el mensaje de 'chat-vacio' y acaban de llegar mensajes, lo removemos
-                        const divVacio = document.getElementById('chat-vacio');
-                        if (divVacio) divVacio.remove();
+                        let cuerpoMensaje = "";
+                        if (msg.tipo === 'imagen') {
+                            cuerpoMensaje = `
+                                <div class="rounded-lg overflow-hidden border border-black/20 my-1 bg-gray-800">
+                                    <img src="/static/uploads/${msg.mensaje}" alt="Imagen adjunta" class="max-w-full h-auto object-cover max-h-60 hover:scale-105 transition cursor-zoom-in" onclick="window.open(this.src)">
+                                </div>`;
+                        } else {
+                            cuerpoMensaje = `<p class="leading-relaxed break-words">${msg.mensaje}</p>`;
+                        }
 
-                        data.mensajes.forEach(msg => {
-                            // Actualizamos el cursor al ID más alto registrado
-                            if (msg.id > ultimoIdMensaje) {
-                                ultimoIdMensaje = msg.id;
-                            }
-
-                            // Evitamos duplicar en el DOM si el mensaje ya existe pintado
-                            if (document.getElementById(`msg-${msg.id}`)) return;
-
-                            const esPropio = (msg.remitente_correo === usuarioSesion || msg.remitente === nombreUsuarioActual);
-                            const alineacionClase = esPropio ? 'items-end' : 'items-start';
-                            const colorBurbujaClase = esPropio ? 'bg-teal-600 text-white rounded-tr-none' : 'bg-gray-700 text-gray-100 rounded-tl-none';
-                            
-                            let mensajeHTML = "";
-
-                            if (msg.tipo && msg.tipo.includes('cotizacion')) {
-                                let bordeCotizacion = 'border-gray-700';
-                                let footerCotizacion = '';
-
-                                if (msg.tipo === 'cotizacion_pendiente') {
-                                    bordeCotizacion = 'border-purple-600';
-                                    if (usuarioSesion === clienteCorreoTarea) {
-                                        footerCotizacion = `
-                                            <form action="/chat/${tareaId}/responder_cotizacion/${msg.id}" method="POST" class="flex items-center justify-center space-x-3">
-                                                <input type="hidden" name="canal_actual" value="${canalActual}">
-                                                <button type="submit" name="accion" value="Aceptar" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-5 py-2 rounded-xl text-xs uppercase tracking-wide transition shadow">
-                                                    ✔ Aceptar e Iniciar
-                                                </button>
-                                                <button type="submit" name="accion" value="Rechazar" class="bg-gray-700 hover:bg-rose-600 text-gray-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs uppercase transition">
-                                                    Declinado
-                                                </button>
-                                            </form>`;
-                                    } else {
-                                        footerCotizacion = `
-                                            <span class="text-xs font-semibold text-purple-400 bg-purple-950/40 px-3 py-1 rounded-full border border-purple-900 animate-pulse">
-                                                ⏳ Esperando respuesta del cliente...
-                                            </span>`;
-                                    }
-                                } else if (msg.tipo === 'cotizacion_aceptada') {
-                                    bordeCotizacion = 'border-emerald-600';
-                                    footerCotizacion = `
-                                        <div class="text-xs font-black text-emerald-400 bg-emerald-950/50 py-1.5 rounded-xl border border-emerald-900 uppercase tracking-wide flex items-center justify-center space-x-1">
-                                            <i class="fas fa-lock"></i> <span>Garantía Congelada & Contrato Firmado</span>
-                                        </div>`;
-                                } else {
-                                    footerCotizacion = `
-                                        <div class="text-xs font-medium text-gray-400 bg-gray-900/50 py-1.5 rounded-xl border border-gray-800 uppercase tracking-wide">
-                                            ❌ Oferta Declinada / Caducada
-                                        </div>`;
-                                }
-
-                                const monto = msg.monto_pesos ? parseFloat(msg.monto_pesos) : parseFloat(msg.cotizacion_pesos);
-
-                                mensajeHTML = `
-                                    <div id="msg-${msg.id}" class="flex flex-col items-center my-4 w-full">
-                                        <div class="bg-gradient-to-b from-gray-800 to-gray-850 border-2 ${bordeCotizacion} rounded-2xl p-4 max-w-md w-full text-center shadow-2xl">
-                                            <div class="text-xs font-bold uppercase tracking-widest text-purple-400 mb-1">💼 Propuesta Económica Formal</div>
-                                            <div class="text-2xl font-black text-white my-2">
-                                                $${monto.toLocaleString('es-CO', { maximumFractionDigits: 0 })} <span class="text-xs font-normal text-gray-400">COP</span>
-                                            </div>
-                                            <p class="text-xs text-gray-300 italic px-2 mb-3">"${msg.cotizacion_concepto}"</p>
-                                            <div class="text-[10px] text-gray-500 mb-3">Equivalente en Plataforma: ${msg.cotizacion_creditos} Créditos</div>
-                                            ${footerCotizacion}
-                                        </div>
-                                        <span class="text-[9px] text-gray-600 mt-1">${msg.fecha_envio}</span>
-                                    </div>`;
-
-                            } else {
-                                let cuerpoMensaje = "";
-                                if (msg.tipo === 'imagen') {
-                                    cuerpoMensaje = `
-                                        <div class="rounded-lg overflow-hidden border border-black/20 my-1 bg-gray-800">
-                                            <img src="/static/uploads/${msg.mensaje}" alt="Imagen adjunta" class="max-w-full h-auto object-cover max-h-60 hover:scale-105 transition cursor-zoom-in" onclick="window.open(this.src)">
-                                        </div>`;
-                                } else {
-                                    cuerpoMensaje = `<p class="leading-relaxed break-words">${msg.mensaje}</p>`;
-                                }
-
-                                mensajeHTML = `
-                                    <div id="msg-${msg.id}" class="flex flex-col ${alineacionClase}">
-                                        <div class="max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-2.5 shadow-md text-sm ${colorBurbujaClase}">
-                                            <p class="text-[10px] font-bold uppercase tracking-wider opacity-75 mb-1">${msg.remitente}</p>
-                                            ${cuerpoMensaje}
-                                        </div>
-                                        <span class="text-[9px] text-gray-500 mt-0.5 px-1">${msg.fecha_envio}</span>
-                                    </div>`;
-                            }
-
-                            // Insertamos de manera incremental al final del contenedor sin reescribir todo
-                            cajaMensajes.insertAdjacentHTML('beforeend', mensajeHTML);
-                        });
-
-                        irAlFinalChat();
+                        mensajeHTML = `
+                            <div id="msg-${msg.id}" class="flex flex-col ${alineacionClase}">
+                                <div class="max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-2.5 shadow-md text-sm ${colorBurbujaClase}">
+                                    <p class="text-[10px] font-bold uppercase tracking-wider opacity-75 mb-1">${msg.remitente}</p>
+                                    ${cuerpoMensaje}
+                                </div>
+                                <span class="text-[9px] text-gray-500 mt-0.5 px-1">${msg.fecha_envio}</span>
+                            </div>`;
                     }
-                }
-            })
-            .catch(err => console.error("Error consultando nuevos mensajes:", err));
-        }
 
-        // INICIALIZADOR SEGURO
-        document.addEventListener("DOMContentLoaded", function() {
-            irAlFinalChat();
-            cargarMensajes();
-            
-            const inputArchivo = document.getElementById('imagen_adjunta');
-            if (inputArchivo) {
-                inputArchivo.addEventListener('change', mostrarPrevisualizacion);
+                    // Insertamos de manera incremental al final del contenedor sin reescribir todo
+                    contenedorChat.insertAdjacentHTML('beforeend', mensajeHTML);
+                });
+
+                irAlFinalChat();
             }
-            
-            // Disparador del bucle inteligente controlado
-            miPollingTimer = setInterval(cargarMensajes, intervaloTiempo);
-        });
+        }
+    })
+    .catch(err => console.error("Error consultando nuevos mensajes:", err));
+}
+
+// INICIALIZADOR SEGURO
+document.addEventListener("DOMContentLoaded", function() {
+    irAlFinalChat();
+    
+    // Verificamos antes de encender el ciclo inicial
+    if (document.getElementById('cajaMensajes')) {
+        cargarMensajes();
+        miPollingTimer = setInterval(cargarMensajes, intervaloTiempo);
+    }
+    
+    const inputArchivo = document.getElementById('imagen_adjunta');
+    if (inputArchivo) {
+        inputArchivo.addEventListener('change', mostrarPrevisualizacion);
+    }
+});
     </script>
 </body>
 </html>
