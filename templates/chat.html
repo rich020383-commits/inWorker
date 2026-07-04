@@ -221,11 +221,16 @@
                     <form action="/chat/{{ tarea.id }}/enviar_cotizacion" method="POST" class="space-y-3">
                         <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
                         <div>
-                            <label class="block text-[11px] text-gray-400 mb-1">¿Cuánto vas a cobrar en total?</label>
-                            <div class="relative rounded-md shadow-sm">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <span class="text-gray-500 sm:text-sm">$</span>
+                            <label class="block text-[11px] text-gray-400 mb-1 flex justify-between items-end">
+                                <span>¿Qué incluye tu propuesta?</span>
+                                <div class="space-x-1">
+                                    <button type="button" onclick="document.querySelector('textarea[name=\'concepto\']').value = 'Visita técnica y diagnóstico presencial.'" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-[9px] px-2 py-0.5 rounded border border-gray-600 transition">Diagnóstico</button>
+                                    <button type="button" onclick="document.querySelector('textarea[name=\'concepto\']').value = 'Mano de obra especializada y materiales.'" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-[9px] px-2 py-0.5 rounded border border-gray-600 transition">Mano de obra</button>
                                 </div>
+                            </label>
+                            <textarea name="concepto" rows="2" placeholder="Ej: Mano de obra y cambio de empaques..." required
+                                class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500 resize-none"></textarea>
+                        </div>
                                 <input type="number" name="monto_pesos" step="1" min="1000" placeholder="Ej: 45000" required
                                     class="w-full bg-gray-950 border border-gray-700 rounded-lg pl-7 pr-12 py-2 text-sm font-bold text-purple-400 focus:outline-none focus:border-purple-500">
                                 <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -347,7 +352,7 @@
                             <div class="flex items-center space-x-2 w-full">
                                 <label class="cursor-pointer bg-gray-700 hover:bg-gray-600 text-gray-300 p-3 rounded-xl transition shadow flex items-center justify-center border border-gray-600 flex-shrink-0" title="Adjuntar soporte fotográfico">
                                     <i class="fas fa-camera text-base"></i>
-                                    <input type="file" id="imagen_adjunta" name="imagen_adjunta" class="hidden" accept="image/*">
+                                    <input type="file" id="imagen_adjunta" name="imagen_adjunta" class="hidden" accept="image/*" capture="environment">
                                 </label>
 
                                 <div class="flex-1 relative">
