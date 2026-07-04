@@ -1,4 +1,6 @@
 import os
+import re
+from PIL import Image
 import math
 import time
 import threading
@@ -33,6 +35,49 @@ app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'ofdogcebyoumumsu'
 app.config['MAIL_DEFAULT_SENDER'] = ('inWorker Soporte', app.config['MAIL_USERNAME'])
 mail = Mail(app)
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+import re
+
+# Asegúrate de tener importado genai (vi que ya lo tienes arriba en tu app.py)
+# from google import genai
+
+def imagen_contiene_contactos(ruta_imagen):
+    """
+    Usa Gemini Vision para leer el texto de la foto y detectar si intentan 
+    pasar un número de celular o correo para evadir la plataforma.
+    """
+    try:
+        # 1. Le pasamos la imagen a Gemini
+        imagen_pil = Image.open(ruta_imagen)
+        
+        # 2. Le damos una instrucción estricta al modelo
+        prompt = """
+        Eres un moderador de seguridad estricto. Lee todo el texto visible en esta imagen.
+        Tu único trabajo es detectar si el usuario está intentando compartir información de contacto directo.
+        
+        Responde ÚNICAMENTE con la palabra "BLOQUEAR" si encuentras:
+        - Números de teléfono (secuencias de 7 a 10 números, con o sin guiones/espacios).
+        - Direcciones de correo electrónico.
+        - Enlaces a redes sociales (Instagram, Facebook, etc).
+        
+        Responde ÚNICAMENTE con "SEGURO" si la imagen es normal (una foto de un daño, un equipo, un repuesto, etc) y no tiene contactos.
+        """
+        
+        response = client.models.generate_content(
+            model='gemini-2.5-flash', # Usamos flash porque es ultra rápido
+            contents=[prompt, imagen_pil]
+        )
+        
+        resultado = response.text.strip().upper()
+        
+        if "BLOQUEAR" in resultado:
+            return True # Sí contiene contactos prohibidos
+        return False # Es una imagen segura
+        
+    except Exception as e:
+        print(f"⚠️ Error en OCR de Gemini: {e}")
+        # En caso de que la IA falle por red, dejamos pasar la foto para no trabar el chat
+        return False
 
 # 📸 CONFIGURACIÓN Y VALIDACIÓN DE IMÁGENES PERMITIDAS
 EXTENSIONES_PERMITIDAS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
@@ -1283,6 +1328,25 @@ def ver_chat(tarea_id):
                     print(f"⚠️ Caída leve en Pillow, guardando archivo raw: {e}")
                     archivo.seek(0)
                     archivo.save(ruta_guardado)
+                    
+                # ==========================================================
+                # 🛡️ VALIDACIÓN IA: REVISAR SI LA FOTO TIENE CONTACTOS
+                # ==========================================================
+                if imagen_contiene_contactos(ruta_guardado):
+                    # 1. Borramos la foto maliciosa del servidor para ahorrar disco
+                    if os.path.exists(ruta_guardado):
+                        os.remove(ruta_guardado)
+                    
+                    # 2. Rebotamos la petición enviando un error agresivo a la interfaz
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'multipart/form-data' in request.content_type:
+                        return jsonify({
+                            'success': False, 
+                            'error': '🚨 Política de Seguridad: Se detectó un número de contacto en la imagen. Las negociaciones por fuera de inWorker están prohibidas.'
+                        }), 400
+                    else:
+                        flash("🚨 Política de Seguridad: Se detectó un contacto en la imagen y fue bloqueada.", "error")
+                        return redirect(url_for('ver_chat', tarea_id=tarea_id))
+                # ==========================================================
                     
                 nuevo_msg = Mensaje(
                     tarea_id=tarea_id,
