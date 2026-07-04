@@ -1550,23 +1550,21 @@ def responder_cotizacion(tarea_id, mensaje_id):
 
     try:
         if accion == 'Aceptar':
-            # Buscamos al cliente comprador
             cliente = Usuario.query.filter_by(correo=correo_logueado).first()
             saldo_cliente = cliente.saldo_creditos if cliente else 0.0
             
-            # 🛡️ CONTROL FINANCIERO ANTI-FRAUDE
+            # 🛡️ CONTROL FINANCIERO ANTI-FRAUDE Y PUENTE DE RECARGA
             if saldo_cliente < monto_creditos_flotante:
-                flash(f"❌ Saldo insuficiente en créditos. Necesitas {monto_creditos_flotante} Cr (${monto_pesos:,.0f} COP).", "error")
+                # Usamos una categoría especial 'insuficiente' para que el frontend pueda disparar un pop-up de pago
+                flash(f"Saldo insuficiente. Necesitas {monto_creditos_flotante} Cr (${monto_pesos:,.0f} COP) para asegurar este contrato.", "insuficiente")
                 return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
                 
             # 💵 Retención segura y descuento de saldo del cliente
             cliente.saldo_creditos = round(saldo_cliente - monto_creditos_flotante, 2)
             
-            # Buscamos los datos básicos del técnico que hizo la oferta
             trabajador = Usuario.query.filter_by(correo=msg_cotizacion.remitente_correo).first()
             nombre_trabajador = trabajador.nombre if trabajador else "Técnico inWorker"
             
-            # Buscamos la tarea y congelamos los fondos pasando el estado a 'En Garantia'
             tarea_obj = Tarea.query.get(tarea_id)
             if tarea_obj:
                 tarea_obj.estado = 'En Garantia'
@@ -1577,15 +1575,24 @@ def responder_cotizacion(tarea_id, mensaje_id):
                 tarea_obj.confirmacion_cliente = 0
                 tarea_obj.confirmacion_trabajador = 0
             
-            # Cambiamos los tipos de mensaje correspondientes
-            msg_cotizacion.tipo = 'cotizacion_accepted'  # O 'cotizacion_aceptada' según uses en el HTML
+            # 🚨 CORRECCIÓN: Sincronización exacta con el HTML
+            msg_cotizacion.tipo = 'cotizacion_aceptada'  
             
-            # Declinamos automáticamente cualquier otra cotización pendiente de esta misma tarea
             Mensaje.query.filter_by(tarea_id=tarea_id, tipo='cotizacion_pendiente')\
                          .update({Mensaje.tipo: 'cotizacion_declinada'}, synchronize_session=False)
             
+            # 📢 INYECCIÓN DE MENSAJE DEL SISTEMA EN EL CHAT
+            mensaje_sistema = Mensaje(
+                tarea_id=tarea_id,
+                canal_trabajador=canal_sala,
+                remitente_correo='sistema@inworker.co',
+                mensaje=f"✅ CONTRATO ASEGURADO: El cliente ha depositado ${monto_pesos:,.0f} COP en el fondo de garantía de inWorker. El especialista ya puede iniciar la ejecución del servicio de forma segura.",
+                tipo='sistema'
+            )
+            db.session.add(mensaje_sistema)
+            
             db.session.commit()
-            # Actualizamos de inmediato la sesión del navegador para reflejar el descuento
+            
             session['usuario_creditos'] = cliente.saldo_creditos
             flash("✔ ¡Propuesta aceptada! El depósito de garantía se encuentra congelado de manera segura.", "success")
 
