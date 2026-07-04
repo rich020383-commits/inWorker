@@ -350,9 +350,14 @@
                             {% endif %}
 
                             <div class="flex items-center space-x-2 w-full">
-                                <label class="cursor-pointer bg-gray-700 hover:bg-gray-600 text-gray-300 p-3 rounded-xl transition shadow flex items-center justify-center border border-gray-600 flex-shrink-0" title="Adjuntar soporte fotográfico">
+                                <label class="cursor-pointer bg-teal-900/50 hover:bg-teal-800 text-teal-400 p-3 rounded-xl transition shadow flex items-center justify-center border border-teal-700/50 flex-shrink-0" title="Tomar foto ahora">
                                     <i class="fas fa-camera text-base"></i>
-                                    <input type="file" id="imagen_adjunta" name="imagen_adjunta" class="hidden" accept="image/*" capture="environment">
+                                    <input type="file" id="imagen_camara" name="imagen_adjunta" class="hidden" accept="image/*" capture="environment">
+                                </label>
+                                
+                                <label class="cursor-pointer bg-gray-700 hover:bg-gray-600 text-gray-300 p-3 rounded-xl transition shadow flex items-center justify-center border border-gray-600 flex-shrink-0" title="Adjuntar de la galería">
+                                    <i class="fas fa-paperclip text-base"></i>
+                                    <input type="file" id="imagen_galeria" name="imagen_adjunta" class="hidden" accept="image/*">
                                 </label>
 
                                 <div class="flex-1 relative">
@@ -496,8 +501,18 @@ function irAlFinalChat() {
             }
         }
 
-        function mostrarPrevisualizacion() {
-            const fileInput = document.getElementById('imagen_adjunta');
+        function mostrarPrevisualizacion(e) {
+            // Evitar conflicto: limpiamos el input contrario al que se usó
+            const inputCamara = document.getElementById('imagen_camara');
+            const inputGaleria = document.getElementById('imagen_galeria');
+            
+            if (e && e.target) {
+                if (e.target.id === 'imagen_camara' && inputGaleria) inputGaleria.value = '';
+                if (e.target.id === 'imagen_galeria' && inputCamara) inputCamara.value = '';
+            }
+
+            // Detectar cuál de los dos tiene el archivo
+            const fileInput = (inputCamara && inputCamara.files.length > 0) ? inputCamara : inputGaleria;
             const previewContainer = document.getElementById('preview-filename');
             
             if (fileInput && fileInput.files && fileInput.files[0]) {
@@ -518,31 +533,63 @@ function irAlFinalChat() {
         }
 
         function cancelarArchivo() {
-            const fileInput = document.getElementById('imagen_adjunta');
+            const inputCamara = document.getElementById('imagen_camara');
+            const inputGaleria = document.getElementById('imagen_galeria');
             const previewContainer = document.getElementById('preview-filename');
             
-            if (fileInput) fileInput.value = ''; 
+            if (inputCamara) inputCamara.value = ''; 
+            if (inputGaleria) inputGaleria.value = ''; 
             if (previewContainer) previewContainer.classList.add('hidden');
         }
 
+        // =========================================================================
+        // 🗺️ LÓGICA DEL MAPA PLEGABLE (OPTIMIZADO PARA MÓVILES)
+        // =========================================================================
         const latitudInicial = parseFloat("{{ tarea.latitud if tarea.latitud else 10.9639 }}");  
         const longitudInicial = parseFloat("{{ tarea.longitud if tarea.longitud else -74.7964 }}"); 
+        let mapaServicio = null; // Variable global para el mapa
 
-        try {
-            const map = L.map('map').setView([latitudInicial, longitudInicial], 14);
+        function inicializarMapa() {
+            try {
+                if (!mapaServicio) {
+                    mapaServicio = L.map('map').setView([latitudInicial, longitudInicial], 14);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                        maxZoom: 19
+                    }).addTo(mapaServicio);
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                maxZoom: 19
-            }).addTo(map);
-
-            L.marker([latitudInicial, longitudInicial]).addTo(map)
-                .bindPopup('<b class="text-gray-900">Ubicación del Servicio</b><br><span class="text-xs text-gray-600">Área acordada de asistencia.</span>')
-                .openPopup();
-        } catch (error) {
-            console.error("Error cargando el mapa de Leaflet:", error);
+                    L.marker([latitudInicial, longitudInicial]).addTo(mapaServicio)
+                        .bindPopup('<b class="text-gray-900">Ubicación del Servicio</b><br><span class="text-xs text-gray-600">Área acordada de asistencia.</span>')
+                        .openPopup();
+                }
+            } catch (error) {
+                console.error("Error cargando el mapa:", error);
+            }
         }
 
+        function toggleMapa() {
+            const cont = document.getElementById('contenedor-mapa');
+            const icono = document.getElementById('icono-mapa');
+            
+            if (cont.classList.contains('hidden')) {
+                // Abrir mapa
+                cont.classList.remove('hidden');
+                icono.style.transform = 'rotate(180deg)';
+                if (!mapaServicio) {
+                    inicializarMapa();
+                } else {
+                    setTimeout(() => { mapaServicio.invalidateSize(); }, 100);
+                }
+            } else {
+                // Cerrar mapa
+                cont.classList.add('hidden');
+                icono.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // =========================================================================
+        // 📩 LÓGICA DE ENVÍO DE MENSAJES (TEXTO Y FOTOS)
+        // =========================================================================
         const miFormulario = document.getElementById('formEnviarMensaje');
 
         if (miFormulario) {
@@ -550,9 +597,13 @@ function irAlFinalChat() {
                 e.preventDefault(); 
 
                 const mensajeInput = document.getElementById('inputMensaje');
-                const fileInput = document.getElementById('imagen_adjunta');
+                const fileCamara = document.getElementById('imagen_camara');
+                const fileGaleria = document.getElementById('imagen_galeria');
                 
-                if ((!mensajeInput || mensajeInput.value.trim() === "") && (!fileInput || fileInput.files.length === 0)) {
+                // Verifica si hay foto en cualquiera de los dos botones
+                const tieneFoto = (fileCamara && fileCamara.files.length > 0) || (fileGaleria && fileGaleria.files.length > 0);
+                
+                if ((!mensajeInput || mensajeInput.value.trim() === "") && !tieneFoto) {
                     alert("No puedes enviar un mensaje vacío.");
                     return;
                 }
@@ -783,7 +834,7 @@ function cargarMensajes() {
     });
 }
 
-// INICIALIZADOR SEGURO (CORREGIDO DE MULTIPLE TIMER)
+// INICIALIZADOR SEGURO (CORREGIDO DE MULTIPLE TIMER Y DOBLE BOTÓN DE FOTO)
 document.addEventListener("DOMContentLoaded", function() {
     irAlFinalChat();
     
@@ -792,9 +843,16 @@ document.addEventListener("DOMContentLoaded", function() {
         cargarMensajes(); // Arranca la cadena de consultas secuenciales usando setTimeout
     }
     
-    const inputArchivo = document.getElementById('imagen_adjunta');
-    if (inputArchivo) {
-        inputArchivo.addEventListener('change', mostrarPrevisualizacion);
+    // 📸 Escuchar el botón de cámara en vivo
+    const inputCamara = document.getElementById('imagen_camara');
+    if (inputCamara) {
+        inputCamara.addEventListener('change', mostrarPrevisualizacion);
+    }
+    
+    // 📎 Escuchar el botón de la galería
+    const inputGaleria = document.getElementById('imagen_galeria');
+    if (inputGaleria) {
+        inputGaleria.addEventListener('change', mostrarPrevisualizacion);
     }
 });
 </script>
