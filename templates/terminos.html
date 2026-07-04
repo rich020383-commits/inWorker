@@ -153,8 +153,20 @@
         <p>La Compañía se reserva la facultad de alterar, actualizar o modificar estos Términos y Condiciones de manera unilateral en el momento en que lo estime conveniente, con la finalidad de adecuarlos a nuevas normativas legales en el país o a actualizaciones técnicas del software. Las modificaciones se comunicarán de forma visible dentro de la app. El uso continuado del sistema con posterioridad al anuncio representará la aceptación irrestricta de las variaciones. El presente acuerdo se rige en su integridad por las leyes comerciales, civiles y normativas de la República de Colombia.</p>
 
         <div class="footer-back">
-            <a href="javascript:history.back()" class="btn-regresar">Volver al Registro</a>
-        </div>
+    <button onclick="regresarAlRegistro()" class="btn-regresar">Volver al Registro</button>
+</div>
+
+<script>
+    function regresarAlRegistro() {
+        // Intentamos volver al historial anterior
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            // Si no hay historial (ej. usuario entró desde link directo), forzamos la ruta
+            window.location.href = '/login?action=registro'; // Ajusta esto a tu ruta de registro real
+        }
+    }
+</script>
     </div>
 
 </body>
