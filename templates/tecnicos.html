@@ -3,283 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>inWorker - Catálogo de Especialistas</title>
+    <title>inWorker - Especialistas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }
+    </script>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen font-sans">
+<body class="bg-slate-50 text-slate-900 min-h-screen font-sans antialiased">
 
-    <nav class="bg-blue-600 px-4 py-3 sticky top-0 z-50 shadow-md">
+    <nav class="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <a href="/tareas" class="text-xl font-black tracking-wider text-white flex items-center gap-2">
-                    <i class="fas fa-wallet text-green-400"></i> inWorker
-                </a>
-            </div>
-            <div class="flex items-center space-x-6">
-                <a href="/tareas" class="text-xs font-bold uppercase tracking-wider text-blue-100 hover:text-white transition flex items-center gap-1.5">
-                    <i class="fas fa-briefcase"></i> Ver Tablón
-                </a>
-                <span class="text-sm text-blue-500 font-medium hidden md:inline">Hola, <span class="text-white font-bold">{{ nombre_usuario }}</span></span>
-                <a href="/logout" class="text-xs font-bold uppercase tracking-wider bg-red-700/20 text-red-100 border border-red-500/30 px-3 py-2 rounded-lg hover:bg-red-600/40 transition">
-                    Salir <i class="fas fa-sign-out-alt ml-1"></i>
-                </a>
+            <a href="/tareas" class="text-lg font-black tracking-tighter text-blue-600 flex items-center gap-2">
+                <i class="fas fa-wallet text-green-500"></i> inWorker
+            </a>
+            <div class="flex items-center gap-4">
+                <span class="text-xs font-medium text-slate-500 hidden sm:inline">Hola, {{ nombre_usuario }}</span>
+                <a href="/tareas" class="text-[11px] font-bold uppercase tracking-widest text-slate-500 hover:text-blue-600 transition">Tablón</a>
+                <a href="/logout" class="text-[11px] font-bold uppercase tracking-widest bg-slate-900 text-white px-4 py-2 rounded-xl hover:bg-slate-800 transition">Salir</a>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 py-8">
-        <div class="mb-8">
-            <h1 class="text-2xl font-black text-slate-800 flex items-center gap-3">
-                <i class="fas fa-user-tie text-blue-600"></i> Especialistas Disponibles
-            </h1>
-            <p class="text-sm text-slate-500 mt-1">Conecta con los mejores técnicos calificados en la zona para tus proyectos y reparaciones.</p>
-        </div>
+    <main class="max-w-7xl mx-auto px-6 py-10">
+        <h1 class="text-2xl font-black text-slate-900 mb-8 tracking-tight">Especialistas Disponibles</h1>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {% for tecnico in tecnicos %}
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between hover:border-blue-300 transition shadow-sm relative overflow-hidden">
-                <div>
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-14 h-14 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center text-slate-400">
-                            {% if tecnico.foto %}
-                                <img src="/static/uploads/{{ tecnico.foto }}" alt="{{ tecnico.nombre }}" class="w-full h-full object-cover">
-                            {% else %}
-                                <i class="fas fa-user text-2xl text-slate-400"></i>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <h3 class="text-base font-bold text-slate-800">{{ tecnico.nombre }}</h3>
-                            <span class="text-[11px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-md mt-0.5 inline-block">
-                                {{ tecnico.profesion if tecnico.profesion else 'Técnico General' }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-2 mb-4 bg-slate-50 p-2 rounded-xl border border-slate-100">
-                        <div class="flex text-amber-400 text-xs">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
-                        <span class="text-xs font-black text-slate-700">{{ "%.1f"|format(tecnico.promedio_estrellas) }}</span>
-                        <span class="text-[11px] text-slate-400">({{ tecnico.total_calificaciones }} opiniones)</span>
-                    </div>
-
-                    <div class="mb-4">
-                        <span class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider mb-1.5">Habilidades</span>
-                        <div class="flex flex-wrap gap-1.5">
-                            {% if tecnico.habilidades %}
-                                {% for hab in tecnico.habilidades.split(',') %}
-                                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md border border-slate-200">{{ hab.strip() }}</span>
-                                {% endfor %}
-                            {% else %}
-                                <span class="text-[10px] bg-slate-100 text-slate-400 px-2 py-1 rounded-md italic">Soporte General</span>
-                            {% endif %}
-                        </div>
+            <div class="bg-white border border-slate-100 rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
+                <div class="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 mb-4">
+                    {% if tecnico.foto %}
+                        <img src="/static/uploads/{{ tecnico.foto }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center bg-blue-50 text-blue-300 text-4xl font-black uppercase">{{ tecnico.nombre[:2] }}</div>
+                    {% endif %}
+                </div>
+                <div class="flex-grow mb-4">
+                    <h3 class="font-black text-slate-900 text-base truncate">{{ tecnico.nombre }}</h3>
+                    <p class="text-[11px] font-bold text-blue-600 uppercase tracking-widest mb-2">{{ tecnico.profesion or 'Técnico General' }}</p>
+                    <div class="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg w-max mb-3">
+                        <i class="fas fa-star text-[9px]"></i> {{ "%.1f"|format(tecnico.promedio_estrellas) }} ({{ tecnico.total_calificaciones }})
                     </div>
                 </div>
-
-                <div class="border-t border-slate-100 pt-4 mt-2">
-                    <button onclick="prepararYAbrirModal(this)" 
-                            data-nombre="{{ tecnico.nombre }}"
-                            data-profesion="{{ tecnico.profesion if tecnico.profesion else 'Técnico General' }}"
-                            data-descripcion="{{ tecnico.descripcion if tecnico.descripcion else 'Sin descripción disponible por ahora.' }}"
-                            data-foto="{% if tecnico.foto %}/static/uploads/{{ tecnico.foto }}{% endif %}"
-                            data-portafolio="{% if tecnico.proyectos %}{% for p in tecnico.proyectos %}/static/uploads/{{ p.imagen_ruta }}|{{ p.descripcion if p.descripcion else 'Trabajo Realizado' }}{% if not loop.last %},{% endif %}{% endfor %}{% endif %}"
-                            data-correo="{{ tecnico.correo }}"
-                            class="w-full text-center px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 shadow-sm shadow-green-100">
-                        <i class="fas fa-eye text-sm"></i> Ver Perfil Completo
-                    </button>
-                </div>
-            </div>
-            {% else %}
-            <div class="col-span-full bg-white border border-slate-200 border-dashed rounded-2xl p-12 text-center shadow-sm">
-                <i class="fas fa-users-slash text-slate-300 text-4xl mb-3"></i>
-                <h3 class="text-base font-bold text-slate-400">No hay especialistas registrados</h3>
+                <button onclick="prepararYAbrirModal(this)" 
+                        data-nombre="{{ tecnico.nombre }}"
+                        data-profesion="{{ tecnico.profesion or 'Técnico General' }}"
+                        data-descripcion="{{ tecnico.descripcion or 'Sin descripción disponible.' }}"
+                        data-foto="{% if tecnico.foto %}/static/uploads/{{ tecnico.foto }}{% endif %}"
+                        data-portafolio="{% if tecnico.proyectos %}{% for p in tecnico.proyectos %}/static/uploads/{{ p.imagen_ruta }}|{{ p.descripcion or 'Trabajo Realizado' }}{% if not loop.last %},{% endif %}{% endfor %}{% endif %}"
+                        data-correo="{{ tecnico.correo }}"
+                        class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-lg shadow-blue-600/20 active:scale-[0.98]">
+                    Ver Perfil
+                </button>
             </div>
             {% endfor %}
         </div>
     </main>
 
     <div id="modalPerfil" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
-        <div class="bg-white border border-slate-100 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col">
-            
-            <button onclick="cerrarModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2 text-xl transition z-10">
-                <i class="fas fa-times"></i>
-            </button>
-
-            <div class="p-6 md:p-8">
+        <div class="bg-white border border-slate-100 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl relative">
+            <button onclick="cerrarModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2 text-xl"><i class="fas fa-times"></i></button>
+            <div class="p-8">
                 <div class="flex items-center gap-4 mb-6">
-                    <div class="w-20 h-20 rounded-full bg-slate-50 border border-slate-200 overflow-hidden flex items-center justify-center">
-                        <img id="modalFoto" src="" alt="" class="w-full h-full object-cover hidden">
+                    <div class="w-20 h-20 rounded-full bg-slate-100 border overflow-hidden flex items-center justify-center">
+                        <img id="modalFoto" src="" class="w-full h-full object-cover hidden">
                         <i id="modalIcono" class="fas fa-user text-4xl text-slate-300"></i>
                     </div>
                     <div>
                         <h2 id="modalNombre" class="text-2xl font-black text-slate-800"></h2>
-                        <span id="modalProfesion" class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-md mt-1 inline-block"></span>
+                        <span id="modalProfesion" class="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1 rounded-md"></span>
                     </div>
                 </div>
-
-                <div class="mb-6">
-                    <h4 class="text-xs uppercase font-black tracking-wider text-slate-400 mb-2">Sobre el Especialista</h4>
-                    <p id="modalDescripcion" class="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100"></p>
-                </div>
-
-                <div class="mb-8">
-                    <h4 class="text-xs uppercase font-black tracking-wider text-slate-400 mb-3">Trabajos Anteriores (Portafolio)</h4>
-                    <div id="modalGaleria" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
-                </div>
-
-                <div class="border-t border-slate-100 pt-6 flex flex-col sm:flex-row gap-3">
-                    <button onclick="activarFlujoCotizacion()" class="flex-1 text-center px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold uppercase tracking-wider text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-green-100">
-                        <i class="fas fa-comments text-base"></i> Solicitar Cotización Privada Directa
-                    </button>
-                </div>
+                <p id="modalDescripcion" class="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl mb-6"></p>
+                <h4 class="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-3">Portafolio</h4>
+                <div id="modalGaleria" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6"></div>
+                <button onclick="activarFlujoCotizacion()" class="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold uppercase tracking-wider text-xs rounded-xl transition">Solicitar Cotización Privada</button>
             </div>
         </div>
     </div>
 
     <div id="modalCotizacionPrivada" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl">
-            
-            <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fas fa-user-lock text-green-500"></i> Orden Privada: <span id="nombreTecnicoCotizar" class="text-blue-600"></span>
-                </h2>
-                <button onclick="document.getElementById('modalCotizacionPrivada').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">
-                    <i class="fas fa-times"></i>
-                </button>
+        <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full shadow-2xl">
+            <div class="px-5 py-4 border-b flex justify-between items-center">
+                <h2 class="text-xs font-bold uppercase text-slate-700">Cotización Privada</h2>
+                <button onclick="document.getElementById('modalCotizacionPrivada').classList.add('hidden')" class="text-slate-400"><i class="fas fa-times"></i></button>
             </div>
-            
             <form action="/solicitar_cotizacion_privada" method="POST" class="p-5 space-y-4">
                 <input type="hidden" id="inputTecnicoCorreo" name="tecnico_correo" value="">
-
-                <div>
-                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">¿Qué necesitas reparar o cotizar?</label>
-                    <input type="text" name="titulo" required placeholder="Ej: Reparación Tarjeta Nevera Whirlpool" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-blue-500 transition">
-                </div>
-                
-                <div>
-                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Detalles o síntomas de la falla</label>
-                    <textarea name="descripcion" rows="3" required placeholder="Explica detalladamente para recibir una propuesta..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-blue-500 transition"></textarea>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Categoría</label>
-                        <select name="categoria" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs text-slate-700 focus:outline-none focus:border-blue-500 transition">
-                            <option value="Soporte Técnico">Soporte Técnico</option>
-                            <option value="Línea Blanca">Línea Blanca</option>
-                            <option value="Electricidad">Electricidad</option>
-                            <option value="Plomería">Plomería</option>
-                            <option value="Mantenimiento">Mantenimiento</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Presupuesto (COP)</label>
-                        <input type="number" name="pago" required placeholder="Ej: 100000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-blue-500 transition">
-                    </div>
-                </div>
-
                 <input type="hidden" name="latitud" value="10.9639">
                 <input type="hidden" name="longitud" value="-74.7964">
                 <input type="hidden" name="zona" value="Barranquilla (Directo)">
-
-                <div class="pt-1">
-                    <button type="submit" class="w-full py-2.5 bg-green-500 hover:bg-green-600 text-white font-bold uppercase tracking-wider rounded-xl transition text-[10px] shadow-sm">
-                        Enviar Requerimiento al Chat
-                    </button>
-                </div>
+                
+                <input type="text" name="titulo" required placeholder="¿Qué necesitas reparar?" class="w-full bg-slate-50 border rounded-xl px-3 py-2 text-xs">
+                <textarea name="descripcion" rows="3" required placeholder="Explica la falla..." class="w-full bg-slate-50 border rounded-xl px-3 py-2 text-xs"></textarea>
+                <input type="number" name="pago" required placeholder="Presupuesto (COP)" class="w-full bg-slate-50 border rounded-xl px-3 py-2 text-xs">
+                <button type="submit" class="w-full py-2.5 bg-green-500 text-white font-bold uppercase rounded-xl text-[10px]">Enviar</button>
             </form>
         </div>
     </div>
 
     <script>
-        let tecnicoActivoCorreo = '';
-        let tecnicoActivoNombre = '';
-
+        let tecnicoActivoCorreo = ''; let tecnicoActivoNombre = '';
         function prepararYAbrirModal(boton) {
             tecnicoActivoNombre = boton.getAttribute('data-nombre');
             tecnicoActivoCorreo = boton.getAttribute('data-correo');
-            let profesion = boton.getAttribute('data-profesion');
-            let descripcion = boton.getAttribute('data-descripcion');
-            let foto = boton.getAttribute('data-foto');
-            let fotosPortafolio = boton.getAttribute('data-portafolio');
-
             document.getElementById('modalNombre').innerText = tecnicoActivoNombre;
-            document.getElementById('modalProfesion').innerText = profesion;
-            document.getElementById('modalDescripcion').innerText = descripcion;
-            
+            document.getElementById('modalProfesion').innerText = boton.getAttribute('data-profesion');
+            document.getElementById('modalDescripcion').innerText = boton.getAttribute('data-descripcion');
             const imgFoto = document.getElementById('modalFoto');
             const iconFoto = document.getElementById('modalIcono');
-            
-            if(foto && foto !== 'None' && foto !== '') {
-                imgFoto.src = foto;
-                imgFoto.classList.remove('hidden');
-                iconFoto.classList.add('hidden');
-            } else {
-                imgFoto.classList.add('hidden');
-                iconFoto.classList.remove('hidden');
-            }
-
+            let foto = boton.getAttribute('data-foto');
+            if(foto && foto !== 'None' && foto !== '') { imgFoto.src = foto; imgFoto.classList.remove('hidden'); iconFoto.classList.add('hidden'); }
+            else { imgFoto.classList.add('hidden'); iconFoto.classList.remove('hidden'); }
             const galeria = document.getElementById('modalGaleria');
             galeria.innerHTML = '';
-            
+            let fotosPortafolio = boton.getAttribute('data-portafolio');
             if(fotosPortafolio && fotosPortafolio.trim() !== 'None' && fotosPortafolio.trim() !== '') {
-                const proyectos = fotosPortafolio.split(',');
-                proyectos.forEach(proyectoRaw => {
-                    if(proyectoRaw.trim() !== '') {
-                        const parts = proyectoRaw.split('|');
-                        const url = parts[0];
-                        const text = parts[1] || 'Trabajo Realizado';
-
-                        const container = document.createElement('div');
-                        container.className = "bg-slate-50 p-1.5 rounded-xl border border-slate-200 text-center space-y-1";
-
-                        const img = document.createElement('img');
-                        img.src = url.trim();
-                        img.className = "w-full h-24 object-cover rounded-lg border border-slate-200 hover:border-blue-500 transition cursor-pointer";
-                        
-                        const txt = document.createElement('p');
-                        txt.className = "text-[10px] text-slate-500 truncate px-1";
-                        txt.innerText = text;
-
-                        container.appendChild(img);
-                        container.appendChild(txt);
-                        galeria.appendChild(container);
-                    }
+                fotosPortafolio.split(',').forEach(p => {
+                    const parts = p.split('|');
+                    galeria.innerHTML += `<div class="bg-slate-50 p-1 rounded-xl border"><img src="${parts[0].trim()}" class="w-full h-20 object-cover rounded-lg"></div>`;
                 });
-            } else {
-                galeria.innerHTML = `<p class="text-xs text-slate-400 italic col-span-full bg-slate-50 p-4 text-center rounded-xl border border-slate-200 border-dashed">El técnico no ha subido fotos de sus trabajos todavía.</p>`;
             }
-
-            const modal = document.getElementById('modalPerfil');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            document.getElementById('modalPerfil').classList.remove('hidden');
+            document.getElementById('modalPerfil').classList.add('flex');
         }
-
-        function cerrarModal() {
-            const modal = document.getElementById('modalPerfil');
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-        }
-
-        function activarFlujoCotizacion() {
-            cerrarModal(); 
-            document.getElementById('inputTecnicoCorreo').value = tecnicoActivoCorreo;
-            document.getElementById('nombreTecnicoCotizar').innerText = tecnicoActivoNombre;
-            document.getElementById('modalCotizacionPrivada').classList.remove('hidden');
-        }
-
-        window.onclick = function(event) {
-            const modalPerfil = document.getElementById('modalPerfil');
-            const modalCotizacion = document.getElementById('modalCotizacionPrivada');
-            if (event.target == modalPerfil) {
-                cerrarModal();
-            }
-            if (event.target == modalCotizacion) {
-                modalCotizacion.classList.add('hidden');
-            }
-        }
+        function cerrarModal() { document.getElementById('modalPerfil').classList.remove('flex'); document.getElementById('modalPerfil').classList.add('hidden'); }
+        function activarFlujoCotizacion() { cerrarModal(); document.getElementById('inputTecnicoCorreo').value = tecnicoActivoCorreo; document.getElementById('modalCotizacionPrivada').classList.remove('hidden'); }
     </script>
 </body>
 </html>
