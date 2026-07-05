@@ -546,14 +546,41 @@ def recuperar_contrasena():
         
         if usuario:
             token = serializer.dumps(correo, salt='recuperar-claves-inworker')
-            # AQUÍ LLAMAS A LA RUTA QUE CREAREMOS ABAJO
-            link_recuperacion = f"https://inworker.co" + url_for('restablecer_clave', token=token)
+            # _external=True hace que Flask arme el https://inworker.co automáticamente
+            link_recuperacion = url_for('restablecer_clave', token=token, _external=True)
             
-            # ... (Toda tu lógica de msg.html y mail.send va aquí igual) ...
-            flash("📧 Te hemos enviado un enlace de recuperación.", "success")
+            # --- LÓGICA DE ENVÍO DE CORREO (La pieza que faltaba) ---
+            try:
+                msg = Message(
+                    subject="Recupera tu contraseña en inWorker",
+                    recipients=[correo]
+                )
+                msg.html = f"""
+                <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+                    <h2 style="color: #2563EB;">Recuperación de contraseña</h2>
+                    <p style="color: #334155;">Hola,</p>
+                    <p style="color: #334155;">Hemos recibido una solicitud para restablecer tu contraseña en el ecosistema <strong>inWorker</strong>.</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{link_recuperacion}" style="background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Restablecer mi contraseña</a>
+                    </div>
+                    <p style="color: #64748b; font-size: 12px;">Si el botón no funciona, copia y pega este enlace en tu navegador:<br>{link_recuperacion}</p>
+                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin-top: 30px;">
+                    <p style="color: #94a3b8; font-size: 10px;">Si no fuiste tú, puedes ignorar este mensaje de forma segura.</p>
+                </div>
+                """
+                mail.send(msg)
+                flash("📧 Te hemos enviado un enlace de recuperación.", "success")
+                
+            except Exception as e:
+                # Si Google rechaza la conexión o falla algo, ahora SÍ lo veremos en Render
+                print(f"🔥 Error crítico enviando correo a {correo}: {str(e)}")
+                flash("⚠️ Hubo un problema al enviar el correo. Revisa tu conexión.", "error")
+            # --------------------------------------------------------
+
         else:
             flash("❌ Correo no registrado.", "error")
         return redirect(url_for('login', action='recuperar'))
+        
     return redirect(url_for('login', action='recuperar'))
 
 # =====================================================================
