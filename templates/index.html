@@ -3,409 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>inWorker - Tech Hub</title>
+    <title>inWorker - Dashboard</title>
 
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#2563EB">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
-    <style>
-        body.intro-activa {
-            overflow: hidden;
-        }
-
-        .brillo-cyber {
-            text-shadow: 0 0 10px rgba(37, 99, 235, 0.6), 0 0 20px rgba(34, 197, 94, 0.4);
-        }
-
-        .laser-line {
-            background: linear-gradient(to bottom, transparent, #22C55E, transparent);
-            box-shadow: 0 0 15px #22C55E;
-            animation: scanear 2s ease-in-out infinite;
-        }
-
-        @keyframes scanear {
-            0% { top: -10%; }
-            100% { top: 110%; }
-        }
-
-        .grid-cyber {
-            background-size: 40px 40px;
-            background-image: 
-                linear-gradient(to right, rgba(37, 99, 235, 0.05) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(37, 99, 235, 0.05) 1px, transparent 1px);
-        }
-
-        /* Animación para el barrido circular del radar */
-        @keyframes radar-sweep {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        .radar-linea {
-            animation: radar-sweep 4s linear infinite;
-        }
-    </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col intro-activa">
+<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col">
 
-    <div id="cyber-intro" class="fixed inset-0 bg-slate-950 z-[9999] flex flex-col items-center justify-center overflow-hidden grid-cyber">
-        <div class="laser-line absolute left-0 w-full h-1 pointer-events-none"></div>
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm px-4 py-3">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <a href="{{ url_for('home') }}" class="flex items-center space-x-2 select-none group">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-8 w-auto object-contain transition-transform duration-200 group-hover:scale-105" onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/logo.png') }}?v=1';">
+                    <div class="flex flex-col border-l border-slate-200 pl-3 ml-1">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-800">Workspace</span>
+                    </div>
+                </a>
+            </div>
 
-        <div class="absolute w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-3xl -top-20 -left-20 animate-pulse"></div>
-        <div class="absolute w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-3xl -bottom-20 -right-20 animate-pulse" style="animation-delay: 1s;"></div>
-
-        <div class="text-center z-10 space-y-6 px-4">
-            <div id="intro-logo-container" class="relative inline-block select-none">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-emerald-500 rounded-3xl blur-xl opacity-40 scale-110"></div>
-                
-                <div class="relative bg-slate-900 border border-blue-500/30 p-6 rounded-3xl shadow-2xl flex items-center justify-center w-24 h-24 mx-auto">
-                    <i class="fas fa-microchip text-4xl text-blue-500 animate-spin" style="animation-duration: 6s;"></i>
+            <div class="flex items-center space-x-4">
+                <div class="hidden md:flex flex-col text-right">
+                    <span class="text-xs text-slate-500 font-medium">Hola, <strong class="text-slate-900">{{ nombre_usuario | default('Usuario') }}</strong></span>
+                    <span class="text-[9px] font-black uppercase tracking-wider text-blue-600">{{ session['usuario_role'] if 'usuario_role' in session else session['usuario_rol'] }}</span>
                 </div>
-            </div>
-
-            <div class="space-y-2">
-                <h1 id="intro-title" class="text-4xl md:text-5xl font-black tracking-widest text-white uppercase brillo-cyber">
-                    IN<span class="text-emerald-500">WORKER</span>
-                </h1>
-                <p id="intro-subtitle" class="text-xs font-mono tracking-widest text-slate-400 uppercase opacity-0">
-                    Iniciando sistemas de posicionamiento...
-                </p>
-            </div>
-
-            <div class="w-64 h-1.5 bg-slate-900 rounded-full mx-auto overflow-hidden border border-slate-800 relative">
-                <div id="intro-progress" class="h-full bg-gradient-to-r from-blue-600 to-emerald-500 w-0 rounded-full"></div>
-            </div>
-            
-            <div id="intro-percentage" class="text-[10px] font-mono text-emerald-400 tracking-wider opacity-0">
-                SYS_STATUS: READY
+                <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200">
+                    {{ nombre_usuario[0]|upper if nombre_usuario else 'U' }}
+                </div>
+                <a href="{{ url_for('logout') }}" class="text-slate-400 hover:text-red-500 transition-colors" title="Cerrar Sesión">
+                    <i class="fas fa-sign-out-alt text-lg"></i>
+                </a>
             </div>
         </div>
-    </div>
+    </header>
 
-
-    <div id="contenido-plataforma" class="opacity-0 w-full flex flex-col flex-grow">
+    <main class="max-w-7xl mx-auto px-4 py-8 space-y-6 flex-grow w-full">
         
-        <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm px-4 py-3">
-            <div class="max-w-7xl mx-auto flex justify-between items-center">
-                <div class="flex items-center space-x-3">
-                    <a href="{{ url_for('home') }}" class="flex items-center space-x-2 select-none group">
-                        <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105" onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/logo.png') }}?v=1';">
-                        <div class="flex flex-col border-l border-slate-200 pl-2 ml-1">
-                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">Control <span class="text-[#22C55E]">Hub</span></span>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="flex items-center space-x-3">
-                    <span class="text-xs text-slate-500 hidden md:inline">Bienvenido, <strong class="text-slate-900">{{ nombre_usuario | default('Usuario') }}</strong></span>
-                    <span class="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-[#2563EB] px-3 py-1.5 rounded-lg border border-blue-100">
-                        {{ session['usuario_role'] if 'usuario_role' in session else session['usuario_rol'] }}
-                    </span>
-                    <a href="{{ url_for('logout') }}" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs px-3 py-2 rounded-xl transition shadow-sm flex items-center space-x-1">
-                        <i class="fas fa-power-off text-[10px]"></i>
-                        <span class="hidden sm:inline">Cerrar Sesión</span>
-                    </a>
-                </div>
-            </div>
-        </header>
-
-        <main class="max-w-7xl mx-auto px-4 py-8 space-y-6 flex-grow w-full">
-            
-            {% if session['usuario_rol'] == 'Admin' %}
-            <div class="tarjeta-main p-6 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-all">
-                <div class="flex items-center space-x-3 mb-4">
-                    <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl border border-blue-100"><i class="fas fa-user-shield text-xl"></i></div>
-                    <div>
-                        <h2 class="text-base font-bold text-slate-950 uppercase tracking-wider">Consola Administrativa</h2>
-                        <p class="text-[11px] text-slate-500 font-medium -mt-0.5">Gestión de operaciones globales</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
-                        <div>
-                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">📋 Módulo Cédulas</h3>
-                            <p class="text-[12px] text-slate-500 mb-4">Buscar, auditar y gestionar las lógicas de documentos de identidad.</p>
-                        </div>
-                        <a href="{{ url_for('admin_modulo_cedulas') }}" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition">Entrar a Cédulas</a>
-                    </div>
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
-                        <div>
-                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">👷 Validar Técnicos</h3>
-                            <p class="text-[12px] text-slate-500 mb-4">Revisar especialistas registrados y habilitar perfiles operativos.</p>
-                        </div>
-                        <a href="{{ url_for('admin_validar_tecnicos') }}" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition">Ver Especialistas</a>
-                    </div>
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
-                        <div>
-                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">💰 Solicitudes de Cobro</h3>
-                            <p class="text-[12px] text-slate-500 mb-4">Aprobar o rechazar órdenes de retiro de créditos a cuentas bancarias.</p>
-                        </div>
-                        <a href="{{ url_for('admin_retiros') }}" class="block w-full text-center bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition">Gestionar Retiros</a>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="tarjeta-main bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between h-44 relative overflow-hidden transition-all hover:shadow-lg group">
-                    <div class="absolute -right-6 -bottom-6 text-slate-100/70 text-9xl font-black pointer-events-none select-none">CR</div>
-                    <div>
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-blue-600">Billetera de Créditos</span>
-                        <h2 class="text-4xl font-black text-slate-900 tracking-tight mt-1">{{ saldo | default(0) | float }} <span class="text-xs font-normal text-slate-400">Cr</span></h2>
-                    </div>
-                    <div class="pt-4 border-t border-slate-100 flex justify-between items-center">
-                        <span class="text-xs text-slate-500">Equivalente Estimado (COP):</span>
-                        <span class="text-base font-bold text-green-600">${{ "{:,.0f}".format((saldo | default(0) | float) * 10000) }} COP</span>
-                    </div>
-                </div>
-
-                <div class="tarjeta-main lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between transition-all hover:shadow-lg">
-                    <div>
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Acceso Inmediato</span>
-                        <h2 class="text-base font-bold text-slate-900 mt-0.5">¿Qué operación deseas realizar hoy?</h2>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                        <a href="{{ url_for('ver_tareas') }}" class="bg-slate-50 hover:bg-white border border-slate-200 hover:border-blue-400 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm">
-                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:bg-blue-600 group-hover:text-white transition shadow-sm"><i class="fas fa-briefcase text-lg"></i></div>
-                            <span class="text-xs font-bold text-slate-900">Ver Servicios</span>
-                        </a>
-
-                        <a href="{{ url_for('ver_perfil') }}" class="bg-slate-50 hover:bg-white border border-slate-200 hover:border-blue-400 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm">
-                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:bg-blue-600 group-hover:text-white transition shadow-sm"><i class="fas fa-user-circle text-lg"></i></div>
-                            <span class="text-xs font-bold text-slate-900">Mi Perfil</span>
-                        </a>
-
-                        <a href="{{ url_for('ver_perfil') }}?autostart_copilot=true" class="bg-gradient-to-br from-blue-50 to-indigo-50/30 hover:from-white hover:to-white border border-blue-200 hover:border-indigo-400 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm relative overflow-hidden">
-                            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center mb-2"><i class="fas fa-magic text-sm"></i></div>
-                            <span class="text-xs font-bold text-slate-900">Copilot IA</span>
-                        </a>
-
-                        <button type="button" onclick="abrirModalRetiro()" class="bg-slate-50 hover:bg-white border border-slate-200 hover:border-emerald-500 p-4 rounded-xl flex flex-col items-center justify-center text-center group transition shadow-sm focus:outline-none w-full">
-                            <div class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center mb-2 group-hover:bg-emerald-600 group-hover:text-white transition"><i class="fas fa-money-check-alt text-lg"></i></div>
-                            <span class="text-xs font-bold text-slate-900">Retirar Fondos</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                <div class="tarjeta-main bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between transition hover:shadow-lg relative overflow-hidden">
-                    <div>
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-[#2563EB]">Posicionamiento Global</span>
-                        <h3 class="text-xs font-bold text-slate-900 mt-0.5">Escáner de Cobertura Activo</h3>
-                    </div>
-                    
-                    <div class="my-4 flex justify-center items-center relative h-32 w-full bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-                        <div class="absolute w-28 h-28 border border-emerald-500/20 rounded-full"></div>
-                        <div class="absolute w-16 h-16 border border-emerald-500/30 rounded-full"></div>
-                        <div class="absolute w-6 h-6 border border-emerald-500/40 rounded-full"></div>
-                        
-                        <div class="absolute w-full h-[1px] bg-slate-800/60"></div>
-                        <div class="absolute w-[1px] h-full bg-slate-800/60"></div>
-                        
-                        <div class="radar-linea absolute w-32 h-32 origin-center rounded-full pointer-events-none" style="background: conic-gradient(from 0deg, rgba(34,197,94,0.15) 0%, transparent 40%);"></div>
-                        
-                        <div class="absolute top-1/4 left-1/3 w-2 h-2 bg-emerald-400 rounded-full animate-ping"></div>
-                        <div class="absolute top-1/4 left-1/3 w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-
-                        <div class="absolute bottom-1/3 right-1/4 w-2 h-2 bg-blue-400 rounded-full animate-ping" style="animation-delay: 0.7s;"></div>
-                        <div class="absolute bottom-1/3 right-1/4 w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-
-                        <div class="w-2 h-2 bg-white rounded-full shadow-md z-10"></div>
-                    </div>
-
-                    <div class="flex justify-between items-center text-[11px] text-slate-500 border-t border-slate-100 pt-3">
-                        <span class="flex items-center"><span class="w-2 h-2 bg-emerald-500 rounded-full inline-block mr-1.5 animate-pulse"></span> Red Operativa Online</span>
-                        <span class="font-mono text-slate-700 font-bold">Ping: 14ms</span>
-                    </div>
-                </div>
-
-                <div class="tarjeta-main lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between transition hover:shadow-lg">
-                    <div>
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-[#22C55E]">Ecosistema inWorker</span>
-                        <h3 class="text-xs font-bold text-slate-900 mt-0.5">Flujo de Garantías y Órdenes en Tiempo Real</h3>
-                    </div>
-
-                    <div id="live-activity-feed" class="my-4 space-y-3 h-32 overflow-hidden relative text-xs">
-                        <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-100 rounded-xl transition-all duration-300">
-                            <div class="flex items-center space-x-2.5">
-                                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                <span class="text-slate-600 font-medium">Fondo de Garantía en Escrow asegurado para Orden <strong class="text-slate-900">#3482</strong></span>
-                            </div>
-                            <span class="text-[10px] font-mono text-slate-400">Ahora mismo</span>
-                        </div>
-                        <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
-                            <div class="flex items-center space-x-2.5">
-                                <div class="w-2 h-2 rounded-full bg-blue-500"></div>
-                                <span class="text-slate-600 font-medium">Especialista técnico verificado exitosamente mediante módulo de identidad</span>
-                            </div>
-                            <span class="text-[10px] font-mono text-slate-400">Hace 3 min</span>
-                        </div>
-                    </div>
-
-                    <div class="text-[10px] font-mono tracking-wider text-slate-400 border-t border-slate-100 pt-3 flex justify-between">
-                        <span>LIVE_STREAM: CONNECTED</span>
-                        <span class="text-emerald-600 font-bold">ACTIVO</span>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="tarjeta-main bg-white border border-slate-200 rounded-2xl p-5 flex items-center space-x-4 shadow-sm transition hover:shadow-lg">
-                    <div class="p-3 bg-blue-50 rounded-xl text-blue-600 border border-blue-100"><i class="fas fa-users text-lg"></i></div>
-                    <div>
-                        <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Especialistas Activos</span>
-                        <span class="text-xl font-black text-slate-900">{{ total_workers | default(0) }}</span>
-                    </div>
-                </div>
-                
-                <div class="tarjeta-main bg-white border border-slate-200 rounded-2xl p-5 flex items-center justify-between shadow-sm transition hover:shadow-lg">
-                    <div class="flex items-center space-x-4">
-                        <div class="p-3 bg-amber-50 text-amber-500 border border-amber-100 rounded-xl"><i class="fas fa-gavel text-lg"></i></div>
-                        <div>
-                            <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Órdenes en Mediación</span>
-                            <span class="text-xl font-black text-slate-900">{{ ordenes_mediacion | default(0) }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tarjeta-main bg-white border border-slate-200 rounded-2xl p-5 flex items-center space-x-4 shadow-sm transition hover:shadow-lg">
-                    <div class="p-3 bg-green-50 rounded-xl text-green-600 border border-green-100"><i class="fas fa-lock text-lg"></i></div>
-                    <div>
-                        <span class="text-[10px] block font-bold text-slate-400 uppercase tracking-wide">Garantías en Escrow🛡️</span>
-                        <span class="text-xl font-black text-green-600">${{ "{:,.0f}".format(fondos_escrow | default(0) | float) }} <span class="text-xs font-normal text-slate-500">COP</span></span>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <div id="modalRetiro" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white border border-slate-200 w-full max-w-lg rounded-2xl shadow-xl p-6 relative">
-            <div class="flex justify-between items-start mb-4">
+        {% if session['usuario_rol'] == 'Admin' %}
+        <div class="bg-slate-900 rounded-2xl p-6 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 border border-slate-800">
+            <div class="flex items-center space-x-4 text-white">
+                <div class="bg-blue-600/20 p-3 rounded-xl border border-blue-500/30 text-blue-400"><i class="fas fa-shield-alt text-xl"></i></div>
                 <div>
-                    <h2 class="text-base font-bold text-slate-950 uppercase">Solicitud de Retiro</h2>
+                    <h2 class="text-sm font-bold uppercase tracking-widest">Modo Administrador Activo</h2>
+                    <p class="text-xs text-slate-400">Control total del ecosistema inWorker.</p>
                 </div>
-                <button type="button" onclick="cerrarModalRetiro()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times-circle text-xl"></i></button>
             </div>
+            <div class="flex gap-3 w-full md:w-auto">
+                <a href="{{ url_for('admin_modulo_cedulas') }}" class="flex-1 md:flex-none bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-2.5 px-4 rounded-lg border border-slate-700 transition text-center"><i class="fas fa-id-card mr-1"></i> Cédulas</a>
+                <a href="{{ url_for('admin_validar_tecnicos') }}" class="flex-1 md:flex-none bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-2.5 px-4 rounded-lg border border-slate-700 transition text-center"><i class="fas fa-user-check mr-1"></i> Técnicos</a>
+                <a href="{{ url_for('admin_retiros') }}" class="flex-1 md:flex-none bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 px-4 rounded-lg transition text-center"><i class="fas fa-money-bill-wave mr-1"></i> Retiros</a>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between group hover:border-emerald-300 transition-colors">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Mi Billetera</p>
+                    <h2 class="text-3xl font-black text-slate-900">${{ "{:,.0f}".format((saldo | default(0) | float) * 10000) }} <span class="text-sm font-normal text-slate-400">COP</span></h2>
+                    <p class="text-xs text-emerald-600 font-bold mt-1"><i class="fas fa-coins mr-1"></i> {{ saldo | default(0) | float }} Créditos</p>
+                </div>
+                <div class="h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                    <i class="fas fa-wallet text-xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">En Garantía (Escrow)</p>
+                    <h2 class="text-3xl font-black text-slate-900">${{ "{:,.0f}".format(fondos_escrow | default(0) | float) }} <span class="text-sm font-normal text-slate-400">COP</span></h2>
+                    <p class="text-xs text-slate-500 font-medium mt-1">Protegido por inWorker</p>
+                </div>
+                <div class="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+                    <i class="fas fa-lock text-xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Órdenes en Mediación</p>
+                    <h2 class="text-3xl font-black text-slate-900">{{ ordenes_mediacion | default(0) }}</h2>
+                    <p class="text-xs text-amber-600 font-medium mt-1">Requieren tu atención</p>
+                </div>
+                <div class="h-12 w-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
+                    <i class="fas fa-gavel text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <h3 class="font-bold text-slate-800">Órdenes Recientes</h3>
+                        <a href="{{ url_for('ver_tareas') }}" class="text-xs font-bold text-blue-600 hover:text-blue-800 transition">Ver todo el catálogo &rarr;</a>
+                    </div>
+                    
+                    <div class="p-8 text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 text-slate-400 mb-4">
+                            <i class="fas fa-clipboard-list text-2xl"></i>
+                        </div>
+                        <h4 class="text-sm font-bold text-slate-700">Tu tablero está al día</h4>
+                        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Dirígete a la sección de servicios para publicar una nueva orden o buscar oportunidades disponibles en tu zona.</p>
+                        <a href="{{ url_for('ver_tareas') }}" class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg text-xs transition">
+                            Explorar Servicios
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+                    <h3 class="font-bold text-slate-800 text-sm mb-4">Acciones Rápidas</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <a href="{{ url_for('ver_perfil') }}" class="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition group text-center">
+                            <i class="fas fa-user-edit text-slate-400 group-hover:text-blue-600 text-xl mb-2 transition"></i>
+                            <span class="text-xs font-bold text-slate-700">Mi Perfil</span>
+                        </a>
+                        <button onclick="abrirModalRetiro()" class="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition group text-center">
+                            <i class="fas fa-hand-holding-usd text-slate-400 group-hover:text-emerald-600 text-xl mb-2 transition"></i>
+                            <span class="text-xs font-bold text-slate-700">Retirar</span>
+                        </button>
+                        <a href="{{ url_for('ver_perfil') }}?autostart_copilot=true" class="col-span-2 flex items-center justify-center p-4 bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 rounded-xl border border-indigo-100 transition group">
+                            <i class="fas fa-magic text-indigo-500 mr-2"></i>
+                            <span class="text-xs font-bold text-indigo-900">Asistente IA (Copilot)</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-slate-800 text-sm">Red inWorker</h3>
+                        <span class="flex items-center text-[9px] font-bold text-emerald-600 uppercase tracking-widest"><span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-1.5"></span> En vivo</span>
+                    </div>
+                    
+                    <div id="live-activity-feed" class="space-y-3 relative text-xs">
+                        </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="modalRetiro" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4 transition-opacity">
+        <div class="bg-white border border-slate-200 w-full max-w-md rounded-2xl shadow-2xl p-6 relative transform transition-all">
+            <div class="flex justify-between items-start mb-6">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-emerald-50 p-2 rounded-lg text-emerald-600"><i class="fas fa-money-bill-wave"></i></div>
+                    <h2 class="text-lg font-black text-slate-900 tracking-tight">Retirar Fondos</h2>
+                </div>
+                <button type="button" onclick="cerrarModalRetiro()" class="text-slate-400 hover:text-slate-700 transition"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-500 uppercase">Saldo Disponible:</span>
+                <span class="text-lg font-black text-emerald-600">${{ "{:,.0f}".format((saldo | default(0) | float) * 10000) }}</span>
+            </div>
+
             <form action="{{ url_for('home') }}" method="POST" class="space-y-4">
                 <input type="hidden" name="accion_perfil" value="solicitar_retiro">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Cantidad de Créditos</label>
-                    <input type="number" name="creditos_retiro" min="0.1" step="0.1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Créditos a Retirar (1 Cr = $10.000 COP)</label>
+                    <input type="number" name="creditos_retiro" min="0.1" step="0.1" required placeholder="Ej: 5.5" class="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Método</label>
-                    <select name="metodo_pago" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Billetera / Banco</label>
+                    <select name="metodo_pago" class="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition">
                         <option value="Nequi">Nequi</option>
                         <option value="Daviplata">Daviplata</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Detalles</label>
-                    <textarea name="detalles_cuenta" required rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs"></textarea>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Número de Cuenta</label>
+                    <textarea name="detalles_cuenta" required rows="2" placeholder="Ingresa el número de tu celular asociado..." class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs focus:outline-none focus:border-blue-500 transition resize-none"></textarea>
                 </div>
-                <div class="flex items-center space-x-3">
-                    <button type="button" onclick="cerrarModalRetiro()" class="w-1/3 bg-slate-100 py-3 rounded-xl text-xs font-bold">Cancelar</button>
-                    <button type="submit" class="w-2/3 bg-green-500 text-white py-3 rounded-xl text-xs font-bold">Enviar</button>
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl text-sm font-black uppercase tracking-wide transition shadow-md">
+                        Solicitar Transferencia
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const masterTimeline = gsap.timeline();
-
-            masterTimeline.fromTo("#intro-logo-container", 
-                { scale: 0, opacity: 0, rotate: -180 },
-                { scale: 1, opacity: 1, rotate: 0, duration: 1, ease: "back.out(1.5)" }
-            );
-
-            masterTimeline.to("#intro-subtitle, #intro-percentage", { opacity: 1, duration: 0.3 }, "-=0.3");
-
-            masterTimeline.to("#intro-progress", {
-                width: "100%",
-                duration: 2.2,
-                ease: "power4.inOut",
-                onUpdate: function() {
-                    const progreso = Math.round(this.progress() * 100);
-                    document.getElementById("intro-percentage").innerText = `SYS_STATUS: CONNECTING [${progreso}%]`;
-                }
-            });
-
-            masterTimeline.to("#intro-percentage", { 
-                text: "SYS_STATUS: ONLINE", 
-                duration: 0.2, 
-                onComplete: () => {
-                    document.getElementById("intro-percentage").innerText = "SYS_STATUS: ONLINE ✓";
-                }
-            });
-
-            masterTimeline.to("#cyber-intro", {
-                yPercent: -100,
-                duration: 0.8,
-                ease: "power4.in",
-                delay: 0.3
-            });
-
-            masterTimeline.to("#contenido-plataforma", {
-                opacity: 1,
-                duration: 0.5,
-                onStart: () => {
-                    document.body.classList.remove("intro-activa");
-                }
-            }, "-=0.4");
-
-            masterTimeline.fromTo(".tarjeta-main", 
-                { y: 30, opacity: 0 },
-                { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power3.out" },
-                "-=0.2"
-            );
-        });
-
-        // 🟢 SCRIPT SIMULADOR DE ACTIVIDAD EN VIVO PARA EL ECOSISTEMA
+        // FEED DE ACTIVIDAD EN VIVO (Refinado)
         const eventosSimulados = [
-            { texto: "Retiro aprobado y enviado a cuenta Nequi de especialista", color: "bg-green-500", min: "Hace 1 min" },
-            { texto: "Nueva solicitud de servicio registrada en zona de cobertura", color: "bg-blue-500", min: "Hace 4 min" },
-            { texto: "Liberación automática de fondos en Escrow retenidos por seguridad", color: "bg-emerald-500", min: "Hace 8 min" },
-            { texto: "Recarga de billetera exitosa mediante procesamiento directo", color: "bg-blue-500", min: "Hace 12 min" }
+            { texto: "Fondo de garantía asegurado exitosamente en la plataforma", color: "bg-emerald-500" },
+            { texto: "Nueva orden de servicio publicada en tu ciudad", color: "bg-blue-500" },
+            { texto: "Especialista validado y activo en el ecosistema", color: "bg-indigo-500" },
+            { texto: "Retiro procesado hacia billetera digital", color: "bg-emerald-500" }
         ];
 
         function rotarFeedActividad() {
             const feed = document.getElementById("live-activity-feed");
             if (!feed) return;
 
-            // Elegir un evento aleatorio de la lista
             const evento = eventosSimulados[Math.floor(Math.random() * eventosSimulados.length)];
-            
-            // Crear el nuevo elemento contenedor
             const nuevaFila = document.createElement("div");
-            nuevaFila.className = "flex items-center justify-between p-2.5 bg-slate-50 border border-slate-100 rounded-xl opacity-0 -translate-y-2 transition-all duration-500";
+            nuevaFila.className = "p-3 bg-slate-50 border border-slate-100 rounded-xl opacity-0 -translate-y-2 transition-all duration-500";
             nuevaFila.innerHTML = `
-                <div class="flex items-center space-x-2.5">
-                    <div class="w-2 h-2 rounded-full ${evento.color} animate-pulse"></div>
-                    <span class="text-slate-600 font-medium">${evento.texto}</span>
+                <div class="flex items-start space-x-2.5">
+                    <div class="w-2 h-2 mt-1.5 rounded-full ${evento.color} flex-shrink-0"></div>
+                    <div>
+                        <p class="text-slate-700 font-medium leading-tight">${evento.texto}</p>
+                        <span class="text-[9px] text-slate-400 mt-1 block">Justo ahora</span>
+                    </div>
                 </div>
-                <span class="text-[10px] font-mono text-slate-400">Ahora mismo</span>
             `;
 
-            // Insertar de primero en la lista
             feed.insertBefore(nuevaFila, feed.firstChild);
 
-            // Animación de entrada fluida con CSS (retraso para que el navegador procese el render)
-            setTimeout(() => {
-                nuevaFila.classList.remove("opacity-0", "-translate-y-2");
-            }, 50);
+            setTimeout(() => { nuevaFila.classList.remove("opacity-0", "-translate-y-2"); }, 50);
 
-            // Remover el último elemento si excede la capacidad visual de la caja
             if (feed.children.length > 3) {
                 const ultimo = feed.lastChild;
                 ultimo.classList.add("opacity-0", "translate-y-2");
@@ -413,9 +226,12 @@
             }
         }
 
-        // Ejecutar rotación cada 9 segundos para mantener el dinamismo visual
-        setInterval(rotarFeedActividad, 9000);
+        // Iniciar feed con 2 eventos y luego rotar cada 7 segundos
+        rotarFeedActividad();
+        setTimeout(rotarFeedActividad, 500);
+        setInterval(rotarFeedActividad, 7000);
 
+        // Control del Modal
         function abrirModalRetiro() { document.getElementById('modalRetiro')?.classList.remove('hidden'); }
         function cerrarModalRetiro() { document.getElementById('modalRetiro')?.classList.add('hidden'); }
     </script>
