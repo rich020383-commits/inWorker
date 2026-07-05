@@ -7,13 +7,15 @@
 
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}?v=3">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/favicon.png') }}?v=3">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#ffffff">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Ocultar flechas en inputs numéricos */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen font-sans antialiased flex flex-col">
 
@@ -22,196 +24,264 @@
             
             <div class="flex items-center space-x-3">
                 <a href="{{ url_for('home') }}" class="flex items-center space-x-2 select-none group">
-                    <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" 
-                         alt="Logo inWorker" 
-                         class="h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
-                         onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/inwor.jpg') }}?v=1';">
-                    <div class="flex flex-col border-l border-slate-200 pl-2 ml-1">
-                        <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                            Talento <span class="text-[#22C55E]">Confianza</span>
-                        </span>
+                    <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-8 w-auto object-contain transition-transform duration-200 group-hover:scale-105" onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/inwor.jpg') }}?v=1';">
+                    <div class="flex flex-col border-l border-slate-200 pl-3 ml-1">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-800">Marketplace</span>
                     </div>
                 </a>
             </div>
 
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3 sm:space-x-4">
                 {% if session.get('usuario_rol') == 'Cliente' %}
-                <a href="/tecnicos" class="text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-blue-600 transition flex items-center gap-1.5 bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-xl">
-                    <i class="fas fa-user-tie text-blue-600"></i> <span class="hidden sm:inline">Ver Especialistas</span>
+                <a href="/tecnicos" class="hidden md:flex text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-blue-600 transition items-center gap-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl">
+                    <i class="fas fa-users text-blue-500"></i> Catálogo Técnicos
                 </a>
                 {% endif %}
 
-                <div class="relative">
-                    <span id="badge-mensajes-global" class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full animate-bounce shadow-md border border-white z-10">0</span>
-                    <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600">
-                        <i class="fas fa-envelope text-sm text-blue-600"></i>
+                <a href="/dashboard" class="relative group cursor-pointer">
+                    <span id="badge-mensajes-global" class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full animate-bounce shadow-sm border border-white z-10">0</span>
+                    <div class="bg-slate-50 hover:bg-blue-50 transition p-2 rounded-xl border border-slate-200 text-slate-400 group-hover:text-blue-600">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                </a>
+
+                <div class="bg-white px-3 py-1.5 rounded-xl border border-emerald-200 flex items-center space-x-2 shadow-sm">
+                    <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center"><i class="fas fa-wallet text-[10px]"></i></div>
+                    <div class="flex flex-col leading-none">
+                        <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Saldo</span>
+                        <span class="text-xs font-black text-slate-800">${{ "{:,.0f}".format((saldo|int) * 10000) }}</span>
                     </div>
                 </div>
-
-                <div class="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 flex items-center space-x-1.5 shadow-inner">
-                    <i class="fas fa-sack-dollar text-green-600"></i>
-                    <span class="text-[11px] font-bold text-slate-500 hidden sm:inline">Saldo:</span>
-                    <span class="text-xs font-black text-slate-900">
-                        ${{ "{:,.0f}".format((saldo|int) * 10000) }} COP
-                    </span>
+                
+                <div class="flex items-center gap-2 border-l border-slate-200 pl-3 sm:pl-4">
+                    <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200 text-xs hidden sm:flex">
+                        {{ nombre_usuario[0]|upper if nombre_usuario else 'U' }}
+                    </div>
+                    <a href="/logout" class="text-slate-400 hover:text-rose-500 transition-colors p-2" title="Cerrar Sesión">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
                 </div>
-                
-                <span class="text-xs text-slate-600 font-bold hidden md:inline bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-xl">Hola, {{ nombre_usuario }}</span>
-                
-                <a href="/logout" class="text-xs font-black uppercase tracking-wide bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3.5 py-2 rounded-xl transition shadow-sm active:scale-95 flex items-center gap-1.5">
-                    <span>Salir</span> <i class="fas fa-power-off text-[10px]"></i>
-                </a>
             </div>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full">
         
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-            <div>
-                <h1 class="text-xl font-black text-slate-900 flex items-center gap-3">
-                    <i class="fas fa-briefcase text-blue-600"></i> Órdenes de Servicio Disponibles
-                </h1>
-                <p class="text-xs text-slate-500 mt-1">Negocia directamente, asegura tus fondos en garantía (escrow) y ejecuta con respaldo legal.</p>
-            </div>
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 mb-8 shadow-sm relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-50 rounded-full blur-3xl pointer-events-none"></div>
             
-            {% if session.get('usuario_rol') == 'Cliente' %}
-            <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                <a href="/tecnicos" class="w-full md:w-auto px-5 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:border-blue-500 transition shadow-sm flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
-                    <i class="fas fa-search text-base text-blue-600"></i> Explorar Especialistas
-                </a>
-                <button onclick="document.getElementById('modalPublicar').classList.remove('hidden')" class="w-full md:w-auto px-5 py-3 bg-green-500 text-white font-black rounded-xl shadow-md hover:bg-green-600 transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider active:scale-95">
-                    <i class="fas fa-plus-circle text-base"></i> Publicar Solicitud de Servicio
-                </button>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                        Mercado de Servicios
+                    </h1>
+                    <p class="text-sm text-slate-500 mt-1.5 max-w-lg">Conecta con especialistas, negocia precios justos y asegura tu dinero mediante el sistema de garantías en Escrow de inWorker.</p>
+                </div>
+                
+                {% if session.get('usuario_rol') == 'Cliente' %}
+                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <a href="/tecnicos" class="px-5 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 hover:text-blue-600 hover:border-blue-300 transition shadow-sm flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
+                        <i class="fas fa-search"></i> Buscar Especialista
+                    </a>
+                    <button onclick="document.getElementById('modalPublicar').classList.remove('hidden')" class="px-5 py-3 bg-blue-600 text-white font-black rounded-xl shadow-md hover:bg-blue-700 hover:shadow-lg transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider active:scale-95">
+                        <i class="fas fa-plus"></i> Publicar Servicio
+                    </button>
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
+
+            <div class="mt-6 pt-6 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+                <div class="relative flex-1">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-search text-slate-400"></i></div>
+                    <input type="text" placeholder="Buscar por palabra clave o categoría..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                </div>
+                <div class="flex gap-2">
+                    <select class="bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-600 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm">
+                        <option>Todas las categorías</option>
+                        <option>Soporte Técnico</option>
+                        <option>Plomería</option>
+                        <option>Electricidad</option>
+                    </select>
+                    <button class="bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition shadow-sm">
+                        <i class="fas fa-sliders-h"></i>
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for tarea in tareas %}
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between hover:border-blue-300 transition shadow-sm relative overflow-hidden">
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-blue-300 relative group">
                 
-                <div>
+                <div class="mb-4">
                     <div class="flex justify-between items-start gap-2 mb-4">
-                        <span class="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md border border-slate-200">
+                        <span class="text-[9px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 px-2.5 py-1 rounded-md border border-slate-200">
                             {{ tarea.categoria }}
                         </span>
                         
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5
+                        <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm
                             {% if tarea.estado == 'Disponible' %} bg-blue-50 text-blue-600 border border-blue-200
                             {% elif tarea.estado == 'Cotización Pendiente' %} bg-purple-50 text-purple-600 border border-purple-200
                             {% elif tarea.estado == 'En Garantia' %} bg-amber-50 text-amber-600 border border-amber-200
-                            {% else %} bg-green-50 text-green-600 border border-green-200 {% endif %}">
-                            <i class="fas fa-circle text-[8px] {% if tarea.estado != 'Finalizada' %}text-blue-500 animate-pulse{% endif %}"></i>
+                            {% else %} bg-emerald-50 text-emerald-600 border border-emerald-200 {% endif %}">
+                            <i class="fas fa-circle text-[7px] {% if tarea.estado != 'Finalizada' %}animate-pulse{% endif %}"></i>
                             {{ tarea.estado }}
                         </span>
                     </div>
 
-                    <h3 class="text-base font-black text-slate-900 line-clamp-1 mb-1.5">{{ tarea.titulo }}</h3>
-                    <p class="text-xs text-slate-600 line-clamp-3 mb-4 leading-relaxed">{{ tarea.descripcion }}</p>
+                    <h3 class="text-lg font-black text-slate-900 line-clamp-2 leading-tight mb-2 group-hover:text-blue-600 transition-colors">{{ tarea.titulo }}</h3>
+                    <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed">{{ tarea.descripcion }}</p>
                 </div>
 
-                <div class="border-t border-slate-100 pt-4 mt-2">
-                    <div class="grid grid-cols-2 gap-2 mb-4">
-    <div>
-        <span class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">Presupuesto</span>
-        <span class="text-base font-black text-green-600">
-            ${{ "{:,.0f}".format(tarea.pago|int) if (tarea.pago is string and tarea.pago.isdigit()) or tarea.pago is number else tarea.pago }} COP
-        </span>
-    </div>
-    <div class="text-right">
-        <span class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">Garantía Escrow</span>
-        <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/50 inline-block mt-0.5">
-            ${{ "{:,.0f}".format((tarea.costo_creditos|int) * 10000) }} COP
-        </span>
-    </div>
-</div>
+                <div>
+                    <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 mb-4 flex justify-between items-center">
+                        <div>
+                            <span class="text-[9px] text-slate-400 block uppercase font-bold tracking-widest">Presupuesto</span>
+                            <span class="text-sm font-black text-slate-800">
+                                ${{ "{:,.0f}".format(tarea.pago|int) if (tarea.pago is string and tarea.pago.isdigit()) or tarea.pago is number else tarea.pago }} <span class="text-[10px] font-medium text-slate-500">COP</span>
+                            </span>
+                        </div>
+                        <div class="text-right border-l border-slate-200 pl-3">
+                            <span class="text-[9px] text-emerald-500 block uppercase font-black tracking-widest flex items-center justify-end"><i class="fas fa-shield-check mr-1"></i> Escrow</span>
+                            <span class="text-xs font-bold text-emerald-700">
+                                ${{ "{:,.0f}".format((tarea.costo_creditos|int) * 10000) }}
+                            </span>
+                        </div>
+                    </div>
 
                     {% if tarea and tarea.tecnico_correo == session['usuario_correo'] %}
-                    <div class="mb-3 flex items-center gap-1.5 bg-amber-50 border border-amber-200 p-2 rounded-xl w-full">
-                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                        <span class="text-[10px] text-amber-700 font-black uppercase tracking-wider">¡Oferta Directa para Ti!</span>
+                    <div class="mb-4 flex items-start gap-2 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-2.5 rounded-xl shadow-sm">
+                        <div class="bg-amber-100 p-1.5 rounded-lg text-amber-600 mt-0.5"><i class="fas fa-star text-xs"></i></div>
+                        <div>
+                            <p class="text-[10px] text-amber-800 font-black uppercase tracking-wider">Oferta Exclusiva</p>
+                            <p class="text-[9px] text-amber-600/80 leading-tight">El cliente te seleccionó directamente para este trabajo.</p>
+                        </div>
                     </div>
                     {% endif %}
 
-                    {% if t_distancia and tarea.distancia is defined %}
-                    <div class="flex items-center gap-1.5 text-[11px] text-slate-600 mb-4 bg-slate-50 p-2 rounded-lg border border-slate-200">
-                        <i class="fas fa-location-dot text-red-500"></i>
-                        <span>A unos <strong class="text-slate-900">{{ "%.1f"|format(tarea.distancia|float) }} km</strong> de distancia</span>
-                    </div>
-                    {% endif %}
-
-                    <div class="flex gap-2">
-                        <a href="/chat/{{ tarea.id }}" class="w-full text-center px-4 py-3 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-200 text-xs font-black uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 shadow-sm active:scale-95">
-                            <i class="fas fa-comments text-sm"></i> Entrar a Negociación
+                    <div class="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
+                        <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+                            {% if t_distancia and tarea.distancia is defined %}
+                                <i class="fas fa-map-marker-alt text-rose-400"></i> {{ "%.1f"|format(tarea.distancia|float) }} km
+                            {% else %}
+                                <i class="fas fa-clock text-slate-300"></i> Reciente
+                            {% endif %}
+                        </div>
+                        
+                        <a href="/chat/{{ tarea.id }}" class="px-4 py-2 bg-white text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-200 hover:border-blue-600 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all shadow-sm active:scale-95">
+                            Ver Detalles &rarr;
                         </a>
                     </div>
                 </div>
             </div>
             {% else %}
-            <div class="col-span-full bg-white border border-slate-200 border-dashed rounded-2xl p-12 text-center shadow-sm">
-                <i class="fas fa-folder-open text-slate-300 text-4xl mb-3"></i>
-                <h3 class="text-sm font-bold text-slate-700">No hay requerimientos activos</h3>
-                <p class="text-xs text-slate-400 mt-1">Sé el primero en colgar una solicitud de servicio en la zona.</p>
+            <div class="col-span-full bg-white border border-slate-200 border-dashed rounded-3xl p-12 text-center shadow-sm flex flex-col items-center justify-center">
+                <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100">
+                    <i class="fas fa-search text-3xl text-slate-300"></i>
+                </div>
+                <h3 class="text-base font-black text-slate-800 mb-1">Sin Resultados Locales</h3>
+                <p class="text-xs text-slate-500 max-w-md mx-auto">Actualmente no hay requerimientos activos en tu radio de búsqueda. Revisa más tarde o amplía tu cobertura de servicio.</p>
+                {% if session.get('usuario_rol') == 'Cliente' %}
+                <button onclick="document.getElementById('modalPublicar').classList.remove('hidden')" class="mt-6 px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow hover:bg-blue-700 transition text-xs uppercase tracking-wide">
+                    Ser el primero en publicar
+                </button>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
     </main>
 
-    <div id="modalPublicar" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
-            <div class="px-6 py-4 bg-blue-600 border-b border-blue-700 flex justify-between items-center">
-                <h2 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                    <i class="fas fa-bullhorn"></i> Publicar Servicio
-                </h2>
-                <button onclick="document.getElementById('modalPublicar').classList.add('hidden')" class="text-blue-100 hover:text-white bg-white/10 p-1.5 rounded-lg transition">
+    <div id="modalPublicar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="modalPublicarContent">
+            
+            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                        <i class="fas fa-plus text-sm"></i>
+                    </div>
+                    <h2 class="text-sm font-black text-slate-900 uppercase tracking-wide">
+                        Crear Nueva Solicitud
+                    </h2>
+                </div>
+                <button onclick="cerrarModal()" class="text-slate-400 hover:text-slate-700 transition bg-white p-1.5 rounded-full border border-slate-200 shadow-sm">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
-            <form action="/publicar_tarea" method="POST" class="p-6 space-y-4">
+            <form action="/publicar_tarea" method="POST" class="p-6 space-y-5">
                 <input type="hidden" name="tecnico_invitado" value="{{ session.get('invitar_tecnico_correo', '') }}">
 
                 <div>
-                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Título de la Necesidad</label>
-                    <input type="text" name="titulo" required placeholder="Ej: Reparación Lavadora Whirlpool de 15kg" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 transition">
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Título del Requerimiento</label>
+                    <input type="text" name="titulo" required placeholder="Ej: Mantenimiento Preventivo de Aire Acondicionado" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition shadow-sm">
                 </div>
                 
                 <div>
-                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Especificaciones del Trabajo</label>
-                    <textarea name="descripcion" rows="3" required placeholder="Describe brevemente la falla para recibir cotizaciones precisas..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500 transition"></textarea>
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Detalles y Síntomas</label>
+                    <textarea name="descripcion" rows="3" required placeholder="Describe el problema, la marca del equipo o cualquier detalle relevante para los técnicos..." class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition shadow-sm resize-none"></textarea>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Especialidad</label>
-                        <select name="categoria" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500 transition">
-                            <option value="Soporte Técnico">Soporte Técnico</option>
-                            <option value="Línea Blanca">Línea Blanca</option>
-                            <option value="Electricidad">Electricidad</option>
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Categoría Técnica</label>
+                        <select name="categoria" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition shadow-sm cursor-pointer">
+                            <option value="Soporte Técnico">Soporte IT / Redes</option>
+                            <option value="Línea Blanca">Línea Blanca / Electro</option>
+                            <option value="Electricidad">Electricidad General</option>
                             <option value="Plomería">Plomería</option>
-                            <option value="Mantenimiento">Mantenimiento</option>
+                            <option value="Mantenimiento">Mantenimiento General</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Monto de Salida (COP)</label>
-                        <input type="number" name="pago" required placeholder="Ej: 80000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 transition">
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Presupuesto Inicial (COP)</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><span class="text-slate-400 font-bold">$</span></div>
+                            <input type="number" name="pago" required placeholder="80000" class="w-full bg-white border border-slate-300 rounded-xl pl-8 pr-4 py-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition shadow-sm">
+                        </div>
                     </div>
                 </div>
 
                 <input type="hidden" id="form-latitud" name="latitud" value="10.9639">
                 <input type="hidden" id="form-longitud" name="longitud" value="-74.7964">
 
-                <div class="pt-2">
-                    <button type="submit" class="w-full py-3.5 bg-green-500 hover:bg-green-600 text-white font-black uppercase tracking-wider rounded-xl transition text-xs shadow-md">
-                        Lanzar Oferta al Ecosistema
+                <div class="pt-4 border-t border-slate-100">
+                    <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-wider rounded-xl transition shadow-md flex items-center justify-center gap-2 text-sm active:scale-[0.98]">
+                        Publicar y Buscar Especialistas <i class="fas fa-paper-plane"></i>
                     </button>
+                    <p class="text-center text-[9px] text-slate-400 mt-3 font-medium">Al publicar, tu presupuesto no será debitado hasta que aceptes una cotización formal.</p>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
+        // Animaciones del Modal
+        function abrirModal() {
+            const modal = document.getElementById('modalPublicar');
+            const content = document.getElementById('modalPublicarContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function cerrarModal() {
+            const modal = document.getElementById('modalPublicar');
+            const content = document.getElementById('modalPublicarContent');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Modificamos el evento onclick de los botones de publicar para usar la función animada
+        document.querySelectorAll('button[onclick="document.getElementById(\\'modalPublicar\\').classList.remove(\\'hidden\\')"]').forEach(btn => {
+            btn.onclick = abrirModal;
+        });
+
+        // Polling de Notificaciones
         let ultimoConteoMensajesIndex = 0;
         let primeraCargaIndex = true;
 
@@ -251,9 +321,10 @@
                         primeraCargaIndex = false;
                     }
                 })
-                .catch(err => console.error("Error en polleo de notificaciones globales:", err));
+                .catch(err => console.error("Error en polleo notificaciones:", err));
         }
 
+        // Geolocalización
         window.addEventListener('DOMContentLoaded', () => {
             verificarAlertasDashboard();
             setInterval(verificarAlertasDashboard, 7000);
@@ -271,7 +342,7 @@
                         window.location.href = `/tareas?lat=${lat}&lng=${lng}`;
                     }
                 }, (error) => {
-                    console.log("Se usarán las coordenadas base de Soledad/Barranquilla por restricción de GPS.");
+                    console.log("GPS denegado. Usando base Soledad/Barranquilla.");
                 });
             }
         });
