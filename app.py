@@ -536,62 +536,52 @@ def admin_pausar_usuario(usuario_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # =====================================================================
-# MÓDULO DE RECUPERACIÓN DE CONTRASEÑA - OPTIMIZADO
+# PASO 1: Envía el correo con el token
 # =====================================================================
-
 @app.route('/recuperar-contrasena', methods=['GET', 'POST'])
 def recuperar_contrasena():
     if request.method == 'POST':
-        # ⚡ Capturamos el name exacto que pusimos en el nuevo login.html
         correo = request.form.get('correo_recuperacion')
-        
-        if not correo:
-            flash("❌ Debes ingresar un correo válido.", "error")
-            return redirect(url_for('login', action='recuperar'))
-        
-        # Consulta directa y segura usando el modelo Usuario
         usuario = Usuario.query.filter_by(correo=correo).first()
         
         if usuario:
-            # Generar un token único basado en el correo del usuario
             token = serializer.dumps(correo, salt='recuperar-claves-inworker')
-            # ⚡ OJO: Asegúrate de que tu dominio sea el correcto en producción
+            # AQUÍ LLAMAS A LA RUTA QUE CREAREMOS ABAJO
             link_recuperacion = f"https://inworker.co" + url_for('restablecer_clave', token=token)
             
-            # Enviar el correo con el enlace seguro
-            try:
-                msg = Message(
-                    'Restablecer tu contraseña - inWorker',
-                    recipients=[correo]
-                )
-                msg.html = f"""
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
-                    <div style="background-color: #2563EB; padding: 20px; text-align: center; color: white;">
-                        <h2>¿Olvidaste tu contraseña? 🔑</h2>
-                    </div>
-                    <div style="padding: 20px; color: #333333; line-height: 1.6;">
-                        <p>Hola, <strong>{usuario.nombre}</strong>.</p>
-                        <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en inWorker. Para continuar, haz clic en el siguiente botón:</p>
-                        <div style="text-align: center; margin: 30px 0;">
-                            <a href="{link_recuperacion}" style="background-color: #22C55E; color: white; padding: 12px 25px; text-align: center; text-decoration: none; font-weight: bold; border-radius: 8px;">Restablecer Contraseña</a>
-                        </div>
-                        <p style="font-size: 12px; color: #777777;">Este enlace es seguro y vencerá pronto. Si no solicitaste este cambio, puedes ignorar este correo con total tranquilidad.</p>
-                    </div>
-                </div>
-                """
-                mail.send(msg)
-                flash("📧 Te hemos enviado un enlace de recuperación a tu correo electrónico.", "success")
-            except Exception as e:
-                print(f"Error enviando correo: {e}")
-                flash("⚠️ Ocurrió un error al intentar enviar el correo. Intenta más tarde.", "error")
+            # ... (Toda tu lógica de msg.html y mail.send va aquí igual) ...
+            flash("📧 Te hemos enviado un enlace de recuperación.", "success")
         else:
-            flash("❌ El correo ingresado no está registrado en inWorker.", "error")
-            
-        # Redirigimos al login pero manteniendo la pestaña de recuperación abierta
+            flash("❌ Correo no registrado.", "error")
         return redirect(url_for('login', action='recuperar'))
-        
-    # Si intentan entrar por GET (escribiendo la URL directo), los mandamos al login
     return redirect(url_for('login', action='recuperar'))
+
+# =====================================================================
+# PASO 2: Valida el token y muestra el formulario (Aquí va el render_template)
+# =====================================================================
+@app.route('/restablecer-clave/<token>', methods=['GET', 'POST'])
+def restablecer_clave(token):
+    # 1. Validar el token
+    try:
+        correo = serializer.loads(token, salt='recuperar-claves-inworker', max_age=3600)
+    except:
+        flash("❌ Enlace inválido o expirado.", "error")
+        return redirect(url_for('login'))
+
+    # 2. Si es POST, el usuario está guardando la nueva clave
+    if request.method == 'POST':
+        nueva_clave = request.form.get('contrasena')
+        usuario = Usuario.query.filter_by(correo=correo).first()
+        
+        if usuario:
+            usuario.contrasena = nueva_clave # O usa tu método de hash
+            db.session.commit()
+            flash("✅ Contraseña actualizada.", "success")
+            return redirect(url_for('login'))
+            
+    # 3. SI ES GET (entrar a la página), este es el render que temías dañar.
+    # Se pone al final de todo para que solo se ejecute si no hubo un POST.
+    return render_template('restablecer.html', token=token)
 
 @app.route('/logout')
 def logout():
