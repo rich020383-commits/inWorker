@@ -572,69 +572,6 @@ def recuperar_contrasena():
     # Si intentan entrar por GET (escribiendo la URL directo), los mandamos al login
     return redirect(url_for('login', action='recuperar'))
 
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>inWorker - Nueva Contraseña</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body class="bg-slate-50 text-slate-900 min-h-screen flex items-center justify-center p-4 font-sans">
-
-    <div class="bg-white w-full max-w-md p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xl text-center">
-        
-        <div class="flex flex-col items-center justify-center mb-6 select-none">
-            <i class="fas fa-unlock-alt text-5xl text-[#22C55E] mb-4"></i>
-            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Nueva Contraseña</h2>
-            <p class="text-xs text-slate-500 mt-2 px-2">Elige una contraseña segura que puedas recordar fácilmente.</p>
-        </div>
-
-        <form method="POST" action="{{ url_for('restablecer_clave', token=token) }}" class="space-y-4">
-            
-            <div class="text-left space-y-1">
-                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500">Tu Nueva Contraseña</label>
-                
-                <div class="relative flex items-center">
-                    <input type="password" id="pass_nueva" name="contrasena" placeholder="Escribe tu nueva clave" required autocomplete="new-password"
-                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-green-500 transition-colors">
-                    
-                    <button type="button" onclick="togglePassword('pass_nueva', 'icon_nueva')" class="absolute right-4 text-slate-400 hover:text-green-600 transition-colors focus:outline-none">
-                        <i class="fas fa-eye" id="icon_nueva"></i>
-                    </button>
-                </div>
-            </div>
-
-            <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-black py-3.5 px-4 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md active:scale-[0.98] mt-4">
-                Guardar y Entrar <i class="fas fa-check-circle ml-1"></i>
-            </button>
-            
-        </form>
-    </div>
-
-    <script>
-        function togglePassword(inputId, iconId) {
-            const input = document.getElementById(inputId);
-            const icon = document.getElementById(iconId);
-            
-            if (input && icon) {
-                if (input.type === "password") {
-                    input.type = "text";
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
-                } else {
-                    input.type = "password";
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
-                }
-            }
-        }
-    </script>
-</body>
-</html>
-
 @app.route('/logout')
 def logout():
     session.clear()
