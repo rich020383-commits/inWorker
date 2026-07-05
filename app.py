@@ -156,6 +156,8 @@ class Usuario(db.Model):
     profesion = db.Column(db.String(150), default='Técnico General')
     habilidades = db.Column(db.Text, default='Sin especificar')
     foto = db.Column(db.String(255))
+    kyc_cedula = db.Column(db.String(255), nullable=True)
+    kyc_selfie = db.Column(db.String(255), nullable=True)
     telefono = db.Column(db.String(50), default='Sin especificar')
     verificado = db.Column(db.Integer, default=0)
     saldo_creditos = db.Column(db.Float, default=0.0) # Inician en 0 Cr
@@ -1044,7 +1046,7 @@ def publicar_tarea():
 
 
 # =====================================================================
-# 👤 GESTIÓN DE PERFIL Y PORTAFOLIO MULTIMEDIA - UNIFICADO Y LIMPIO
+# 👤 GESTIÓN DE PERFIL, PORTAFOLIO Y KYC - UNIFICADO Y SEGURO
 # =====================================================================
 @app.route('/perfil', methods=['GET', 'POST'])
 def ver_perfil():
@@ -1084,7 +1086,24 @@ def ver_perfil():
                     archivo_foto.save(os.path.join(app.config['UPLOAD_FOLDER'], nombre_foto))
                     usuario.foto = nombre_foto  # Asignamos la nueva ruta de la foto
 
-                # 2. PROCESAR CARGA MÚLTIPLE DEL PORTAFOLIO
+                # 🛡️ 2. PROCESAR KYC (MÓDULO DE IDENTIDAD)
+                foto_cedula = request.files.get('kyc_cedula')
+                foto_selfie = request.files.get('kyc_selfie')
+                kyc_actualizado = False
+                
+                if foto_cedula and foto_cedula.filename != '' and archivo_permitido(foto_cedula.filename):
+                    nombre_ced = f"KYC_FRONTAL_{int(time.time())}_{secure_filename(foto_cedula.filename)}"
+                    foto_cedula.save(os.path.join(app.config['UPLOAD_FOLDER'], nombre_ced))
+                    usuario.kyc_cedula = nombre_ced
+                    kyc_actualizado = True
+                    
+                if foto_selfie and foto_selfie.filename != '' and archivo_permitido(foto_selfie.filename):
+                    nombre_selfie = f"KYC_SELFIE_{int(time.time())}_{secure_filename(foto_selfie.filename)}"
+                    foto_selfie.save(os.path.join(app.config['UPLOAD_FOLDER'], nombre_selfie))
+                    usuario.kyc_selfie = nombre_selfie
+                    kyc_actualizado = True
+
+                # 3. PROCESAR CARGA MÚLTIPLE DEL PORTAFOLIO
                 imagenes_portafolio = request.files.getlist('trabajos_previos')
                 proyectos_guardados = 0
                 
@@ -1106,7 +1125,10 @@ def ver_perfil():
                 # Confirmación atómica de todos los cambios y archivos adjuntos
                 db.session.commit()
                 
-                if proyectos_guardados > 0:
+                # Mensajes dinámicos según lo que hizo el usuario
+                if kyc_actualizado:
+                    flash("✅ Documentos de identidad enviados correctamente. Nuestro equipo los validará en breve.", "success")
+                elif proyectos_guardados > 0:
                     flash(f"✨ ¡Perfil actualizado y {proyectos_guardados} fotos añadidas al portafolio!", "success")
                 else:
                     flash("✨ ¡Perfil actualizado correctamente!", "success")
@@ -1176,7 +1198,7 @@ def ver_perfil():
             'fecha_solicitud': r.fecha_solicitud if hasattr(r, 'fecha_solicitud') else None
         } for r in retiros_db]
 
-        # 🛡️ Métricas del sistema (por si perfil.html comparte el sidebar del dashboard)
+        # 🛡️ Métricas del sistema
         fondos_escrow = db.session.query(db.func.sum(Tarea.costo_creditos)).filter(
             Tarea.estado == 'En Garantia',
             or_(Tarea.cliente_correo == correo_logueado, Tarea.trabajador_correo == correo_logueado)
