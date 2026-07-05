@@ -173,7 +173,7 @@
                         <span class="flex items-center text-[9px] font-bold text-emerald-600 uppercase tracking-widest"><span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-1.5"></span> En vivo</span>
                     </div>
                     
-                    <div id="live-activity-feed" class="space-y-3 relative text-xs">
+                    <div id="live-activity-feed" class="space-y-3 relative text-xs h-40 overflow-hidden">
                         </div>
                 </div>
             </div>
@@ -252,9 +252,12 @@
 
             setTimeout(() => { nuevaFila.classList.remove("opacity-0", "-translate-y-2"); }, 50);
 
-            if (feed.children.length > 3) {
+            // Remover el último elemento si excede la capacidad visual de la caja
+            // Si el contenedor tiene h-40, con 4-5 elementos es suficiente
+            if (feed.children.length > 4) {
                 const ultimo = feed.lastChild;
                 ultimo.classList.add("opacity-0", "translate-y-2");
+                // Le damos tiempo a la animación CSS antes de borrarlo del DOM
                 setTimeout(() => ultimo.remove(), 500);
             }
         }
