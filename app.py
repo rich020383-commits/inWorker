@@ -521,14 +521,20 @@ def admin_pausar_usuario(usuario_id):
 @app.route('/recuperar-contrasena', methods=['GET', 'POST'])
 def recuperar_contrasena():
     if request.method == 'POST':
-        correo = request.form['correo']
+        # ⚡ Capturamos el name exacto que pusimos en el nuevo login.html
+        correo = request.form.get('correo_recuperacion')
         
-        # ⚡ Consulta directa y segura usando el modelo Usuario de SQLAlchemy
+        if not correo:
+            flash("❌ Debes ingresar un correo válido.", "error")
+            return redirect(url_for('login', action='recuperar'))
+        
+        # Consulta directa y segura usando el modelo Usuario
         usuario = Usuario.query.filter_by(correo=correo).first()
         
         if usuario:
             # Generar un token único basado en el correo del usuario
             token = serializer.dumps(correo, salt='recuperar-claves-inworker')
+            # ⚡ OJO: Asegúrate de que tu dominio sea el correcto en producción
             link_recuperacion = f"https://inworker.co" + url_for('restablecer_clave', token=token)
             
             # Enviar el correo con el enlace seguro
@@ -539,69 +545,95 @@ def recuperar_contrasena():
                 )
                 msg.html = f"""
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
-                    <div style="background-color: #0052cc; padding: 20px; text-align: center; color: white;">
+                    <div style="background-color: #2563EB; padding: 20px; text-align: center; color: white;">
                         <h2>¿Olvidaste tu contraseña? 🔑</h2>
                     </div>
                     <div style="padding: 20px; color: #333333; line-height: 1.6;">
                         <p>Hola, <strong>{usuario.nombre}</strong>.</p>
                         <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en inWorker. Para continuar, haz clic en el siguiente botón:</p>
                         <div style="text-align: center; margin: 30px 0;">
-                            <a href="{link_recuperacion}" style="background-color: #0052cc; color: white; padding: 12px 25px; text-align: center; text-decoration: none; font-weight: bold; border-radius: 5px;">Restablecer Contraseña</a>
+                            <a href="{link_recuperacion}" style="background-color: #22C55E; color: white; padding: 12px 25px; text-align: center; text-decoration: none; font-weight: bold; border-radius: 8px;">Restablecer Contraseña</a>
                         </div>
-                        <p style="font-size: 12px; color: #777777;">Este enlace es seguro y vencerá en 1 hora. Si no solicitaste este cambio, puedes ignorar este correo con total tranquilidad.</p>
+                        <p style="font-size: 12px; color: #777777;">Este enlace es seguro y vencerá pronto. Si no solicitaste este cambio, puedes ignorar este correo con total tranquilidad.</p>
                     </div>
                 </div>
                 """
                 mail.send(msg)
                 flash("📧 Te hemos enviado un enlace de recuperación a tu correo electrónico.", "success")
             except Exception as e:
-                flash(f"⚠️ Error al enviar el correo: {str(e)}", "error")
+                print(f"Error enviando correo: {e}")
+                flash("⚠️ Ocurrió un error al intentar enviar el correo. Intenta más tarde.", "error")
         else:
-            # Por seguridad, es mejor decir que se envió si el formato es correcto, 
-            # pero aquí te pongo el aviso real para tus pruebas locales:
             flash("❌ El correo ingresado no está registrado en inWorker.", "error")
             
-        return redirect(url_for('index'))
+        # Redirigimos al login pero manteniendo la pestaña de recuperación abierta
+        return redirect(url_for('login', action='recuperar'))
         
-    return render_template('recuperar.html')
+    # Si intentan entrar por GET (escribiendo la URL directo), los mandamos al login
+    return redirect(url_for('login', action='recuperar'))
 
 
-@app.route('/restablecer-clave/<token>', methods=['GET', 'POST'])
-def restablecer_clave(token):
-    try:
-        # El token expira automáticamente en 3600 segundos (1 hora)
-        correo = serializer.loads(token, salt='recuperar-claves-inworker', max_age=3600)
-    except SignatureExpired:
-        flash("❌ El enlace de recuperación ha expirado. Por favor, solicita uno nuevo.", "error")
-        return redirect(url_for('index'))
-    except BadSignature:
-        flash("❌ Enlace de recuperación inválido o alterado.", "error")
-        return redirect(url_for('index'))
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>inWorker - Nueva Contraseña</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex items-center justify-center p-4 font-sans">
 
-    if request.method == 'POST':
-        nueva_clave = request.form['contrasena']
+    <div class="bg-white w-full max-w-md p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xl text-center">
         
-        try:
-            # ⚡ Buscamos al usuario por su correo indexado
-            usuario = Usuario.query.filter_by(correo=correo).first()
+        <div class="flex flex-col items-center justify-center mb-6 select-none">
+            <i class="fas fa-unlock-alt text-5xl text-[#22C55E] mb-4"></i>
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Nueva Contraseña</h2>
+            <p class="text-xs text-slate-500 mt-2 px-2">Elige una contraseña segura que puedas recordar fácilmente.</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('restablecer_clave', token=token) }}" class="space-y-4">
             
-            if usuario:
-                # Actualizamos el atributo directamente
-                usuario.contrasena = nueva_clave
-                db.session.commit() # Guarda los cambios en /data/inworker_prod.db
-                flash("✅ ¡Tu contraseña ha sido actualizada con éxito! Ya puedes iniciar sesión.", "success")
-            else:
-                flash("❌ Error: El usuario asociado a este enlace ya no existe.", "error")
+            <div class="text-left space-y-1">
+                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500">Tu Nueva Contraseña</label>
                 
-            return redirect(url_for('index'))
+                <div class="relative flex items-center">
+                    <input type="password" id="pass_nueva" name="contrasena" placeholder="Escribe tu nueva clave" required autocomplete="new-password"
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-green-500 transition-colors">
+                    
+                    <button type="button" onclick="togglePassword('pass_nueva', 'icon_nueva')" class="absolute right-4 text-slate-400 hover:text-green-600 transition-colors focus:outline-none">
+                        <i class="fas fa-eye" id="icon_nueva"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-black py-3.5 px-4 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md active:scale-[0.98] mt-4">
+                Guardar y Entrar <i class="fas fa-check-circle ml-1"></i>
+            </button>
             
-        except Exception as e:
-            db.session.rollback()
-            print(f"⚠️ Error al restablecer contraseña: {e}")
-            flash("❌ Ocurrió un error interno al guardar tu nueva contraseña.", "error")
-            return redirect(url_for('index'))
-        
-    return render_template('restablecer.html', token=token)
+        </form>
+    </div>
+
+    <script>
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            
+            if (input && icon) {
+                if (input.type === "password") {
+                    input.type = "text";
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    input.type = "password";
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
 
 @app.route('/logout')
 def logout():
