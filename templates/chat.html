@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>inWorker - Negociación y Chat</title>
+    <title>inWorker - Sala de Negociación</title>
 
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/favicon.png') }}">
@@ -20,229 +20,176 @@
             font-family: 'Segoe UI', sans-serif;
         }
         .mensajes-box {
-            height: 450px;
+            height: 500px;
             overflow-y: auto;
             scroll-behavior: smooth;
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
+            background-color: #f8fafc; /* Fondo de chat súper sutil */
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
         }
-        .mensajes-box::-webkit-scrollbar {
-            width: 6px;
-        }
-        .mensajes-box::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        .mensajes-box::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
+        .mensajes-box::-webkit-scrollbar { width: 6px; }
+        .mensajes-box::-webkit-scrollbar-track { background: transparent; }
+        .mensajes-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         #map {
             height: 180px;
             border-radius: 0.75rem;
             z-index: 10;
             border: 1px solid #e2e8f0;
-            background-color: #f1f5f9;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased">
+<body class="bg-slate-50 text-slate-900 font-sans antialiased flex flex-col min-h-screen">
 
-    <header class="bg-white border-b border-slate-200 px-4 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50 shadow-sm gap-2">
+    <header class="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-50 shadow-sm flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center space-x-3">
-            <a href="/tareas" class="text-slate-500 hover:text-blue-600 transition bg-slate-100 p-2.5 rounded-xl flex items-center justify-center" title="Volver a tareas">
-                <i class="fas fa-arrow-left text-sm"></i>
+            <a href="/tareas" class="text-slate-400 hover:text-blue-600 transition p-2 rounded-lg hover:bg-blue-50" title="Volver">
+                <i class="fas fa-arrow-left"></i>
             </a>
-            <div class="flex items-center space-x-2">
-                <i class="fas fa-cubes text-blue-600 text-xl"></i>
-                <h2 class="text-base font-black text-slate-800 uppercase tracking-wider">
-                    inWorker <span class="text-blue-600 text-xs font-bold">SALA</span>
+            <div class="flex flex-col">
+                <h2 class="text-sm font-black text-slate-800 uppercase tracking-wide flex items-center">
+                    Sala de Negociación <i class="fas fa-check-circle text-blue-500 ml-1.5 text-xs"></i>
                 </h2>
-                <div class="border-l border-slate-200 pl-3 hidden sm:block">
-                    <h1 class="text-xs font-bold text-slate-500 uppercase tracking-wide truncate max-w-[200px]">{{ tarea.titulo }}</h1>
-                </div>
+                <h1 class="text-xs font-medium text-slate-500 truncate max-w-[250px]">{{ tarea.titulo }}</h1>
             </div>
         </div>
         
-        <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-3">
             {% if tarea.estado == 'En Garantia' %}
-            <button type="button" onclick="abrirModalControversia()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-black px-3 py-2 rounded-xl transition shadow-sm flex items-center space-x-1 uppercase tracking-wide animate-pulse hover:animate-none" title="Reportar Problema / Iniciar Mediación">
-                <i class="fas fa-shield-alt text-sm"></i>
-                <span class="hidden sm:inline">Controversia</span>
+            <button type="button" onclick="abrirModalControversia()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition flex items-center space-x-1 uppercase">
+                <i class="fas fa-shield-alt"></i> <span class="hidden sm:inline">Mediación</span>
             </button>
             {% endif %}
 
             <div class="bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 flex items-center space-x-2">
-                <i class="fas fa-wallet text-emerald-600 text-sm"></i>
-                <span class="text-sm font-bold text-slate-800">${{ "{:,.0f}".format(session.get('usuario_creditos', 0) * 10000) }} COP</span>
-                <span class="text-[10px] text-slate-400 font-medium">({{ session.get('usuario_creditos', 0) }} Cr)</span>
+                <i class="fas fa-wallet text-emerald-500"></i>
+                <span class="text-xs font-bold text-slate-800">${{ "{:,.0f}".format(session.get('usuario_creditos', 0) * 10000) }}</span>
             </div>
-            
-            <a href="/recargar_billetera" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-3 py-2 rounded-xl transition shadow-sm flex items-center space-x-1 uppercase tracking-wide">
-                <i class="fas fa-bolt text-[10px]"></i>
-                <span>Recargar</span>
+            <a href="/recargar_billetera" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition uppercase shadow-sm">
+                Recargar
             </a>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto p-4">
+    <main class="max-w-7xl mx-auto p-4 w-full flex-grow">
         
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    {% if category == 'insuficiente' %}
-                        <div class="mb-4 p-4 rounded-xl border-2 border-amber-500 bg-amber-50 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <div>
-                                <h4 class="text-amber-800 font-black text-sm uppercase tracking-wide mb-1"><i class="fas fa-wallet mr-2"></i>Fondos Insuficientes</h4>
-                                <p class="text-xs text-amber-700 font-medium">{{ message }}</p>
-                            </div>
-                            <a href="/recargar_billetera" class="bg-amber-500 hover:bg-amber-400 text-gray-900 font-black px-4 py-2.5 rounded-lg text-xs uppercase tracking-wide transition shadow-sm text-center whitespace-nowrap flex-shrink-0">
-                                Recargar Billetera ⚡
-                            </a>
-                        </div>
-                    {% else %}
-                        <div class="mb-4 p-3 rounded-lg text-sm font-medium flex items-center space-x-2 {% if category == 'success' %} bg-emerald-950 text-emerald-300 border border-emerald-800 {% else %} bg-rose-950 text-rose-300 border border-rose-800 {% endif %}">
-                            <i class="fas {% if category == 'success' %} fa-check-circle {% else %} fa-exclamation-circle {% endif %}"></i>
-                            <span>{{ message }}</span>
-                        </div>
-                    {% endif %}
+                    <div class="mb-4 p-3 rounded-xl text-xs font-medium flex items-center space-x-2 shadow-sm border {% if category == 'insuficiente' or category == 'error' %} bg-rose-50 text-rose-700 border-rose-200 {% else %} bg-emerald-50 text-emerald-700 border-emerald-200 {% endif %}">
+                        <i class="fas {% if category == 'success' %} fa-check-circle {% else %} fa-exclamation-circle {% endif %} text-base"></i>
+                        <span>{{ message }}</span>
+                    </div>
                 {% endfor %} 
             {% endif %}
         {% endwith %}
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            <div class="lg:col-span-4 space-y-4">
+            <div class="lg:col-span-4 space-y-5">
                 
-                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Estado de la Orden</h3>
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider 
-                            {% if tarea.estado == 'Disponible' %} bg-blue-950 text-blue-400 border border-blue-800
-                            {% elif tarea.estado == 'Cotización Pendiente' %} bg-purple-950 text-purple-400 border border-purple-800
-                            {% elif tarea.estado == 'En Garantia' %} bg-amber-950 text-amber-400 border border-amber-800
-                            {% else %} bg-emerald-950 text-emerald-400 border border-emerald-800 {% endif %}">
-                            <i class="fas fa-circle text-[10px] mr-1.5 {{"animate-pulse" if tarea.estado != 'Finalizada' else ""}}"></i>{{ tarea.estado }}
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Estado de la Orden</h3>
+                    <div class="flex flex-col gap-3">
+                        <span class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide w-max
+                            {% if tarea.estado == 'Disponible' %} bg-blue-50 text-blue-600 border border-blue-100
+                            {% elif tarea.estado == 'Cotización Pendiente' %} bg-purple-50 text-purple-600 border border-purple-100
+                            {% elif tarea.estado == 'En Garantia' %} bg-amber-50 text-amber-600 border border-amber-100
+                            {% else %} bg-emerald-50 text-emerald-600 border border-emerald-100 {% endif %}">
+                            <i class="fas fa-circle text-[8px] mr-2 {{"animate-pulse" if tarea.estado != 'Finalizada' else ""}}"></i>{{ tarea.estado }}
                         </span>
                         
-                        <div class="flex items-center space-x-1 text-xs font-medium">
+                        <div class="text-xs font-medium">
                             {% if tarea.estado == 'Cotización Pendiente' %}
                                 {% if session['usuario_correo'] == tarea.cliente_correo and tarea.confirmacion_cliente == 0 %}
                                     <form action="/confirmar_entrega/{{ tarea.id }}" method="POST">
-                                        <button type="submit" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-1.5 rounded-lg transition shadow-md font-bold text-xs">
-                                            Liberar Garantía ✔
+                                        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-xl transition shadow font-bold">
+                                            Liberar Pago al Técnico <i class="fas fa-check ml-1"></i>
                                         </button>
                                     </form>
                                 {% elif session['usuario_correo'] == tarea.trabajador_correo and tarea.confirmacion_trabajador == 0 %}
                                     <form action="/confirmar_entrega/{{ tarea.id }}" method="POST">
-                                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition shadow-md font-bold text-xs">
-                                            Notificar Entrega 🚀
+                                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl transition shadow font-bold">
+                                            Notificar Trabajo Terminado <i class="fas fa-flag-checkered ml-1"></i>
                                         </button>
                                     </form>
                                 {% else %}
-                                    <span class="text-amber-400 flex items-center bg-amber-950/50 px-2 py-1 rounded border border-amber-900 text-xs">
-                                        <i class="fas fa-hourglass-half mr-1.5 animate-spin"></i> Esperando al otro lado...
-                                    </span>
-                                {% endif %}
-                            {% elif tarea.estado == 'Finalizada' and session['usuario_correo'] == tarea.cliente_correo and tarea.calificada == 0 %}
-                                <form action="/calificar/{{ tarea.id }}" method="POST" class="w-full mt-2 pt-2 border-t border-gray-700">
-                                    <label class="block text-xs text-gray-400 mb-1 text-center">Califica al Técnico:</label>
-                                    <div class="flex justify-center items-center space-x-2">
-                                        <select name="estrellas" class="bg-gray-900 border border-gray-700 rounded p-1 text-sm text-amber-400 font-bold focus:outline-none">
-                                            <option value="5">⭐⭐⭐⭐⭐ (5.0)</option>
-                                            <option value="4">⭐⭐⭐⭐ (4.0)</option>
-                                            <option value="3">⭐⭐⭐ (3.0)</option>
-                                            <option value="2">⭐⭐ (2.0)</option>
-                                            <option value="1">⭐ (1.0)</option>
-                                        </select>
-                                        <button type="submit" class="bg-amber-500 hover:bg-amber-400 text-gray-900 font-bold px-3 py-1 rounded text-xs transition">
-                                            Calificar
-                                        </button>
+                                    <div class="bg-slate-50 text-slate-500 p-2 rounded-lg border border-slate-200 text-center">
+                                        <i class="fas fa-hourglass-half animate-spin mr-1"></i> Esperando confirmación de la otra parte
                                     </div>
-                                </form>
+                                {% endif %}
                             {% elif tarea.estado == 'Finalizada' %}
-                                <span class="text-emerald-400 text-xs bg-emerald-950/40 px-2 py-1 rounded border border-emerald-900 font-bold flex items-center">
-                                    <i class="fas fa-handshake mr-1.5"></i> Pago Desembolsado
-                                </span>
+                                <div class="bg-emerald-50 text-emerald-700 p-2 rounded-lg border border-emerald-100 flex items-center justify-center font-bold">
+                                    <i class="fas fa-handshake mr-2"></i> Transacción Completada
+                                </div>
                             {% endif %}
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
-                    <h3 class="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
-                        <i class="fas fa-map-marker-alt text-rose-500 mr-1"></i> Ubicación del Trabajo
-                    </h3>
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"><i class="fas fa-map-marker-alt text-rose-500 mr-1"></i> Ubicación</h3>
                     <div id="map"></div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-4">
-                    
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200/60">
-                        <div class="flex items-center space-x-2 text-blue-600 font-bold text-xs uppercase tracking-wider mb-2">
-                            <i class="fas fa-briefcase"></i>
-                            <span>Contratante (Cliente)</span>
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                    <div class="flex items-center space-x-3 pb-4 border-b border-slate-100">
+                        <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold border border-blue-100">
+                            {{ cliente_perfil.nombre[0]|upper }}
                         </div>
-                        <div class="text-sm space-y-1">
-                            <p class="text-slate-800 font-bold"><span class="text-slate-400 font-medium">Nombre:</span> {{ cliente_perfil.nombre }}</p>
-                            <p class="text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200 w-max uppercase">Cotización en curso</p>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Contratante</p>
+                            <p class="text-sm font-bold text-slate-800">{{ cliente_perfil.nombre }}</p>
                         </div>
                     </div>
 
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200/60">
-                        <div class="flex items-center space-x-2 text-slate-700 font-bold text-xs uppercase tracking-wider mb-2">
-                            <i class="fas fa-tools text-blue-600"></i>
-                            <span>Especialista (Técnico)</span>
-                        </div>
+                    <div class="flex items-center space-x-3 pt-1">
                         {% if trabajador_perfil %}
-                            <div class="text-sm space-y-1">
-                                <p class="text-slate-800 font-bold flex items-center justify-between">
-                                    <span>{{ trabajador_perfil.nombre }}</span>
-                                    <span class="text-amber-600 text-xs bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 flex items-center">
-                                        ★ {{ trabajador_perfil.promedio_estrellas }}
-                                    </span>
-                                </p>
-                                <p class="text-xs text-slate-500 font-medium"><span class="text-slate-400">Especialidad:</span> {{ trabajador_perfil.profesion }}</p>
+                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold border border-slate-200">
+                                {{ trabajador_perfil.nombre[0]|upper }}
                             </div>
-                        {% else %} 
-                            <p class="text-xs text-slate-400 italic text-center py-2">Ningún técnico asignado todavía.</p>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase flex items-center">Especialista <span class="ml-2 text-amber-500"><i class="fas fa-star text-[10px]"></i> {{ trabajador_perfil.promedio_estrellas }}</span></p>
+                                <p class="text-sm font-bold text-slate-800">{{ trabajador_perfil.nombre }}</p>
+                            </div>
+                        {% else %}
+                            <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 border border-slate-200 border-dashed">
+                                <i class="fas fa-tools"></i>
+                            </div>
+                            <p class="text-xs text-slate-400 italic">Esperando técnico...</p>
                         {% endif %}
                     </div>
                 </div>
 
                 {% if session['usuario_rol'] == 'Trabajador' and (tarea.estado == 'Disponible' or tarea.estado == 'Cotización Pendiente') %}
-                <div class="bg-gradient-to-b from-gray-800 to-gray-850 border border-purple-900/60 rounded-xl p-4 shadow-xl">
-                    <div class="flex items-center space-x-1.5 text-purple-400 font-bold text-xs uppercase tracking-wider mb-3">
-                        <i class="fas fa-hand-holding-usd text-sm"></i>
-                        <span>Enviar Oferta Económica (COP)</span>
-                    </div>
-                    <form action="/chat/{{ tarea.id }}/enviar_cotizacion" method="POST" class="space-y-3">
+                <div class="bg-white border-2 border-purple-100 rounded-2xl p-5 shadow-md relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
+                    <h3 class="text-xs font-black text-purple-700 uppercase tracking-widest mb-4 flex items-center">
+                        <i class="fas fa-file-invoice-dollar mr-2"></i> Enviar Oferta
+                    </h3>
+                    <form action="/chat/{{ tarea.id }}/enviar_cotizacion" method="POST" class="space-y-4">
                         <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
                         <div>
-                            <div class="relative mt-1 rounded-md shadow-sm">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <span class="text-gray-500 sm:text-sm">$</span>
-                                </div>
-                                <input type="number" name="monto_pesos" step="1" min="1000" placeholder="Ej: 45000" required
-                                    class="w-full bg-gray-950 border border-gray-700 rounded-lg pl-7 pr-12 py-2 text-sm font-bold text-purple-400 focus:outline-none focus:border-purple-500">
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <span class="text-gray-500 text-xs">COP</span>
-                                </div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Monto Total (COP)</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><span class="text-slate-400 font-bold">$</span></div>
+                                <input type="number" name="monto_pesos" step="1" min="1000" placeholder="45000" required
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-12 py-2.5 text-sm font-bold text-slate-800 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition">
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"><span class="text-slate-400 text-[10px] font-bold">COP</span></div>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[11px] text-gray-400 mb-1 flex justify-between items-end">
-                                <span>¿Qué incluye tu propuesta?</span>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 flex justify-between items-end">
+                                <span>Concepto</span>
                                 <div class="space-x-1">
-                                    <button type="button" onclick="document.querySelector('textarea[name=\'concepto\']').value = 'Visita técnica y diagnóstico presencial.'" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-[9px] px-2 py-0.5 rounded border border-gray-600 transition">Diagnóstico</button>
-                                    <button type="button" onclick="document.querySelector('textarea[name=\'concepto\']').value = 'Mano de obra especializada y materiales.'" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-[9px] px-2 py-0.5 rounded border border-gray-600 transition">Mano de obra</button>
+                                    <button type="button" onclick="document.querySelector('textarea[name=\'concepto\']').value = 'Visita técnica y diagnóstico.'" class="text-[9px] text-purple-600 hover:underline">Visita</button>
+                                    <button type="button" onclick="document.querySelector('textarea[name=\'concepto\']').value = 'Mano de obra y materiales.'" class="text-[9px] text-purple-600 hover:underline">Mano de obra</button>
                                 </div>
                             </label>
-                            <textarea name="concepto" rows="2" placeholder="Ej: Mano de obra y cambio de empaques..." required
-                                class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500 resize-none"></textarea>
+                            <textarea name="concepto" rows="2" placeholder="Ej: Revisión e instalación..." required
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-purple-500 transition resize-none"></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-lg text-xs transition uppercase tracking-wide shadow-md">
-                            🚀 Lanzar Propuesta
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm">
+                            Enviar Propuesta Oficial
                         </button>
                     </form>
                 </div>
@@ -250,140 +197,140 @@
 
             </div>
 
-            <div class="lg:col-span-8">
-                <div class="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+            <div class="lg:col-span-8 flex flex-col h-full">
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col overflow-hidden relative">
                     
-                    <div class="bg-gray-850 border-b border-gray-700 px-4 py-3 flex items-center space-x-3 text-xs">
-                        <i class="fas fa-shield-alt text-2xl text-teal-400 drop-shadow flex-shrink-0"></i>
-                        <p class="text-gray-300 leading-normal">
-                            <strong class="text-teal-400">Garantía inWorker Activa:</strong> Tu dinero se mantiene congelado de forma segura en la plataforma y solo se libera cuando confirmes que el servicio quedó al 100%.
+                    <div class="bg-emerald-50 border-b border-emerald-100 px-4 py-3 flex items-start sm:items-center space-x-3 text-xs">
+                        <i class="fas fa-shield-check text-2xl text-emerald-500 mt-0.5 sm:mt-0"></i>
+                        <p class="text-emerald-800 leading-relaxed">
+                            <strong class="font-black uppercase">Garantía inWorker:</strong> El pago se congela en la plataforma y se libera únicamente cuando el cliente confirma que el servicio se realizó exitosamente.
                         </p>
                     </div>
 
-                    <div id="cajaMensajes" class="mensajes-box p-4 bg-gray-900/40 space-y-4">
+                    <div id="cajaMensajes" class="mensajes-box p-4 sm:p-6 space-y-4">
                         {% for msg in mensajes %}
                             
                             {% if 'cotizacion' in msg.tipo %}
-                            <div class="flex flex-col items-center my-4 w-full">
-                                <div class="bg-gradient-to-b from-gray-800 to-gray-850 border-2 {% if msg.tipo == 'cotizacion_pendiente' %} border-purple-600 {% elif msg.tipo == 'cotizacion_aceptada' %} border-emerald-600 {% else %} border-gray-700 {% endif %} rounded-2xl p-4 max-w-md w-full text-center shadow-2xl">
-                                    <div class="text-xs font-bold uppercase tracking-widest text-purple-400 mb-1">💼 Propuesta Económica Formal</div>
-                                    <div class="text-2xl font-black text-white my-2">
-                                        ${{ "{:,.0f}".format(msg.monto_pesos|float if msg.monto_pesos else msg.cotizacion_pesos|float) }} <span class="text-xs font-normal text-gray-400">COP</span>
+                            <div class="flex flex-col items-center my-6 w-full">
+                                <div class="bg-white border shadow-sm rounded-2xl p-5 max-w-sm w-full text-center relative overflow-hidden
+                                    {% if msg.tipo == 'cotizacion_pendiente' %} border-purple-200 
+                                    {% elif msg.tipo == 'cotizacion_aceptada' %} border-emerald-200 
+                                    {% else %} border-slate-200 {% endif %}">
+                                    
+                                    <div class="text-[10px] font-black uppercase tracking-widest mb-2
+                                        {% if msg.tipo == 'cotizacion_pendiente' %} text-purple-600 
+                                        {% elif msg.tipo == 'cotizacion_aceptada' %} text-emerald-600 
+                                        {% else %} text-slate-400 {% endif %}">
+                                        <i class="fas fa-file-invoice-dollar mr-1"></i> Cotización Formal
                                     </div>
-                                    <p class="text-xs text-gray-300 italic px-2 mb-3">"{{ msg.cotizacion_concepto }}"</p>
-                                    <div class="text-[10px] text-gray-500 mb-3">Equivalente en Plataforma: {{ msg.cotizacion_creditos }} Créditos</div>
+                                    
+                                    <div class="text-3xl font-black text-slate-800 mb-2">
+                                        ${{ "{:,.0f}".format(msg.monto_pesos|float if msg.monto_pesos else msg.cotizacion_pesos|float) }} <span class="text-xs font-medium text-slate-400">COP</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 mb-4">{{ msg.cotizacion_concepto }}</p>
 
                                     {% if msg.tipo == 'cotizacion_pendiente' %}
                                         {% if session['usuario_correo'] == tarea.cliente_correo %}
-                                        <form action="/chat/{{ tarea.id }}/responder_cotizacion/{{ msg.id }}" method="POST" class="flex items-center justify-center space-x-3">
+                                        <form action="/chat/{{ tarea.id }}/responder_cotizacion/{{ msg.id }}" method="POST" class="flex flex-col sm:flex-row gap-2">
                                             <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
-                                            <button type="submit" name="accion" value="Aceptar" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-5 py-2 rounded-xl text-xs uppercase tracking-wide transition shadow">
-                                                ✔ Aceptar e Iniciar
+                                            <button type="submit" name="accion" value="Aceptar" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs transition">
+                                                Aceptar y Pagar
                                             </button>
-                                            <button type="submit" name="accion" value="Rechazar" class="bg-gray-700 hover:bg-rose-600 text-gray-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs uppercase transition">
-                                                Declinado
+                                            <button type="submit" name="accion" value="Rechazar" class="bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 font-bold px-4 py-2 rounded-xl text-xs transition">
+                                                Rechazar
                                             </button>
                                         </form>
                                         {% else %}
-                                        <span class="text-xs font-semibold text-purple-400 bg-purple-950/40 px-3 py-1 rounded-full border border-purple-900 animate-pulse">
-                                            ⏳ Esperando respuesta del cliente...
-                                        </span>
+                                        <div class="bg-purple-50 text-purple-600 text-xs font-bold py-2 rounded-xl animate-pulse">
+                                            Esperando al cliente...
+                                        </div>
                                         {% endif %}
                                     {% elif msg.tipo == 'cotizacion_aceptada' %}
-                                        <div class="text-xs font-black text-emerald-400 bg-emerald-950/50 py-1.5 rounded-xl border border-emerald-900 uppercase tracking-wide flex items-center justify-center space-x-1">
-                                            <i class="fas fa-lock"></i> <span>Garantía Congelada & Contrato Firmado</span>
+                                        <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold py-2 rounded-xl flex justify-center items-center">
+                                            <i class="fas fa-lock mr-1.5"></i> Pago Asegurado
                                         </div>
                                     {% else %}
-                                        <div class="text-xs font-medium text-gray-400 bg-gray-900/50 py-1.5 rounded-xl border border-gray-800 uppercase tracking-wide">
-                                            ❌ Oferta Declinada / Caducada
-                                        </div>
+                                        <div class="bg-slate-50 text-slate-400 text-xs font-bold py-2 rounded-xl">Cotización Cancelada</div>
                                     {% endif %}
                                 </div>
-                                <span class="text-[9px] text-gray-600 mt-1">{{ msg.fecha_envio }}</span>
+                                <span class="text-[9px] font-medium text-slate-400 mt-1.5">{{ msg.fecha_envio }}</span>
                             </div>
 
                             {% else %}
                             <div class="flex flex-col {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} items-end {% else %} items-start {% endif %}">
-                                <div class="max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-2.5 shadow-md text-sm
-                                    {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} bg-teal-600 text-white rounded-tr-none
-                                    {% else %} bg-gray-700 text-gray-100 rounded-tl-none {% endif %}">
-                                    <p class="text-[10px] font-bold uppercase tracking-wider opacity-75 mb-1">{{ msg.remitente }}</p>
+                                <div class="max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 text-sm
+                                    {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} 
+                                        bg-blue-600 text-white rounded-tr-sm shadow-sm
+                                    {% else %} 
+                                        bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm 
+                                    {% endif %}">
                                     
                                     {% if msg.tipo == 'imagen' %}
-                                        <div class="rounded-lg overflow-hidden border border-black/20 my-1 bg-gray-800">
-                                            <img src="/static/uploads/{{ msg.mensaje }}" alt="Imagen adjunta" class="max-w-full h-auto object-cover max-h-60 hover:scale-105 transition cursor-zoom-in" onclick="window.open(this.src)">
+                                        <div class="rounded-lg overflow-hidden my-1">
+                                            <img src="/static/uploads/{{ msg.mensaje }}" alt="Foto" class="max-w-full h-auto object-cover max-h-60 rounded cursor-zoom-in" onclick="window.open(this.src)">
                                         </div>
                                     {% else %}
-                                        <p class="leading-relaxed break-words">{{ msg.mensaje }}</p>
+                                        <p class="leading-relaxed whitespace-pre-wrap">{{ msg.mensaje }}</p>
                                     {% endif %}
                                 </div>
-                                <span class="text-[9px] text-gray-500 mt-0.5 px-1">{{ msg.fecha_envio }}</span>
+                                <span class="text-[9px] font-medium text-slate-400 mt-1 mx-1">{{ msg.fecha_envio }}</span>
                             </div>
                             {% endif %}
 
                         {% else %}
-                            <div id="chat-vacio" class="h-full flex flex-col items-center justify-center text-center py-12 text-gray-500">
-                                <i class="far fa-comments text-6xl text-slate-400 mb-4 opacity-60"></i>
-                                <p class="text-sm font-medium text-gray-400">Sala de negociación vacía.</p>
-                                <p class="text-xs text-gray-600">Envía un mensaje o lanza una oferta para arrancar.</p>
+                            <div id="chat-vacio" class="h-full flex flex-col items-center justify-center text-center py-12 text-slate-400">
+                                <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                    <i class="far fa-comments text-3xl"></i>
+                                </div>
+                                <p class="text-sm font-bold text-slate-600">No hay mensajes aún.</p>
+                                <p class="text-xs mt-1 max-w-xs">Escribe los detalles del problema o envía una propuesta técnica para iniciar.</p>
                             </div>
                         {% endfor %}
                     </div>
 
                     {% if tarea.estado == 'Finalizada' %}
-                        <div class="p-4 text-center bg-gray-900 border-t border-gray-700 flex flex-col items-center justify-center py-6">
-                            <div class="bg-gray-800 p-3 rounded-full mb-2 border border-gray-700">
-                                <i class="fas fa-lock text-xl text-emerald-500"></i>
-                            </div>
-                            <p class="text-sm text-gray-300 font-bold uppercase tracking-wider">Negociación Cerrada</p>
-                            <p class="text-xs text-gray-500 mt-1 max-w-sm">Este servicio ha sido marcado como finalizado y el chat ha sido bloqueado por seguridad. Gracias por usar inWorker.</p>
+                        <div class="p-5 text-center bg-slate-50 border-t border-slate-200">
+                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-200 text-slate-500 mb-2">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <p class="text-sm font-bold text-slate-700">Chat Cerrado</p>
+                            <p class="text-xs text-slate-500 mt-0.5">El servicio ya ha sido finalizado.</p>
                         </div>
                     {% else %}
-                        <div class="p-3 bg-gray-800 border-t border-gray-700">
-                            <form id="formEnviarMensaje" action="" method="POST" enctype="multipart/form-data" class="flex flex-col w-full">
+                        <div class="p-3 sm:p-4 bg-white border-t border-slate-200">
+                            <form id="formEnviarMensaje" action="" method="POST" enctype="multipart/form-data" class="flex flex-col">
                                 <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
-        
-                                {% if tarea and tarea.tecnico_correo == session['usuario_correo'] %}
-                                    <div class="mb-4 p-4 bg-emerald-950/40 border border-emerald-500/30 rounded-xl flex items-center gap-3 shadow-lg w-full">
-                                        <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                                            <i class="fas fa-star text-sm"></i>
-                                        </div>
-                                        <div class="flex-1">
-                                            <h4 class="text-xs font-black text-emerald-400 uppercase tracking-wider">¡Invitación Directa Recibida!</h4>
-                                            <p class="text-[11px] text-slate-300 mt-0.5">Este contratante te seleccionó especialmente desde el catálogo para atender este requerimiento a tu medida.</p>
-                                        </div>
-                                        <span class="text-[10px] bg-emerald-500 text-slate-950 px-2 py-0.5 rounded-md font-bold uppercase tracking-wide">Exclusivo</span>
+                                
+                                <div class="flex items-end space-x-2">
+                                    <div class="flex flex-col gap-2">
+                                        <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-600 p-3 rounded-xl transition flex items-center justify-center h-12 w-12" title="Cámara">
+                                            <i class="fas fa-camera"></i>
+                                            <input type="file" id="imagen_camara" name="imagen_adjunta" class="hidden" accept="image/*" capture="environment">
+                                        </label>
                                     </div>
-                                {% endif %}
-
-                                <div class="flex items-center space-x-2 w-full">
-                                    <label class="cursor-pointer bg-teal-900/50 hover:bg-teal-800 text-teal-400 p-3 rounded-xl transition shadow flex items-center justify-center border border-teal-700/50 flex-shrink-0" title="Tomar foto ahora">
-                                        <i class="fas fa-camera text-base"></i>
-                                        <input type="file" id="imagen_camara" name="imagen_adjunta" class="hidden" accept="image/*" capture="environment">
-                                    </label>
-                                    
-                                    <label class="cursor-pointer bg-gray-700 hover:bg-gray-600 text-gray-300 p-3 rounded-xl transition shadow flex items-center justify-center border border-gray-600 flex-shrink-0" title="Adjuntar de la galería">
-                                        <i class="fas fa-paperclip text-base"></i>
-                                        <input type="file" id="imagen_galeria" name="imagen_adjunta" class="hidden" accept="image/*">
-                                    </label>
-
-                                    <div class="flex-1 relative">
-                                        <input type="text" id="inputMensaje" name="mensaje" placeholder="Escribe un mensaje..." autocomplete="off" class="w-full bg-gray-950 border border-gray-700 rounded-xl py-3 px-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition">
+                                    <div class="flex flex-col gap-2">
+                                        <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-600 p-3 rounded-xl transition flex items-center justify-center h-12 w-12" title="Galería">
+                                            <i class="fas fa-paperclip"></i>
+                                            <input type="file" id="imagen_galeria" name="imagen_adjunta" class="hidden" accept="image/*">
+                                        </label>
                                     </div>
 
-                                    <button type="submit" class="bg-teal-500 hover:bg-teal-400 text-gray-900 font-bold px-5 py-3 rounded-xl transition shadow flex items-center space-x-1.5 text-sm uppercase tracking-wide flex-shrink-0">
-                                        <span>Enviar</span>
-                                        <i class="fas fa-paper-plane text-xs"></i>
+                                    <div class="flex-1">
+                                        <textarea id="inputMensaje" name="mensaje" rows="1" placeholder="Escribe un mensaje..." class="w-full bg-slate-100 border-transparent rounded-xl py-3 px-4 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 transition resize-none"></textarea>
+                                    </div>
+
+                                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-xl transition shadow h-12 w-12 flex items-center justify-center">
+                                        <i class="fas fa-paper-plane"></i>
                                     </button>
                                 </div>
 
-                                <div id="preview-filename" class="hidden text-xs text-teal-400 mt-2 px-1 flex items-center justify-between bg-gray-900/40 p-2 rounded-lg border border-teal-900/50">
-                                    <div class="flex items-center space-x-2">
-                                        <i class="fas fa-image text-teal-400"></i>
-                                        <span id="nombre-archivo" class="truncate max-w-[180px]"></span>
+                                <div id="preview-filename" class="hidden text-xs font-medium text-slate-600 mt-2 px-3 py-2 bg-slate-100 rounded-lg flex items-center justify-between">
+                                    <div class="flex items-center space-x-2 truncate">
+                                        <i class="fas fa-image text-blue-500"></i>
+                                        <span id="nombre-archivo" class="truncate"></span>
                                     </div>
-                                    <button type="button" onclick="cancelarArchivo()" class="text-gray-400 hover:text-rose-400 transition p-1">
-                                        <i class="fas fa-times-circle"></i>
+                                    <button type="button" onclick="cancelarArchivo()" class="text-slate-400 hover:text-rose-500 ml-2">
+                                        <i class="fas fa-times-circle text-sm"></i>
                                     </button>
                                 </div>
                             </form>
@@ -396,140 +343,38 @@
         </div>
     </main>
 
-    <div id="modalControversia" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div id="contenidoModalControversia" class="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl p-6 transform scale-95 opacity-0 transition-all duration-300">
-            <div class="flex items-center space-x-3 border-b border-slate-100 pb-3 mb-4">
-                <div class="bg-rose-50 p-2 rounded-xl text-rose-600 border border-rose-100">
-                    <i class="fas fa-gavel text-lg"></i>
-                </div>
-                <div>
-                    <h3 class="text-base font-black text-slate-900 uppercase tracking-wide">Solicitar Arbitraje Admin</h3>
-                    <p class="text-xs text-slate-500">El equipo de inWorker auditará el caso de forma imparcial.</p>
-                </div>
-            </div>
-
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Motivo del reporte / Alerta de incumplimiento:</label>
-                    <textarea 
-                        id="motivo_reporte_admin" 
-                        rows="3" 
-                        required 
-                        placeholder="Describe aquí qué parte del contrato se incumplió o qué problema surgió para que el administrador lo revise..."
-                        class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:bg-white resize-none transition"
-                    ></textarea>
-                </div>
-
-                <p class="text-[11px] text-slate-500 leading-relaxed bg-amber-50 border border-amber-200 p-3 rounded-xl">
-                    ⚠️ <strong class="text-amber-800 font-bold">Importante:</strong> Al enviar este reporte, los fondos en garantía de <strong>${{ "{:,.0f}".format(saldo * 10000) }} COP</strong> quedarán congelados inmediatamente por seguridad hasta que inWorker dicte el veredicto oficial.
-                </p>
-
-                <div class="flex items-center space-x-3 pt-2">
-                    <button type="button" onclick="cerrarModalControversia()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wide transition border border-slate-200">
-                        Volver al Chat
-                    </button>
-                    <button type="button" onclick="enviarControversiaAAdmin('{{ tarea.id }}')" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wide transition text-center shadow-md shadow-rose-600/20">
-                        🚨 Enviar a Admin
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
         const cajaMensajes = document.getElementById('cajaMensajes');
 
-        function abrirModalControversia() {
-            const modal = document.getElementById('modalControversia');
-            const contenido = document.getElementById('contenidoModalControversia');
-            if (modal && contenido) {
-                modal.classList.remove('hidden');
-                setTimeout(() => {
-                    contenido.classList.remove('scale-95', 'opacity-0');
-                    contenido.classList.add('scale-100', 'opacity-100');
-                }, 50);
-            }
-        }
-
-        function cerrarModalControversia() {
-            const modal = document.getElementById('modalControversia');
-            const contenido = document.getElementById('contenidoModalControversia');
-            if (modal && contenido) {
-                contenido.classList.remove('scale-100', 'opacity-100');
-                contenido.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                }, 300);
-            }
-        }
-
-        function enviarControversiaAAdmin(tareaId) {
-            const motivoTextarea = document.getElementById('motivo_reporte_admin');
-            
-            if (!motivoTextarea || motivoTextarea.value.trim() === "") {
-                alert("Por favor, describe detalladamente el motivo del incumplimiento antes de solicitar la intervención.");
-                return;
-            }
-
-            const formDinamico = document.createElement('form');
-            formDinamico.method = 'POST';
-            formDinamico.action = `/escalar_disputa/${tareaId}`;
-
-            const inputMotivo = document.createElement('input');
-            inputMotivo.type = 'hidden';
-            inputMotivo.name = 'motivo_reporte';
-            inputMotivo.value = motivoTextarea.value.trim();
-
-            formDinamico.appendChild(inputMotivo);
-            document.body.appendChild(formDinamico);
-            formDinamico.submit();
-        }
-
         function irAlFinalChat() {
-            if (cajaMensajes) {
-                cajaMensajes.scrollTop = cajaMensajes.scrollHeight;
-            }
+            if (cajaMensajes) cajaMensajes.scrollTop = cajaMensajes.scrollHeight;
         }
 
+        // Lógica de carga de archivos (Camara/Galeria)
         function mostrarPrevisualizacion(e) {
             const inputCamara = document.getElementById('imagen_camara');
             const inputGaleria = document.getElementById('imagen_galeria');
-            
             if (e && e.target) {
                 if (e.target.id === 'imagen_camara' && inputGaleria) inputGaleria.value = '';
                 if (e.target.id === 'imagen_galeria' && inputCamara) inputCamara.value = '';
             }
-
             const fileInput = (inputCamara && inputCamara.files.length > 0) ? inputCamara : inputGaleria;
             const previewContainer = document.getElementById('preview-filename');
             
-            if (fileInput && fileInput.files && fileInput.files[0]) {
-                const archivo = fileInput.files[0];
-                
-                if (archivo.size > 8 * 1024 * 1024) {
-                    alert("El soporte fotográfico es muy pesado. Máximo 8MB.");
-                    cancelarArchivo();
-                    return;
-                }
-
-                const txtNombre = document.getElementById('nombre-archivo');
-                if (txtNombre) txtNombre.textContent = archivo.name;
-                if (previewContainer) previewContainer.classList.remove('hidden');
-                
+            if (fileInput && fileInput.files[0]) {
+                document.getElementById('nombre-archivo').textContent = fileInput.files[0].name;
+                previewContainer.classList.remove('hidden');
                 irAlFinalChat();
             }
         }
 
         function cancelarArchivo() {
-            const inputCamara = document.getElementById('imagen_camara');
-            const inputGaleria = document.getElementById('imagen_galeria');
-            const previewContainer = document.getElementById('preview-filename');
-            
-            if (inputCamara) inputCamara.value = ''; 
-            if (inputGaleria) inputGaleria.value = ''; 
-            if (previewContainer) previewContainer.classList.add('hidden');
+            document.getElementById('imagen_camara').value = ''; 
+            document.getElementById('imagen_galeria').value = ''; 
+            document.getElementById('preview-filename').classList.add('hidden');
         }
 
+        // JS del Mapa de Leaflet
         const latitudInicial = parseFloat("{{ tarea.latitud if tarea.latitud else 10.9639 }}");  
         const longitudInicial = parseFloat("{{ tarea.longitud if tarea.longitud else -74.7964 }}"); 
         let mapaServicio = null; 
@@ -538,257 +383,98 @@
             try {
                 if (!mapaServicio) {
                     mapaServicio = L.map('map').setView([latitudInicial, longitudInicial], 14);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        attribution: '&copy; OpenStreetMap contributors',
-                        maxZoom: 19
-                    }).addTo(mapaServicio);
-
-                    L.marker([latitudInicial, longitudInicial]).addTo(mapaServicio)
-                        .bindPopup('<b class="text-gray-900">Ubicación del Servicio</b><br><span class="text-xs text-gray-600">Área acordada de asistencia.</span>')
-                        .openPopup();
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapaServicio);
+                    L.marker([latitudInicial, longitudInicial]).addTo(mapaServicio);
                 }
-            } catch (error) {
-                console.error("Error cargando el mapa:", error);
-            }
+            } catch (error) { console.error("Error mapa:", error); }
         }
 
+        // Lógica Envío de Mensaje AJAX
         const miFormulario = document.getElementById('formEnviarMensaje');
         if (miFormulario) {
             miFormulario.addEventListener('submit', function(e) {
                 e.preventDefault(); 
+                const msgInput = document.getElementById('inputMensaje');
+                const fileC = document.getElementById('imagen_camara');
+                const fileG = document.getElementById('imagen_galeria');
+                if ((!msgInput.value.trim()) && (!fileC.files.length && !fileG.files.length)) return;
 
-                const mensajeInput = document.getElementById('inputMensaje');
-                const fileCamara = document.getElementById('imagen_camara');
-                const fileGaleria = document.getElementById('imagen_galeria');
-                const tieneFoto = (fileCamara && fileCamara.files.length > 0) || (fileGaleria && fileGaleria.files.length > 0);
-                
-                if ((!mensajeInput || mensajeInput.value.trim() === "") && !tieneFoto) {
-                    alert("No puedes enviar un mensaje vacío.");
-                    return;
-                }
+                const btn = this.querySelector('button[type="submit"]');
+                btn.innerHTML = `<i class="fas fa-spinner animate-spin"></i>`;
+                btn.disabled = true;
 
-                const formData = new FormData(this);
-                const btnEnviar = this.querySelector('button[type="submit"]');
-                if (btnEnviar) {
-                    btnEnviar.disabled = true;
-                    btnEnviar.innerHTML = `<span>Enviando...</span> <i class="fas fa-spinner animate-spin text-xs"></i>`;
-                }
-
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    if (response.ok) {
-                        if (mensajeInput) mensajeInput.value = ""; 
-                        cancelarArchivo();                         
-                        cargarMensajes();                                           
-                    } else {
-                        alert("Error al enviar el mensaje.");
-                    }
-                })
-                .catch(err => console.error("Error en envío:", err))
-                .finally(() => {
-                    if (btnEnviar) {
-                        btnEnviar.disabled = false;
-                        btnEnviar.innerHTML = `<span>Enviar</span> <i class="fas fa-paper-plane text-xs"></i>`;
-                    }
+                fetch(this.action, { method: 'POST', body: new FormData(this) })
+                .then(res => {
+                    if (res.ok) { msgInput.value = ""; cancelarArchivo(); cargarMensajes(); }
+                }).finally(() => {
+                    btn.innerHTML = `<i class="fas fa-paper-plane"></i>`;
+                    btn.disabled = false;
                 });
             });
         }
 
-        const tareaId = "{{ tarea.id if tarea.id else tarea['id'] }}";
-        const canalActual = "{{ canal_actual }}";
-        const URL_API_MENSAGES = `/api/chat/${tareaId}/${canalActual}`;
-        const nombreUsuarioActual = "{{ nombre_usuario }}";
+        // POLLING: Carga dinámica de mensajes (Adaptado al nuevo CSS claro)
+        const URL_API_MENSAGES = `/api/chat/{{ tarea.id if tarea.id else tarea['id'] }}/{{ canal_actual }}`;
         const usuarioSesion = "{{ session['usuario_correo'] }}";
+        const nombreUsuarioActual = "{{ nombre_usuario }}";
         const clienteCorreoTarea = "{{ tarea.cliente_correo }}";
-
-        let intervaloTiempo = 4000; 
-        let miPollingTimer = null;
-        let tiempoUltimaActividad = Date.now();
         let ultimoIdMensaje = 0; 
-
-        function ajustarIntervaloInactividad(huboMensajesNuevos) {
-            if (huboMensajesNuevos) {
-                intervaloTiempo = 4000; 
-                tiempoUltimaActividad = Date.now();
-            } else {
-                let minutosInactivo = (Date.now() - tiempoUltimaActividad) / 60000;
-                if (minutosInactivo > 5) {
-                    intervaloTiempo = 15000; 
-                } else if (minutosInactivo > 2) {
-                    intervaloTiempo = 8000;  
-                } else {
-                    intervaloTiempo = 4000;  
-                }
-            }
-        }
-
-        document.addEventListener("visibilitychange", () => {
-            clearTimeout(miPollingTimer);
-            if (!document.getElementById('cajaMensajes')) return;
-
-            if (document.hidden) {
-                intervaloTiempo = 30000; 
-                miPollingTimer = setTimeout(cargarMensajes, intervaloTiempo);
-            } else {
-                intervaloTiempo = 4000; 
-                tiempoUltimaActividad = Date.now();
-                cargarMensajes(); 
-            }
-        });
+        let miPollingTimer = null;
 
         function cargarMensajes() {
-            const contenedorChat = document.getElementById('cajaMensajes');
             clearTimeout(miPollingTimer);
-            if (!contenedorChat) return;
-            
             fetch(`${URL_API_MENSAGES}?ultimo_id=${ultimoIdMensaje}`)
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
-                    ajustarIntervaloInactividad(data.mensajes.length > 0);
+                if (data.success && data.mensajes.length > 0) {
+                    document.getElementById('chat-vacio')?.remove();
+                    data.mensajes.forEach(msg => {
+                        if (msg.id > ultimoIdMensaje) ultimoIdMensaje = msg.id;
+                        if (document.getElementById(`msg-${msg.id}`)) return;
 
-                    if (data.mensajes.length === 0) {
-                        if (contenedorChat.children.length === 0 || document.getElementById('chat-vacio')) {
-                            contenedorChat.innerHTML = `
-                                <div id="chat-vacio" class="h-full flex flex-col items-center justify-center text-center py-12 text-gray-500">
-                                    <i class="far fa-comments text-6xl text-slate-400 mb-4 opacity-60"></i>
-                                    <p class="text-sm font-medium text-gray-400">Sala de negociación vacía.</p>
-                                    <p class="text-xs text-gray-600">Envía un mensaje o lanza una oferta para arrancar.</p>
-                                </div>`;
-                        }
-                    } else {
-                        const divVacio = document.getElementById('chat-vacio');
-                        if (divVacio) divVacio.remove();
-
-                        data.mensajes.forEach(msg => {
-                            if (msg.id > ultimoIdMensaje) ultimoIdMensaje = msg.id;
-                            if (document.getElementById(`msg-${msg.id}`)) return;
-
-                            const esPropio = (msg.remitente_correo === usuarioSesion || msg.remitente === nombreUsuarioActual);
-                            const alineacionClase = esPropio ? 'items-end' : 'items-start';
-                            const colorBurbujaClase = esPropio ? 'bg-teal-600 text-white rounded-tr-none' : 'bg-gray-700 text-gray-100 rounded-tl-none';
+                        const esPropio = (msg.remitente_correo === usuarioSesion || msg.remitente === nombreUsuarioActual);
+                        const alineacion = esPropio ? 'items-end' : 'items-start';
+                        const burbujaNormal = esPropio ? 'bg-blue-600 text-white rounded-tr-sm shadow-sm' : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm';
+                        
+                        let html = "";
+                        if (msg.tipo && msg.tipo.includes('cotizacion')) {
+                            // HTML para Cotización Dinámica
+                            let bordeColor = msg.tipo === 'cotizacion_pendiente' ? 'border-purple-200' : (msg.tipo === 'cotizacion_aceptada' ? 'border-emerald-200' : 'border-slate-200');
+                            const monto = msg.monto_pesos ? parseFloat(msg.monto_pesos) : parseFloat(msg.cotizacion_pesos);
                             
-                            let mensajeHTML = "";
-
-                            if (msg.tipo && msg.tipo.includes('cotizacion')) {
-                                let bordeCotizacion = 'border-gray-700';
-                                let footerCotizacion = '';
-
-                                if (msg.tipo === 'cotizacion_pendiente') {
-                                    bordeCotizacion = 'border-purple-600';
-                                    if (usuarioSesion === clienteCorreoTarea) {
-                                        footerCotizacion = `
-                                            <form action="/chat/${tareaId}/responder_cotizacion/${msg.id}" method="POST" class="flex items-center justify-center space-x-3">
-                                                <input type="hidden" name="canal_actual" value="${canalActual}">
-                                                <button type="submit" name="accion" value="Aceptar" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-5 py-2 rounded-xl text-xs uppercase tracking-wide transition shadow">
-                                                    ✔ Aceptar e Iniciar
-                                                </button>
-                                                <button type="submit" name="accion" value="Rechazar" class="bg-gray-700 hover:bg-rose-600 text-gray-300 hover:text-white font-bold px-4 py-2 rounded-xl text-xs uppercase transition">
-                                                    Declinado
-                                                </button>
-                                            </form>`;
-                                    } else {
-                                        footerCotizacion = `
-                                            <span class="text-xs font-semibold text-purple-400 bg-purple-950/40 px-3 py-1 rounded-full border border-purple-900 animate-pulse">
-                                                ⏳ Esperando respuesta del cliente...
-                                            </span>`;
-                                    }
-                                } else if (msg.tipo === 'cotizacion_aceptada') {
-                                    bordeCotizacion = 'border-emerald-600';
-                                    footerCotizacion = `
-                                        <div class="text-xs font-black text-emerald-400 bg-emerald-950/50 py-1.5 rounded-xl border border-emerald-900 uppercase tracking-wide flex items-center justify-center space-x-1">
-                                            <i class="fas fa-lock"></i> <span>Garantía Congelada & Contrato Firmado</span>
-                                        </div>`;
-                                } else {
-                                    footerCotizacion = `
-                                        <div class="text-xs font-medium text-gray-400 bg-gray-900/50 py-1.5 rounded-xl border border-gray-800 uppercase tracking-wide">
-                                            ❌ Oferta Declinada / Caducada
-                                        </div>`;
-                                }
-
-                                const monto = msg.monto_pesos ? parseFloat(msg.monto_pesos) : parseFloat(msg.cotizacion_pesos);
-
-                                mensajeHTML = `
-                                    <div id="msg-${msg.id}" class="flex flex-col items-center my-4 w-full">
-                                        <div class="bg-gradient-to-b from-gray-800 to-gray-850 border-2 ${bordeCotizacion} rounded-2xl p-4 max-w-md w-full text-center shadow-2xl">
-                                            <div class="text-xs font-bold uppercase tracking-widest text-purple-400 mb-1">💼 Propuesta Económica Formal</div>
-                                            <div class="text-2xl font-black text-white my-2">
-                                                $${monto.toLocaleString('es-CO', { maximumFractionDigits: 0 })} <span class="text-xs font-normal text-gray-400">COP</span>
-                                            </div>
-                                            <p class="text-xs text-gray-300 italic px-2 mb-3">"${msg.cotizacion_concepto}"</p>
-                                            <div class="text-[10px] text-gray-500 mb-3">Equivalente en Plataforma: ${msg.cotizacion_creditos} Créditos</div>
-                                            ${footerCotizacion}
-                                        </div>
-                                        <span class="text-[9px] text-gray-600 mt-1">${msg.fecha_envio}</span>
-                                    </div>`;
-
-                            } else {
-                                let cuerpoMensaje = "";
-                                if (msg.tipo === 'imagen') {
-                                    cuerpoMensaje = `
-                                        <div class="rounded-lg overflow-hidden border border-black/20 my-1 bg-gray-800">
-                                            <img src="/static/uploads/${msg.mensaje}" alt="Imagen adjunta" class="max-w-full h-auto object-cover max-h-60 hover:scale-105 transition cursor-zoom-in" onclick="window.open(this.src)">
-                                        </div>`;
-                                } else {
-                                    cuerpoMensaje = `<p class="leading-relaxed break-words">${msg.mensaje}</p>`;
-                                }
-
-                                mensajeHTML = `
-                                    <div id="msg-${msg.id}" class="flex flex-col ${alineacionClase}">
-                                        <div class="max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-2.5 shadow-md text-sm ${colorBurbujaClase}">
-                                            <p class="text-[10px] font-bold uppercase tracking-wider opacity-75 mb-1">${msg.remitente}</p>
-                                            ${cuerpoMensaje}
-                                        </div>
-                                        <span class="text-[9px] text-gray-500 mt-0.5 px-1">${msg.fecha_envio}</span>
-                                    </div>`;
-                            }
-
-                            contenedorChat.insertAdjacentHTML('beforeend', mensajeHTML);
-                        });
-
-                        irAlFinalChat();
-                    }
+                            html = `
+                            <div id="msg-${msg.id}" class="flex flex-col items-center my-6 w-full">
+                                <div class="bg-white border shadow-sm rounded-2xl p-5 max-w-sm w-full text-center ${bordeColor}">
+                                    <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Cotización</div>
+                                    <div class="text-3xl font-black text-slate-800 mb-2">$${monto.toLocaleString('es-CO')} COP</div>
+                                    <p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">${msg.cotizacion_concepto}</p>
+                                </div>
+                                <span class="text-[9px] font-medium text-slate-400 mt-1.5">${msg.fecha_envio}</span>
+                            </div>`;
+                        } else {
+                            // HTML para Mensaje Normal
+                            let contenido = msg.tipo === 'imagen' ? `<img src="/static/uploads/${msg.mensaje}" class="max-h-60 rounded">` : `<p class="leading-relaxed whitespace-pre-wrap">${msg.mensaje}</p>`;
+                            html = `
+                            <div id="msg-${msg.id}" class="flex flex-col ${alineacion}">
+                                <div class="max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 text-sm ${burbujaNormal}">
+                                    ${contenido}
+                                </div>
+                                <span class="text-[9px] font-medium text-slate-400 mt-1 mx-1">${msg.fecha_envio}</span>
+                            </div>`;
+                        }
+                        cajaMensajes.insertAdjacentHTML('beforeend', html);
+                    });
+                    irAlFinalChat();
                 }
             })
-            .catch(err => {
-                console.error("❌ Error consultando nuevos mensajes:", err);
-                intervaloTiempo = 10000; 
-            })
-            .finally(() => {
-                if (document.getElementById('cajaMensajes') && !document.hidden) {
-                    miPollingTimer = setTimeout(cargarMensajes, intervaloTiempo);
-                }
-            });
+            .finally(() => { if (!document.hidden) miPollingTimer = setTimeout(cargarMensajes, 4000); });
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-            irAlFinalChat();
-            
-            if (document.getElementById('cajaMensajes')) {
-                cargarMensajes(); 
-            }
-            
-            // 🔧 REPARACIÓN DEL MAPA: Esperamos medio segundo para que la pantalla termine de acomodarse,
-            // y obligamos a Leaflet a calcular el tamaño exacto del contenedor para que quite el parche blanco.
-            setTimeout(() => {
-                inicializarMapa();
-                if(mapaServicio) {
-                    mapaServicio.invalidateSize();
-                }
-            }, 500);
-            
-            const inputCamara = document.getElementById('imagen_camara');
-            if (inputCamara) {
-                inputCamara.addEventListener('change', mostrarPrevisualizacion);
-            }
-            
-            const inputGaleria = document.getElementById('imagen_galeria');
-            if (inputGaleria) {
-                inputGaleria.addEventListener('change', mostrarPrevisualizacion);
-            }
+            setTimeout(() => { inicializarMapa(); if(mapaServicio) mapaServicio.invalidateSize(); }, 500);
+            document.getElementById('imagen_camara')?.addEventListener('change', mostrarPrevisualizacion);
+            document.getElementById('imagen_galeria')?.addEventListener('change', mostrarPrevisualizacion);
+            if (cajaMensajes) cargarMensajes();
         });
     </script>
 </body>
