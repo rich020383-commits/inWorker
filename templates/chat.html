@@ -107,12 +107,33 @@
                                         </button>
                                     </form>
                                 {% elif session['usuario_correo'] == tarea.trabajador_correo and tarea.confirmacion_trabajador == 0 %}
-                                    <form action="/confirmar_entrega/{{ tarea.id }}" method="POST">
-                                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl transition shadow font-bold">
-                                            Notificar Trabajo Terminado <i class="fas fa-flag-checkered ml-1"></i>
-                                        </button>
-                                    </form>
-                                {% else %}
+    
+    <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 shadow-sm mt-2">
+        <h4 class="text-[10px] font-black text-indigo-700 uppercase tracking-widest mb-2 flex items-center">
+            <i class="fas fa-camera-retro mr-1.5"></i> Protocolo de Evidencia
+        </h4>
+        <p class="text-[10px] text-indigo-600 mb-3 leading-tight">Sube una foto del daño inicial y otra del trabajo terminado para garantizar tu pago.</p>
+        
+        <form action="/confirmar_entrega/{{ tarea.id }}" method="POST" enctype="multipart/form-data" class="space-y-2">
+            <div class="grid grid-cols-2 gap-2">
+                <label class="border-2 border-dashed border-indigo-300 bg-white rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-100 transition group">
+                    <i class="fas fa-image text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-[9px] font-bold text-indigo-700">Foto "Antes"</span>
+                    <input type="file" name="foto_antes" required class="hidden" accept="image/*" capture="environment">
+                </label>
+                <label class="border-2 border-dashed border-indigo-300 bg-white rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-100 transition group">
+                    <i class="fas fa-check-double text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-[9px] font-bold text-indigo-700">Foto "Después"</span>
+                    <input type="file" name="foto_despues" required class="hidden" accept="image/*" capture="environment">
+                </label>
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg transition shadow font-bold text-xs uppercase tracking-wide mt-2">
+                Enviar Evidencia y Cobrar <i class="fas fa-flag-checkered ml-1"></i>
+            </button>
+        </form>
+    </div>
+
+{% else %}
                                     <div class="bg-slate-50 text-slate-500 p-2 rounded-lg border border-slate-200 text-center">
                                         <i class="fas fa-hourglass-half animate-spin mr-1"></i> Esperando confirmación de la otra parte
                                     </div>
@@ -149,7 +170,14 @@
                             </div>
                             <div>
                                 <p class="text-[10px] font-bold text-slate-400 uppercase flex items-center">Especialista <span class="ml-2 text-amber-500"><i class="fas fa-star text-[10px]"></i> {{ trabajador_perfil.promedio_estrellas }}</span></p>
-                                <p class="text-sm font-bold text-slate-800">{{ trabajador_perfil.nombre }}</p>
+                                <p class="text-sm font-bold text-slate-800 flex items-center">
+    {{ trabajador_perfil.nombre }}
+    {% if trabajador_perfil.verificado == 1 %}
+        <span class="ml-1.5 text-blue-500 bg-blue-50 rounded-full w-4 h-4 flex items-center justify-center border border-blue-100" title="Identidad Verificada por inWorker">
+            <i class="fas fa-check text-[9px]"></i>
+        </span>
+    {% endif %}
+</p>
                             </div>
                         {% else %}
                             <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 border border-slate-200 border-dashed">

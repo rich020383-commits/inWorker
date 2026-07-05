@@ -38,6 +38,39 @@
             </div>
         </div>
     </header>
+<div id="pwa-install-banner" class="hidden bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 flex justify-between items-center shadow-md border-b border-indigo-700">
+        <div class="flex items-center space-x-3">
+            <div class="bg-white/20 p-2 rounded-lg"><i class="fas fa-mobile-alt text-lg"></i></div>
+            <div>
+                <p class="text-sm font-bold">Instalar inWorker App</p>
+                <p class="text-[10px] text-blue-100">Acceso más rápido, sin abrir el navegador.</p>
+            </div>
+        </div>
+        <button id="btn-instalar-pwa" class="bg-white text-blue-600 font-black px-4 py-1.5 rounded-full text-xs shadow hover:scale-105 transition-transform uppercase tracking-wider">
+            Instalar
+        </button>
+    </div>
+
+    <script>
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); // Evita que Chrome muestre su propio mini-aviso
+            deferredPrompt = e;
+            // Mostramos nuestro banner elegante
+            document.getElementById('pwa-install-banner').classList.remove('hidden');
+        });
+
+        document.getElementById('btn-instalar-pwa')?.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('pwa-install-banner').classList.add('hidden');
+                }
+                deferredPrompt = null;
+            }
+        });
+    </script>
 
     <main class="max-w-7xl mx-auto px-4 py-8 space-y-6 flex-grow w-full">
         
