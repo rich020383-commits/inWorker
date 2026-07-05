@@ -11,7 +11,8 @@ from disputas_ia import analizar_disputa_chat
 # 🔧 CONFIGURACIÓN AVANZADA CON FLASK-SQLALCHEMY PARA OPTIMIZAR EL PLAN STARTER
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, current_app, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import or_  # 👈 ¡ESTA ES LA LÍNEA MÁGICA QUE FALTA!
+from sqlalchemy import or_  
+from sqlalchemy import text
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash 
 from PIL import Image
@@ -223,6 +224,24 @@ with app.app_context():
     # 1. Crea automáticamente el archivo físico dentro del SSD (/data/) con las tablas indexadas
     db.create_all()
     print("¡Estructura de Base de Datos persistente e indexada montada con éxito!")
+    
+    # ⚡ INICIO DEL PARCHE DE MIGRACIÓN KYC: Forzar actualización de columnas en Render
+    try:
+        with db.engine.connect() as conn:
+            conn.execute(text("ALTER TABLE usuarios ADD COLUMN kyc_cedula VARCHAR(255)"))
+            conn.commit()
+            print("✅ Columna 'kyc_cedula' inyectada con éxito en la base de datos persistente.")
+    except Exception:
+        pass # Si falla, significa que la columna ya existe, lo ignoramos
+
+    try:
+        with db.engine.connect() as conn:
+            conn.execute(text("ALTER TABLE usuarios ADD COLUMN kyc_selfie VARCHAR(255)"))
+            conn.commit()
+            print("✅ Columna 'kyc_selfie' inyectada con éxito en la base de datos persistente.")
+    except Exception:
+        pass # Si falla, significa que la columna ya existe, lo ignoramos
+    # ⚡ FIN DEL PARCHE
     
     # 2. Sembrado automático del Administrador Principal 'baraka'
     admin_existe = Usuario.query.filter_by(correo='baraka@inworker.com').first()
