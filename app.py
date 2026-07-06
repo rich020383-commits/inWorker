@@ -974,6 +974,13 @@ def ver_tareas():
     usuario_db = Usuario.query.filter_by(correo=correo_logueado).first()
     saldo_actual = round(usuario_db.saldo_creditos, 2) if usuario_db else 0.0
     
+    # 🔔 NUEVO: CONTEO DE NOTIFICACIONES (Mensajes sin leer)
+    try:
+        mensajes_nuevos = Mensaje.query.filter_by(destinatario_correo=correo_logueado, leido=0).count()
+    except Exception as e:
+        print(f"Aviso: No se pudo contar mensajes nuevos (¿Falta columna 'leido'?): {e}")
+        mensajes_nuevos = 0
+
     # Extraemos todas las tareas registradas
     tareas_db = Tarea.query.all()
     
@@ -1017,7 +1024,8 @@ def ver_tareas():
                            trabajador_perfil=perfil_real,
                            user_lat=user_lat, 
                            user_lng=user_lng,
-                           t_distancia=t_distancia)
+                           t_distancia=t_distancia,
+                           notificaciones_sin_leer=mensajes_nuevos) # 🔔 LA VARIABLE INYECTADA AQUÍ
 
 # =====================================================================
 # 🛠️ PUBLICACIÓN Y ASIGNACIÓN DE ÓRDENES - OPTIMIZADO

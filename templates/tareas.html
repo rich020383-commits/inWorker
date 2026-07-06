@@ -11,6 +11,24 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 🚀 FUENTE INTER PREMIUM INYECTADA -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
         /* Ocultar flechas en inputs numéricos */
         input[type="number"]::-webkit-inner-spin-button, 
@@ -38,8 +56,11 @@
                 </a>
                 {% endif %}
 
+                <!-- 🔔 CAMPANITA SINCRONIZADA CON BACKEND -->
                 <a href="/dashboard" class="relative group cursor-pointer">
-                    <span id="badge-mensajes-global" class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full animate-bounce shadow-sm border border-white z-10">0</span>
+                    <span id="badge-mensajes-global" class="{% if notificaciones_sin_leer and notificaciones_sin_leer > 0 %}flex{% else %}hidden{% endif %} absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4 h-4 items-center justify-center rounded-full shadow-sm border border-white z-10">
+                        {{ notificaciones_sin_leer if notificaciones_sin_leer else '0' }}
+                    </span>
                     <div class="bg-slate-50 hover:bg-blue-50 transition p-2 rounded-xl border border-slate-200 text-slate-400 group-hover:text-blue-600">
                         <i class="fas fa-bell"></i>
                     </div>
@@ -276,12 +297,11 @@
             }, 300);
         }
 
-        // Modificamos el evento onclick de los botones de publicar para usar la función animada
         document.querySelectorAll('button[onclick="document.getElementById(\\'modalPublicar\\').classList.remove(\\'hidden\\')"]').forEach(btn => {
             btn.onclick = abrirModal;
         });
 
-        // Polling de Notificaciones
+        // Polling de Notificaciones Actualizado
         let ultimoConteoMensajesIndex = 0;
         let primeraCargaIndex = true;
 
@@ -303,8 +323,10 @@
                             if (totalMensajes > 0) {
                                 badgeHTML.innerText = totalMensajes;
                                 badgeHTML.classList.remove('hidden');
+                                badgeHTML.classList.add('flex');
                             } else {
                                 badgeHTML.classList.add('hidden');
+                                badgeHTML.classList.remove('flex');
                             }
                         }
                         
