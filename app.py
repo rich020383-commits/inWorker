@@ -666,17 +666,21 @@ def home():
         else:
             flash("❌ Fondos insuficientes o cantidad de créditos inválida.", "error")
 
-    # 🔔 NUEVO: CONTEO DE NOTIFICACIONES (Mensajes sin leer)
+    # 🔔 CORRECCIÓN: CONTEO DE NOTIFICACIONES (Cruzando con la tabla Tarea para evitar errores)
     try:
-        mensajes_nuevos = Mensaje.query.filter_by(destinatario_correo=correo_logueado, leido=0).count()
+        mensajes_nuevos = db.session.query(Mensaje).join(Tarea, Mensaje.tarea_id == Tarea.id).filter(
+            db.or_(Tarea.cliente_correo == correo_logueado, Tarea.trabajador_correo == correo_logueado),
+            Mensaje.remitente_correo != correo_logueado,
+            Mensaje.leido == 0
+        ).count()
     except Exception as e:
-        print(f"Aviso: No se pudo contar mensajes nuevos (¿Falta columna 'leido'?): {e}")
+        print(f"Aviso: No se pudo contar mensajes nuevos: {e}")
         mensajes_nuevos = 0
     
     # 📊 SECCIÓN DE MÉTRICAS DEL DASHBOARD (Agregaciones optimizadas)
     total_workers = Usuario.query.filter_by(rol='Trabajador').count()
     
-    # 🚀 MAGIA AQUÍ: Filtramos las órdenes en mediación SOLO para este usuario según su rol
+    # 🚀 Filtramos las órdenes en mediación SOLO para este usuario según su rol
     rol_usuario = session.get('usuario_rol')
     if rol_usuario == 'Cliente':
         ordenes_mediacion = Tarea.query.filter_by(cliente_correo=correo_logueado).filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).count()
@@ -720,22 +724,30 @@ def home():
                            cliente_perfil=perfil_real,
                            trabajador_perfil=perfil_real,
                            lista_disputas=lista_disputas,
-                           notificaciones_sin_leer=alertas_totales) # 🔔 Pasamos la suma final al HTML
+                           notificaciones_sin_leer=alertas_totales)
 
 @app.route('/ir_al_chat_reciente')
 def ir_al_chat_reciente():
     correo = session.get('usuario_correo')
-    
-    # Buscamos el mensaje no leído más reciente
-    mensaje = Mensaje.query.filter_by(destinatario_correo=correo, leido=0)\
-                          .order_by(Mensaje.id.desc()).first()
-    
-    if mensaje:
-        # Si hay mensaje, redirigimos al chat de esa tarea
-        return redirect(url_for('chat_tarea', tarea_id=mensaje.tarea_id))
-    else:
-        # Si no hay mensajes nuevos, mandamos al tablón general
-        return redirect(url_for('ver_tareas'))
+    if not correo:
+        return redirect(url_for('login'))
+        
+    try:
+        # Busca el mensaje más reciente de una de mis tareas, que yo NO haya enviado, y sin leer
+        mensaje = db.session.query(Mensaje).join(Tarea, Mensaje.tarea_id == Tarea.id).filter(
+            db.or_(Tarea.cliente_correo == correo, Tarea.trabajador_correo == correo),
+            Mensaje.remitente_correo != correo,
+            Mensaje.leido == 0
+        ).order_by(Mensaje.id.desc()).first()
+        
+        if mensaje:
+            # 🚀 AQUÍ ESTÁ LA CORRECCIÓN: Te enviamos a 'ver_chat' que es tu ruta real
+            return redirect(url_for('ver_chat', tarea_id=mensaje.tarea_id))
+    except Exception as e:
+        print(f"❌ Error en ir_al_chat_reciente: {e}")
+        
+    # Si falla o no hay mensajes, lo mandamos al tablón
+    return redirect(url_for('ver_tareas'))
 
 @app.route('/api/optimizar_perfil', methods=['POST'])
 def api_optimizar_perfil():
@@ -1342,12 +1354,13 @@ def ver_chat(tarea_id):
             db.session.commit()
             tarea['estado'] = 'Cotización Pendiente' # Sincronizamos la variable local de control
 
-        # Marcamos como leídos los mensajes de la contraparte
-        if tarea['estado'] == 'Finalizada' or canal_sala != "Ninguno":
-            Mensaje.query.filter_by(tarea_id=tarea_id, leido=0)\
-                .filter(Mensaje.remitente_correo != correo_logueado)\
-                .update({Mensaje.leido: 1}, synchronize_session=False)
-            db.session.commit()
+        # 🔔 LIMPIEZA DE CAMPANITA: Marcamos como leídos los mensajes apenas entra a la sala
+        Mensaje.query.filter(
+            Mensaje.tarea_id == tarea_id,
+            Mensaje.remitente_correo != correo_logueado,
+            Mensaje.leido == 0
+        ).update({"leido": 1}, synchronize_session=False)
+        db.session.commit()
             
     except Exception as e:
         db.session.rollback()
