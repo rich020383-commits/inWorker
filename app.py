@@ -123,6 +123,43 @@ def enviar_bienvenida_tecnico(app_contexto, correo_destino, nombre_usuario):
         except Exception as e:
             print(f"❌ Error real en el envío del correo por SMTP: {e}")
 
+def enviar_notificacion_asignacion(app_contexto, correo_destino, nombre_tecnico, titulo_tarea):
+    """ Envía un correo premium al técnico cuando recibe una solicitud directa """
+    with app_contexto.app_context():
+        try:
+            msg = Message(
+                f'🔥 ¡Nueva Asignación en inWorker! - {titulo_tarea}',
+                recipients=[correo_destino]
+            )
+            msg.html = f"""
+            <html>
+                <body style="font-family: 'Arial', sans-serif; background-color: #f8fafc; padding: 20px;">
+                    <div style="max-w: 600px; margin: 0 auto; background: white; border-radius: 12px; padding: 30px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                        <h2 style="color: #2563eb; margin-bottom: 5px; font-weight: 900;">¡Hola, {nombre_tecnico}!</h2>
+                        <p style="color: #475569; font-size: 16px; line-height: 1.5;">Tienes una nueva asignación o solicitud de cotización esperándote en <strong>inWorker</strong>.</p>
+                        
+                        <div style="background-color: #f1f5f9; padding: 20px; border-radius: 10px; margin: 25px 0; border-left: 4px solid #2563eb;">
+                            <h3 style="color: #1e293b; margin-top: 0; margin-bottom: 5px; font-size: 18px;">{titulo_tarea}</h3>
+                            <p style="color: #64748b; margin-bottom: 0; font-size: 14px;">Un cliente te ha seleccionado directamente. Entra ahora para enviar tu cotización antes de que busque a otro especialista.</p>
+                        </div>
+                        
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="https://inworker.co/dashboard" style="display: inline-block; background-color: #2563eb; color: white; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
+                                Ir a la Sala de Negociación
+                            </a>
+                        </div>
+                        
+                        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0 20px 0;">
+                        <p style="color: #94a3b8; font-size: 11px; text-align: center;">Este es un mensaje automático del ecosistema inWorker. Por favor no respondas a este correo.</p>
+                    </div>
+                </body>
+            </html>
+            """
+            mail.send(msg)
+            print(f"📧 Alerta de asignación enviada con éxito a: {correo_destino}")
+        except Exception as e:
+            print(f"❌ Error en el envío de alerta al técnico: {e}")
+
 # ========================================================
 # 📦 REDIRECCIÓN AL DISCO PERSISTENTE SEGURO DE RENDER
 # ========================================================
@@ -1951,12 +1988,12 @@ def consultar_tecnico():
     # Filtro de seguridad controlado si no se identifica al especialista
     if not tecnico_correo:
         flash("❌ Error: No se pudo identificar al técnico para la cotización.", "error")
-        return redirect(url_for('listar_tecnicos'))
+        return redirect(url_for('listar_tecnicos'))  # Cambia 'listar_tecnicos' si tu ruta se llama distinto
     
-    # Ubicación por defecto basada en Barranquilla/Soledad si el front no la envía
-    lat = request.form.get('latitud', 10.9639)
-    lng = request.form.get('longitud', -74.7964)
-    zona = request.form.get('zona', 'Barranquilla (Privado)')
+    # 📍 NUEVA UBICACIÓN POR DEFECTO: BOGOTÁ D.C.
+    lat = request.form.get('latitud', 4.6097)
+    lng = request.form.get('longitud', -74.0817)
+    zona = request.form.get('zona', 'Bogotá (Privado)')
     
     try: 
         # 💵 Conversión exacta: $10.000 COP equivale a 1 Crédito inWorker
@@ -1984,7 +2021,17 @@ def consultar_tecnico():
         db.session.commit()  # SQLAlchemy asienta la fila e hidrata el ID del objeto
         
         id_tarea = nueva_tarea.id
-        flash("💼 Consulta privada iniciada con éxito.", "success")
+
+        # 🚀 INYECCIÓN DEL "PUNTO 2": DISPARAR EL CORREO AL TÉCNICO EN SEGUNDO PLANO
+        tecnico_data = Usuario.query.filter_by(correo=tecnico_correo).first()
+        if tecnico_data:
+            hilo_alerta = threading.Thread(
+                target=enviar_notificacion_asignacion, 
+                args=(current_app._get_current_object(), tecnico_data.correo, tecnico_data.nombre, nueva_tarea.titulo)
+            )
+            hilo_alerta.start()
+        
+        flash("💼 Consulta privada iniciada con éxito y especialista notificado.", "success")
         
     except Exception as e:
         db.session.rollback()
