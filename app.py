@@ -665,6 +665,13 @@ def home():
                 flash("❌ Ocurrió un error al procesar tu transacción. Fondos protegidos.", "error")
         else:
             flash("❌ Fondos insuficientes o cantidad de créditos inválida.", "error")
+
+    # 🔔 NUEVO: CONTEO DE NOTIFICACIONES (Mensajes sin leer)
+    try:
+        mensajes_nuevos = Mensaje.query.filter_by(destinatario_correo=correo_logueado, leido=0).count()
+    except Exception as e:
+        print(f"Aviso: No se pudo contar mensajes nuevos (¿Falta columna 'leido'?): {e}")
+        mensajes_nuevos = 0
     
     # 📊 SECCIÓN DE MÉTRICAS DEL DASHBOARD (Agregaciones optimizadas)
     total_workers = Usuario.query.filter_by(rol='Trabajador').count()
@@ -704,7 +711,8 @@ def home():
                            saldo_usuario=saldo_real,
                            cliente_perfil=perfil_real,
                            trabajador_perfil=perfil_real,
-                           lista_disputas=lista_disputas)
+                           lista_disputas=lista_disputas,
+                           notificaciones_sin_leer=mensajes_nuevos) # 🔔 NUEVO: Pasamos la variable al HTML
 
 @app.route('/api/optimizar_perfil', methods=['POST'])
 def api_optimizar_perfil():

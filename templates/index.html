@@ -10,7 +10,9 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+    
+    <!-- FUENTE INTER PREMIUM INYECTADA Y ACTIVA -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
 
@@ -82,6 +84,19 @@
             </div>
 
             <div class="flex items-center space-x-4">
+                
+                <!-- 🔔 INICIO DE LA CAMPANITA DE NOTIFICACIONES -->
+                <a href="#" class="relative p-2 text-slate-400 hover:text-blue-600 transition flex items-center justify-center mr-1">
+                    <i class="fas fa-bell text-xl"></i>
+                    
+                    {% if notificaciones_sin_leer and notificaciones_sin_leer > 0 %}
+                    <span class="absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-[9px] font-black text-white bg-rose-500 rounded-full border-2 border-white transform translate-x-1/4 -translate-y-1/4 shadow-sm shadow-rose-500/30">
+                        {{ notificaciones_sin_leer }}
+                    </span>
+                    {% endif %}
+                </a>
+                <!-- 🔔 FIN DE LA CAMPANITA -->
+
                 <div class="hidden md:flex flex-col text-right">
                     <span class="text-xs text-slate-500 font-medium">Hola, <strong class="text-slate-900">{{ nombre_usuario | default('Usuario') }}</strong></span>
                     <span class="text-[9px] font-black uppercase tracking-wider text-blue-600">{{ session['usuario_role'] if 'usuario_role' in session else session['usuario_rol'] }}</span>
@@ -309,22 +324,17 @@
 
             setTimeout(() => { nuevaFila.classList.remove("opacity-0", "-translate-y-2"); }, 50);
 
-            // Remover el último elemento si excede la capacidad visual de la caja
-            // Si el contenedor tiene h-40, con 4-5 elementos es suficiente
             if (feed.children.length > 4) {
                 const ultimo = feed.lastChild;
                 ultimo.classList.add("opacity-0", "translate-y-2");
-                // Le damos tiempo a la animación CSS antes de borrarlo del DOM
                 setTimeout(() => ultimo.remove(), 500);
             }
         }
 
-        // Iniciar feed con 2 eventos y luego rotar cada 7 segundos
         rotarFeedActividad();
         setTimeout(rotarFeedActividad, 500);
         setInterval(rotarFeedActividad, 7000);
 
-        // Control del Modal
         function abrirModalRetiro() { document.getElementById('modalRetiro')?.classList.remove('hidden'); }
         function cerrarModalRetiro() { document.getElementById('modalRetiro')?.classList.add('hidden'); }
     </script>
