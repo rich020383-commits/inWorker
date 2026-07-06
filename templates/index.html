@@ -86,15 +86,14 @@
             <div class="flex items-center space-x-4">
                 
                 <!-- 🔔 INICIO DE LA CAMPANITA DE NOTIFICACIONES -->
-                <a href="#" class="relative p-2 text-slate-400 hover:text-blue-600 transition flex items-center justify-center mr-1">
-                    <i class="fas fa-bell text-xl"></i>
-                    
-                    {% if notificaciones_sin_leer and notificaciones_sin_leer > 0 %}
-                    <span class="absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-[9px] font-black text-white bg-rose-500 rounded-full border-2 border-white transform translate-x-1/4 -translate-y-1/4 shadow-sm shadow-rose-500/30">
-                        {{ notificaciones_sin_leer }}
-                    </span>
-                    {% endif %}
-                </a>
+                <a href="{{ url_for('ir_al_chat_reciente') }}" class="relative group cursor-pointer">
+    <span id="badge-mensajes-global" class="{% if notificaciones_sin_leer and notificaciones_sin_leer > 0 %}flex{% else %}hidden{% endif %} absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4 h-4 items-center justify-center rounded-full shadow-sm border border-white z-10">
+        {{ notificaciones_sin_leer }}
+    </span>
+    <div class="bg-slate-50 hover:bg-blue-50 transition p-2 rounded-xl border border-slate-200 text-slate-400 group-hover:text-blue-600">
+        <i class="fas fa-bell"></i>
+    </div>
+</a>
                 <!-- 🔔 FIN DE LA CAMPANITA -->
 
                 <div class="hidden md:flex flex-col text-right">

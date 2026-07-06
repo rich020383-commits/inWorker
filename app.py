@@ -722,6 +722,21 @@ def home():
                            lista_disputas=lista_disputas,
                            notificaciones_sin_leer=alertas_totales) # 🔔 Pasamos la suma final al HTML
 
+@app.route('/ir_al_chat_reciente')
+def ir_al_chat_reciente():
+    correo = session.get('usuario_correo')
+    
+    # Buscamos el mensaje no leído más reciente
+    mensaje = Mensaje.query.filter_by(destinatario_correo=correo, leido=0)\
+                          .order_by(Mensaje.id.desc()).first()
+    
+    if mensaje:
+        # Si hay mensaje, redirigimos al chat de esa tarea
+        return redirect(url_for('chat_tarea', tarea_id=mensaje.tarea_id))
+    else:
+        # Si no hay mensajes nuevos, mandamos al tablón general
+        return redirect(url_for('ver_tareas'))
+
 @app.route('/api/optimizar_perfil', methods=['POST'])
 def api_optimizar_perfil():
     if 'usuario_correo' not in session:
