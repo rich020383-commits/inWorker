@@ -676,8 +676,16 @@ def home():
     # 📊 SECCIÓN DE MÉTRICAS DEL DASHBOARD (Agregaciones optimizadas)
     total_workers = Usuario.query.filter_by(rol='Trabajador').count()
     
-    ordenes_mediacion = Tarea.query.filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).count()
+    # 🚀 MAGIA AQUÍ: Filtramos las órdenes en mediación SOLO para este usuario según su rol
+    rol_usuario = session.get('usuario_rol')
+    if rol_usuario == 'Cliente':
+        ordenes_mediacion = Tarea.query.filter_by(cliente_correo=correo_logueado).filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).count()
+    else:
+        ordenes_mediacion = Tarea.query.filter_by(trabajador_correo=correo_logueado).filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).count()
     
+    # 🚀 SUMA TOTAL PARA LA CAMPANITA (Mensajes + Órdenes pendientes)
+    alertas_totales = mensajes_nuevos + ordenes_mediacion
+
     # Suma limpia de fondos en Escrow (Maneja si es None devolviendo 0.0)
     fondos_escrow = db.session.query(db.func.sum(db.func.cast(Tarea.pago, db.Float)))\
         .filter(Tarea.estado == 'En Garantia').scalar() or 0.0
@@ -712,7 +720,7 @@ def home():
                            cliente_perfil=perfil_real,
                            trabajador_perfil=perfil_real,
                            lista_disputas=lista_disputas,
-                           notificaciones_sin_leer=mensajes_nuevos) # 🔔 NUEVO: Pasamos la variable al HTML
+                           notificaciones_sin_leer=alertas_totales) # 🔔 Pasamos la suma final al HTML
 
 @app.route('/api/optimizar_perfil', methods=['POST'])
 def api_optimizar_perfil():
