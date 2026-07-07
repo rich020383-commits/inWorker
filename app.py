@@ -2081,9 +2081,8 @@ def webhook_nequi():
             return jsonify({"status": "error", "message": "Error interno al asentar el pago"}), 500
             
     return jsonify({"status": "failed", "message": "Pago rechazado o pendiente"}), 200
-
 # =====================================================================
-# ⚖️ ENDPOINT DE ARBITRAJE DE DISPUTAS CON IA (FASE 1.1 - OPTIMIZADO)
+# ⚖️ ENDPOINT DE ARBITRAJE DE DISPUTAS CON IA (FASE 1.1 - BLINDADO)
 # =====================================================================
 @app.route('/admin/disputa/<int:tarea_id>')
 def analizar_disputa_admin(tarea_id):
@@ -2091,36 +2090,31 @@ def analizar_disputa_admin(tarea_id):
     if 'usuario_correo' not in session or session.get('usuario_rol') != 'Admin':
         return jsonify({"error": "Acceso denegado. Se requieren permisos de administrador."}), 403
         
-    conexion = sqlite3.connect(ruta_db)
-    conexion.row_factory = sqlite3.Row
-    cursor = conexion.cursor()
-    
-    # 1. Traer los datos de la tarea
-    cursor.execute("SELECT * FROM tareas WHERE id = ?", (tarea_id,))
-    tarea = cursor.fetchone()
+    # 1. Usar SQLAlchemy en lugar de sqlite3 crudo para no bloquear el disco en Render
+    tarea = Tarea.query.get(tarea_id)
     
     if not tarea:
-        conexion.close()
         return jsonify({"error": "La tarea no existe"}), 404
         
     # 2. Traer el historial de mensajes del chat de esa tarea
-    cursor.execute("""
-        SELECT remitente_correo, mensaje, fecha_envio 
-        FROM mensajes 
-        WHERE tarea_id = ? 
-        ORDER BY id ASC
-    """, (tarea_id,))
-    mensajes = [dict(row) for row in cursor.fetchall()]
-    conexion.close()
+    mensajes_db = Mensaje.query.filter_by(tarea_id=tarea_id).order_by(Mensaje.id.asc()).all()
+    mensajes = [{"remitente_correo": m.remitente_correo, "mensaje": m.mensaje, "fecha_envio": m.fecha_envio} for m in mensajes_db]
     
     if not mensajes:
         return jsonify({"error": "No hay mensajes en el chat de esta tarea para analizar."}), 400
         
     # Importamos el módulo e invocamos a Gemini
     from disputas_ia import analizar_disputa_chat
-    reporte_ia = analizar_disputa_chat(mensajes, dict(tarea))
     
-    # ✨ FORMATEO FORENSE INTEGRADO: Transforma el diccionario a texto limpio para tu frontend
+    # Armamos el diccionario para la IA
+    tarea_dict = {
+        "id": tarea.id, "titulo": tarea.titulo, "estado": tarea.estado, 
+        "cliente_correo": tarea.cliente_correo, "trabajador_correo": tarea.trabajador_correo
+    }
+    
+    reporte_ia = analizar_disputa_chat(mensajes, tarea_dict)
+    
+    # ✨ FORMATEO FORENSE INTEGRADO
     texto_analisis = (
         f"🤖 VEREDICTO RECOMENDADO: {reporte_ia.get('veredicto_sugerido', 'REVISIÓN_MANUAL')}\n"
         f"📊 Propuesta de Distribución:\n"
@@ -2130,17 +2124,16 @@ def analizar_disputa_admin(tarea_id):
         f"{reporte_ia.get('justificacion', 'Sin observaciones adicionales por el motor.')}"
     )
         
-    # Retorna el JSON estructurado exactamente como lo espera tu index.html
     return jsonify({
         "success": True,
         "tarea_id": tarea_id,
-        "titulo_tarea": tarea['titulo'],
-        "estado_actual": tarea['estado'],
-        "analisis_ia": texto_analisis # 👈 Cadena formateada para inyección limpia
+        "titulo_tarea": tarea.titulo,
+        "estado_actual": tarea.estado,
+        "analisis_ia": texto_analisis
     })
 
 # =====================================================================
-# ⚖️ RESOLUCIÓN MANUAL DE DISPUTAS (ARBITRAJE ADMINISTRATIVO) - OPTIMIZADO
+# ⚖️ RESOLUCIÓN MANUAL DE DISPUTAS (ARBITRAJE ADMINISTRATIVO) - BLINDADO
 # =====================================================================
 @app.route('/admin/resolver_disputa/<int:tarea_id>', methods=['POST'])
 def admin_resolver_disputa(tarea_id):
@@ -2162,38 +2155,32 @@ def admin_resolver_disputa(tarea_id):
         creditos = float(tarea.costo_creditos or 0.0)
         mensaje_flash = ""
 
-        # 2. Ejecución del veredicto manual según la opción seleccionada en el Dashboard
+        # 2. Ejecución del veredicto manual según la opción seleccionada
         if resolucion == 'reembolso_total':
-            # 100% de vuelta al balance del Cliente (Incumplimiento del técnico)
+            # 100% de vuelta al balance del Cliente
             cliente_user = Usuario.query.filter_by(correo=tarea.cliente_correo).first()
             if cliente_user:
-                saldo_actual = cliente_user.saldo_creditos or 0.0
-                cliente_user.saldo_creditos = round(saldo_actual + creditos, 2)
+                cliente_user.saldo_creditos = round((cliente_user.saldo_creditos or 0.0) + creditos, 2)
             mensaje_flash = f"⚖️ Arbitraje finalizado: Se reembolsaron {creditos:,.1f} Cr al Cliente exitosamente."
             
         elif resolucion == 'pago_total':
-            # 100% liberado al Especialista/Trabajador (Labor completada correctamente)
-            tecnico_user = Usuario.query.filter_by(correo=tarea.tecnico_correo).first()
+            # 100% liberado al Especialista/Trabajador (CORRECCIÓN AQUÍ: era trabajador_correo)
+            tecnico_user = Usuario.query.filter_by(correo=tarea.trabajador_correo).first()
             if tecnico_user:
-                saldo_actual = tecnico_user.saldo_creditos or 0.0
-                tecnico_user.saldo_creditos = round(saldo_actual + creditos, 2)
+                tecnico_user.saldo_creditos = round((tecnico_user.saldo_creditos or 0.0) + creditos, 2)
             mensaje_flash = f"⚖️ Arbitraje finalizado: Se liberaron {creditos:,.1f} Cr al Especialista exitosamente."
             
         elif resolucion == 'mitad_mitad':
             # División salomónica 50% / 50%
             mitad = round(creditos / 2, 2)
             
-            # Abono seguro al cliente
             cliente_user = Usuario.query.filter_by(correo=tarea.cliente_correo).first()
             if cliente_user:
-                saldo_cli = cliente_user.saldo_creditos or 0.0
-                cliente_user.saldo_creditos = round(saldo_cli + mitad, 2)
+                cliente_user.saldo_creditos = round((cliente_user.saldo_creditos or 0.0) + mitad, 2)
                 
-            # Abono seguro al especialista
-            tecnico_user = Usuario.query.filter_by(correo=tarea.tecnico_correo).first()
+            tecnico_user = Usuario.query.filter_by(correo=tarea.trabajador_correo).first()
             if tecnico_user:
-                saldo_tec = tecnico_user.saldo_creditos or 0.0
-                tecnico_user.saldo_creditos = round(saldo_tec + mitad, 2)
+                tecnico_user.saldo_creditos = round((tecnico_user.saldo_creditos or 0.0) + mitad, 2)
                 
             mensaje_flash = f"⚖️ Arbitraje finalizado: Fondos divididos equitativamente ({mitad:,.1f} Cr para cada uno)."
             
@@ -2201,17 +2188,17 @@ def admin_resolver_disputa(tarea_id):
             flash("❌ Tipo de resolución inválida en el formulario.", "error")
             return redirect(url_for('home'))
 
-        # 3. Sacamos la tarea de la sección de arbitraje pasándola a estado 'Finalizada'
+        # 3. Sacamos la tarea de la sección de arbitraje
         tarea.estado = 'Finalizada'
         
-        # ⚡ Un solo commit asienta toda la resolución y los movimientos monetarios de forma segura en disco
+        # ⚡ Un solo commit asienta toda la resolución
         db.session.commit()
         flash(mensaje_flash, "success")
         
     except Exception as e:
         db.session.rollback()
         print(f"❌ Error crítico en resolución de disputa para tarea #{tarea_id}: {e}")
-        flash("❌ Ocurrió un error crítico interno al ejecutar la sentencia del arbitraje.", "error")
+        flash("❌ Ocurrió un error interno al ejecutar el arbitraje.", "error")
 
     return redirect(url_for('home'))
 
