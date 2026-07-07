@@ -724,8 +724,8 @@ def home():
     else:
         ordenes_mediacion = Tarea.query.filter_by(trabajador_correo=correo_logueado).filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).count()
     
-    # 🚀 SUMA TOTAL PARA LA CAMPANITA (Mensajes + Órdenes pendientes)
-    alertas_totales = mensajes_nuevos + ordenes_mediacion
+    # 🚀 SUMA TOTAL PARA LA CAMPANITA (Solo mensajes nuevos)
+    alertas_totales = mensajes_nuevos
 
     # Suma limpia de fondos en Escrow (Maneja si es None devolviendo 0.0)
     fondos_escrow = db.session.query(db.func.sum(db.func.cast(Tarea.pago, db.Float)))\
