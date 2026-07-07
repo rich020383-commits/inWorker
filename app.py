@@ -731,7 +731,7 @@ def home():
     fondos_escrow = db.session.query(db.func.sum(db.func.cast(Tarea.pago, db.Float)))\
         .filter(Tarea.estado == 'En Garantia').scalar() or 0.0
     
-    # 💰 CONSULTA REAL DE BALDO EN BASE DE DATOS
+    # 💰 CONSULTA REAL DE SALDO EN BASE DE DATOS Y EXTRACCIÓN DE PERFIL
     usuario_info = Usuario.query.filter_by(correo=correo_logueado).first()
     saldo_real = round(usuario_info.saldo_creditos, 2) if usuario_info else 0.0
     
@@ -761,7 +761,8 @@ def home():
                            cliente_perfil=perfil_real,
                            trabajador_perfil=perfil_real,
                            lista_disputas=lista_disputas,
-                           notificaciones_sin_leer=alertas_totales)
+                           notificaciones_sin_leer=alertas_totales,
+                           usuario=usuario_info) # 🪪 INYECTAMOS EL PERFIL AQUÍ PARA LA TARJETA
 
 @app.route('/ir_al_chat_reciente')
 def ir_al_chat_reciente():

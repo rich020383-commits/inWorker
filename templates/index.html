@@ -222,6 +222,61 @@ function analizarConIA(tareaId) {
 </script>
 {% endif %}
 
+<!-- ========================================== -->
+        <!-- 🪪 TARJETA DE PRESENTACIÓN (VISTA PREVIA DEL TÉCNICO) -->
+        <!-- ========================================== -->
+        {% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 mb-6 relative overflow-hidden group">
+            <!-- Fondo decorativo sutil -->
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10 opacity-50 group-hover:scale-110 transition-transform duration-500"></div>
+            
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 z-10">
+                <div class="flex items-center gap-5 w-full md:w-auto">
+                    <!-- Foto de Perfil Circular -->
+                    <div class="relative">
+                        {% if usuario and usuario.foto %}
+                            <img src="{{ url_for('static', filename='uploads/' + usuario.foto) }}" alt="Foto de perfil" class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md">
+                        {% else %}
+                            <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-100 to-indigo-50 flex items-center justify-center text-blue-600 font-black text-2xl border-4 border-white shadow-md">
+                                {{ session['usuario_nombre'][0]|upper if session['usuario_nombre'] else 'U' }}
+                            </div>
+                        {% endif %}
+                        <!-- Badge de Verificado -->
+                        {% if usuario and usuario.verificado == 1 %}
+                            <div class="absolute bottom-0 right-0 bg-emerald-500 text-white p-1 rounded-full border-2 border-white shadow-sm" title="Identidad Validada">
+                                <i class="fas fa-check-circle text-xs"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Información como la ve el cliente -->
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h2 class="text-lg font-black text-slate-900 tracking-tight">{{ session['usuario_nombre'] }}</h2>
+                            <span class="bg-blue-100 text-blue-700 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md">
+                                Nivel Pro
+                            </span>
+                        </div>
+                        <p class="text-sm font-bold text-slate-600 mb-1">
+                            {{ usuario.profesion if usuario and usuario.profesion else 'Técnico Especialista' }}
+                        </p>
+                        <p class="text-xs text-slate-500 italic line-clamp-2 max-w-lg">
+                            "{{ usuario.descripcion if usuario and usuario.descripcion else 'Aún no has configurado tu texto de venta. Los clientes confían más en perfiles con una buena descripción.' }}"
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Botón de Acción Directa -->
+                <div class="w-full md:w-auto flex-shrink-0">
+                    <a href="{{ url_for('ver_perfil') }}" class="w-full md:w-auto flex items-center justify-center gap-2 bg-slate-900 hover:bg-blue-600 text-white font-bold py-2.5 px-6 rounded-xl transition-colors shadow-sm text-xs uppercase tracking-wide">
+                        <i class="fas fa-pen-fancy"></i>
+                        Optimizar Perfil
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between group hover:border-emerald-300 transition-colors">
                 <div>
