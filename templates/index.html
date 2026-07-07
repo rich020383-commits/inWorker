@@ -261,8 +261,8 @@ function analizarConIA(tareaId) {
                             {{ usuario.profesion if usuario and usuario.profesion else 'Técnico Especialista' }}
                         </p>
                         <p class="text-xs text-slate-500 italic line-clamp-2 max-w-lg">
-                            "{{ usuario.descripcion if usuario and usuario.descripcion else 'Aún no has configurado tu texto de venta. Los clientes confían más en perfiles con una buena descripción.' }}"
-                        </p>
+    "{{ usuario.descripcion if usuario.descripcion and usuario.descripcion != 'Sin especificar' and usuario.descripcion != '' else (usuario.habilidades if usuario.habilidades and usuario.habilidades != 'Sin especificar' and usuario.habilidades != '' else 'Aún no has configurado tu resumen profesional. Optimízalo en tu perfil para atraer más clientes.') }}"
+</p>
                     </div>
                 </div>
 
