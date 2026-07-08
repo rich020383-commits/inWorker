@@ -253,16 +253,18 @@
                                     </div>
                                     
                                     <div class="text-3xl font-black text-slate-800 mb-2">
-                                        ${{ "{:,.0f}".format(msg.monto_pesos|float if msg.monto_pesos else msg.cotizacion_pesos|float) }} <span class="text-xs font-medium text-slate-400">COP</span>
+                                        ${{ "{:,.0f}".format(msg.monto_pesos|float if msg.monto_pesos else msg.mensaje.split('|')[0]|float) }} <span class="text-xs font-medium text-slate-400">COP</span>
                                     </div>
-                                    <p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 mb-4">{{ msg.cotizacion_concepto }}</p>
+                                    <p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 mb-4">
+                                        {{ msg.cotizacion_concepto if msg.cotizacion_concepto else msg.mensaje.split('|')[1] }}
+                                    </p>
 
                                     {% if msg.tipo == 'cotizacion_pendiente' %}
                                         {% if session['usuario_correo'] == tarea.cliente_correo %}
                                         <form action="/chat/{{ tarea.id }}/responder_cotizacion/{{ msg.id }}" method="POST" class="flex flex-col sm:flex-row gap-2">
                                             <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
-                                            <button type="submit" name="accion" value="Aceptar" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs transition">
-                                                Aceptar y Pagar
+                                            <button type="submit" name="accion" value="Aceptar" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs transition shadow-sm active:scale-95">
+                                                <i class="fas fa-check mr-1"></i> Aceptar y Pagar
                                             </button>
                                             <button type="submit" name="accion" value="Rechazar" class="bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 font-bold px-4 py-2 rounded-xl text-xs transition">
                                                 Rechazar
@@ -270,15 +272,44 @@
                                         </form>
                                         {% else %}
                                         <div class="bg-purple-50 text-purple-600 text-xs font-bold py-2 rounded-xl animate-pulse">
-                                            Esperando al cliente...
+                                            <i class="fas fa-clock mr-1"></i> Esperando al cliente...
                                         </div>
                                         {% endif %}
+                                    
                                     {% elif msg.tipo == 'cotizacion_aceptada' %}
-                                        <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold py-2 rounded-xl flex justify-center items-center">
-                                            <i class="fas fa-lock mr-1.5"></i> Pago Asegurado
+                                        <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold py-2 rounded-xl flex justify-center items-center mb-3">
+                                            <i class="fas fa-lock mr-1.5"></i> Pago Asegurado en Garantía
                                         </div>
+                                        
+                                        {% if tarea.estado != 'Finalizada' %}
+                                            <div class="border-t border-slate-100 pt-3 mt-2">
+                                                {% if session['usuario_rol'] in ['Worker', 'Trabajador'] %}
+                                                    <form action="/chat/{{ tarea.id }}/solicitar_liberacion" method="POST">
+                                                        <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
+                                                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 rounded-xl text-[10px] uppercase tracking-wider transition shadow-md active:scale-95 flex items-center justify-center">
+                                                            <i class="fas fa-flag-checkered mr-2"></i> Entregar Trabajo
+                                                        </button>
+                                                    </form>
+                                                    <p class="text-[9px] text-slate-400 mt-1.5 leading-tight">Haz clic aquí al terminar el servicio para solicitar tus fondos.</p>
+                                                
+                                                {% elif session['usuario_correo'] == tarea.cliente_correo %}
+                                                    <form action="/chat/{{ tarea.id }}/liberar_fondos" method="POST">
+                                                        <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
+                                                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-[10px] uppercase tracking-wider transition shadow-md active:scale-95 flex items-center justify-center">
+                                                            <i class="fas fa-hand-holding-dollar mr-2"></i> Liberar Fondos al Técnico
+                                                        </button>
+                                                    </form>
+                                                    <p class="text-[9px] text-slate-400 mt-1.5 leading-tight">Solo presiona aquí si el técnico ya terminó y estás 100% satisfecho.</p>
+                                                {% endif %}
+                                            </div>
+                                        {% else %}
+                                            <div class="bg-blue-50 text-blue-600 text-[10px] font-black py-2 rounded-xl flex justify-center items-center uppercase tracking-wider mt-3 border border-blue-100">
+                                                <i class="fas fa-check-double mr-1.5"></i> Servicio Pagado
+                                            </div>
+                                        {% endif %}
+
                                     {% else %}
-                                        <div class="bg-slate-50 text-slate-400 text-xs font-bold py-2 rounded-xl">Cotización Cancelada</div>
+                                        <div class="bg-slate-50 text-slate-400 text-xs font-bold py-2 rounded-xl">Cotización Declinada</div>
                                     {% endif %}
                                 </div>
                                 <span class="text-[9px] font-medium text-slate-400 mt-1.5">{{ msg.fecha_envio }}</span>

@@ -6,6 +6,8 @@
     <title>Procesar Pago - inWorker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://checkout.bold.co/v2/scripts/widget.js"></script>
 </head>
 <body class="bg-slate-50 flex items-center justify-center min-h-screen p-4">
 
@@ -40,21 +42,33 @@
         </div>
     </div>
 
-    <script src="https://checkout.bold.co/v2/scripts/widget.js"></script>
     <script>
         document.getElementById('btn-pagar-bold').addEventListener('click', function() {
-            const checkout = new BoldCheckout({
-                orderId: "{{ referencia_pago }}",
-                currency: "COP",
-                amount: "{{ monto_pesos }}",
-                apiKey: "{{ bold_public_key }}",
-                integritySignature: "{{ firma_integridad }}", /* 🔐 ESTO DESCONGELA EL WIDGET */
-                redirectionUrl: "https://inworker.co/dashboard", 
-                description: "Recarga de {{ creditos }} créditos en inWorker",
-                payerEmail: "{{ usuario.correo }}",
-                payerName: "{{ usuario.nombre }}"
-            });
-            checkout.open();
+            // Verificamos si algún AdBlocker tumbó a Bold
+            if (typeof BoldCheckout === 'undefined') {
+                alert("¡Ups! El sistema de pagos fue bloqueado. Por favor, desactiva tu bloqueador de anuncios (AdBlock, Brave Shields) o intenta desde otra ventana.");
+                return;
+            }
+
+            try {
+                const checkout = new BoldCheckout({
+                    orderId: "{{ referencia_pago }}",
+                    currency: "COP",
+                    amount: "{{ monto_pesos }}",
+                    apiKey: "{{ bold_public_key }}",
+                    integritySignature: "{{ firma_integridad }}",
+                    redirectionUrl: "https://inworker.co/dashboard", 
+                    description: "Recarga de {{ creditos }} créditos en inWorker",
+                    payerEmail: "{{ usuario.correo }}",
+                    payerName: "{{ usuario.nombre }}"
+                });
+                
+                checkout.open();
+                
+            } catch (error) {
+                console.error("Error al abrir BoldCheckout:", error);
+                alert("Ocurrió un error de conexión con el banco. Recarga la página.");
+            }
         });
     </script>
 </body>

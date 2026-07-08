@@ -1751,8 +1751,10 @@ def responder_cotizacion(tarea_id, mensaje_id):
         # Parseamos la cadena con formato estructurado (monto|concepto)
         partes = msg_cotizacion.mensaje.split('|')
         monto_pesos = float(partes[0])
-        # 💵 Conversión matemática exacta usando la constante comercial ($10.000 COP)
-        monto_creditos_flotante = round(monto_pesos / VALOR_CREDITO_COP, 2)
+        
+        # 💵 Conversión matemática exacta basada en tu regla de oro: 1 Crédito = $10.000 COP
+        monto_creditos_flotante = round(monto_pesos / 10000, 2)
+        
     except Exception as e:
         print(f"⚠️ Error de formato en cotización #{mensaje_id}: {e}")
         flash("❌ Formato económico incorrecto.", "error")
@@ -1763,13 +1765,12 @@ def responder_cotizacion(tarea_id, mensaje_id):
             cliente = Usuario.query.filter_by(correo=correo_logueado).first()
             saldo_cliente = cliente.saldo_creditos if cliente else 0.0
             
-            # 🛡️ CONTROL FINANCIERO ANTI-FRAUDE Y PUENTE DE RECARGA
+            # 🛡️ CONTROL FINANCIERO: Si no le alcanza, lo mandamos directo a recargar con Bold
             if saldo_cliente < monto_creditos_flotante:
-                # Usamos una categoría especial 'insuficiente' para que el frontend pueda disparar un pop-up de pago
-                flash(f"Saldo insuficiente. Necesitas {monto_creditos_flotante} Cr (${monto_pesos:,.0f} COP) para asegurar este contrato.", "insuficiente")
-                return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
+                flash(f"Saldo insuficiente. Esta labor requiere {monto_creditos_flotante} Créditos (${monto_pesos:,.0f} COP). ¡Recarga de forma segura aquí!", "error")
+                return redirect(url_for('recargar_billetera'))
                 
-            # 💵 Retención segura y descuento de saldo del cliente
+            # 💵 Retención segura en el fondo de garantía (Escrow) de inWorker
             cliente.saldo_creditos = round(saldo_cliente - monto_creditos_flotante, 2)
             
             trabajador = Usuario.query.filter_by(correo=msg_cotizacion.remitente_correo).first()
@@ -1785,13 +1786,14 @@ def responder_cotizacion(tarea_id, mensaje_id):
                 tarea_obj.confirmacion_cliente = 0
                 tarea_obj.confirmacion_trabajador = 0
             
-            # 🚨 CORRECCIÓN: Sincronización exacta con el HTML
+            # 🚨 Sincronización de estados en los mensajes del chat
             msg_cotizacion.tipo = 'cotizacion_aceptada'  
             
+            # Declinamos las demás ofertas que estén pendientes en este mismo chat
             Mensaje.query.filter_by(tarea_id=tarea_id, tipo='cotizacion_pendiente')\
                          .update({Mensaje.tipo: 'cotizacion_declinada'}, synchronize_session=False)
             
-            # 📢 INYECCIÓN DE MENSAJE DEL SISTEMA EN EL CHAT
+            # 📢 Inyección del mensaje automático del sistema
             mensaje_sistema = Mensaje(
                 tarea_id=tarea_id,
                 canal_trabajador=canal_sala,
@@ -1803,13 +1805,21 @@ def responder_cotizacion(tarea_id, mensaje_id):
             
             db.session.commit()
             
+            # Sincronizamos las variables globales de sesión para actualizar la interfaz al instante
+            session['saldo'] = cliente.saldo_creditos
             session['usuario_creditos'] = cliente.saldo_creditos
             flash("✔ ¡Propuesta aceptada! El depósito de garantía se encuentra congelado de manera segura.", "success")
 
         elif accion == 'Rechazar':
             msg_cotizacion.tipo = 'cotizacion_declinada'
+            
+            # Si se rechaza la cotización, la tarea vuelve a estar abierta para recibir otras ofertas
+            tarea_obj = Tarea.query.get(tarea_id)
+            if tarea_obj:
+                tarea_obj.estado = 'Abierta'
+                
             db.session.commit()
-            flash("❌ Oferta declinada correctamente.", "error")
+            flash("❌ Oferta declinada correctamente. El chat sigue abierto para más cotizaciones.", "error")
             
     except Exception as e:
         db.session.rollback()
@@ -2127,6 +2137,92 @@ def webhook_bold():
         db.session.rollback()
         print(f"❌ Error crítico procesando Webhook de Bold: {e}")
         return jsonify({"status": "error", "message": "Error interno del servidor"}), 500
+
+# =====================================================================
+# 🏁 TRABAJADOR: ENTREGAR TRABAJO Y SOLICITAR PAGO
+# =====================================================================
+@app.route('/chat/<int:tarea_id>/solicitar_liberacion', methods=['POST'])
+def solicitar_liberacion(tarea_id):
+    if 'usuario_correo' not in session:
+        return redirect(url_for('login'))
+        
+    canal_sala = request.form.get('canal_actual')
+    correo_logueado = session['usuario_correo']
+    
+    try:
+        # Inyectamos un mensaje en el chat avisando al cliente
+        mensaje_sistema = Mensaje(
+            tarea_id=tarea_id,
+            canal_trabajador=canal_sala,
+            remitente_correo=correo_logueado,
+            mensaje="🛎️ HE TERMINADO: El técnico ha marcado este servicio como 'Entregado'. Cliente, por favor revisa el trabajo y si todo está correcto, libera los fondos.",
+            tipo='sistema'
+        )
+        db.session.add(mensaje_sistema)
+        db.session.commit()
+        
+        flash("✅ Has notificado al cliente que el trabajo está terminado. Espera la liberación de fondos.", "success")
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error al solicitar liberación: {e}")
+        flash("❌ Error interno al enviar la notificación.", "error")
+        
+    return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
+
+# =====================================================================
+# 💸 CLIENTE: LIBERAR FONDOS AL TRABAJADOR (CIERRE DE CICLO)
+# =====================================================================
+@app.route('/chat/<int:tarea_id>/liberar_fondos', methods=['POST'])
+def liberar_fondos(tarea_id):
+    if 'usuario_correo' not in session:
+        return redirect(url_for('login'))
+        
+    canal_sala = request.form.get('canal_actual')
+    
+    try:
+        tarea = Tarea.query.get_or_404(tarea_id)
+        
+        # Validamos que esté en garantía y tenga un técnico asignado
+        if tarea.estado != 'En Garantia' or not tarea.trabajador_correo:
+            flash("❌ Esta orden no está en garantía o no tiene un trabajador asignado.", "error")
+            return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
+            
+        # Buscamos al trabajador para pagarle
+        trabajador = Usuario.query.filter_by(correo=tarea.trabajador_correo).first()
+        if no trabajador:
+            flash("❌ Error: No se encontró la cuenta del técnico.", "error")
+            return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
+            
+        # 💰 TRANSFERENCIA DE CRÉDITOS
+        costo_servicio = tarea.costo_creditos or 0.0
+        saldo_tecnico_actual = trabajador.saldo_creditos or 0.0
+        
+        # Le sumamos los créditos a la billetera del técnico
+        trabajador.saldo_creditos = round(saldo_tecnico_actual + costo_servicio, 2)
+        
+        # Cambiamos el estado de la tarea a Finalizada
+        tarea.estado = 'Finalizada'
+        
+        # Inyectamos el mensaje final de victoria
+        mensaje_sistema = Mensaje(
+            tarea_id=tarea_id,
+            canal_trabajador=canal_sala,
+            remitente_correo='sistema@inworker.co',
+            mensaje=f"🎉 ¡TRABAJO FINALIZADO! El cliente ha liberado los fondos exitosamente. Se han transferido {costo_servicio} Créditos a la billetera del técnico.",
+            tipo='sistema'
+        )
+        db.session.add(mensaje_sistema)
+        
+        db.session.commit()
+        flash("🎉 ¡Fondos liberados con éxito! Gracias por usar inWorker.", "success")
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error crítico al liberar fondos: {e}")
+        flash("❌ Ocurrió un error al procesar el pago al técnico.", "error")
+        
+    return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
 
 # =====================================================================
 # ⚖️ ENDPOINT DE ARBITRAJE DE DISPUTAS CON IA (FASE 1.1 - BLINDADO)
