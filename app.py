@@ -2190,7 +2190,7 @@ def liberar_fondos(tarea_id):
             
         # Buscamos al trabajador para pagarle
         trabajador = Usuario.query.filter_by(correo=tarea.trabajador_correo).first()
-        if no trabajador:
+        if not trabajador:
             flash("❌ Error: No se encontró la cuenta del técnico.", "error")
             return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
             
