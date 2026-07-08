@@ -182,12 +182,29 @@
                     <div class="md:col-span-2 pt-2">
                         <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Profesión u Oficio Destacado</label>
                         <select id="field-profesion" name="profesion" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition cursor-pointer">
-                            <option value="Soporte Técnico" {% if usuario['profesion'] == 'Soporte Técnico' %}selected{% endif %}>Soporte Técnico en Sistemas</option>
-                            <option value="Línea Blanca" {% if usuario['profesion'] == 'Línea Blanca' %}selected{% endif %}>Reparación Línea Blanca</option>
-                            <option value="Electricidad" {% if usuario['profesion'] == 'Electricidad' %}selected{% endif %}>Electricista Certificado</option>
+                            <option value="">-- Selecciona tu especialidad principal --</option>
+                            <!-- 🛠️ Reparaciones -->
                             <option value="Plomería" {% if usuario['profesion'] == 'Plomería' %}selected{% endif %}>Servicios de Plomería</option>
+                            <option value="Electricidad" {% if usuario['profesion'] == 'Electricidad' %}selected{% endif %}>Electricista Certificado</option>
+                            <option value="Línea Blanca" {% if usuario['profesion'] == 'Línea Blanca' %}selected{% endif %}>Reparación Línea Blanca</option>
                             <option value="Mantenimiento" {% if usuario['profesion'] == 'Mantenimiento' %}selected{% endif %}>Mantenimiento Técnico General</option>
+                            <!-- 💻 Tecnología -->
+                            <option value="Soporte Técnico" {% if usuario['profesion'] == 'Soporte Técnico' %}selected{% endif %}>Soporte Técnico en Sistemas</option>
+                            <option value="Desarrollo Web" {% if usuario['profesion'] == 'Desarrollo Web' %}selected{% endif %}>Desarrollo Web y Programación</option>
+                            <!-- 🚗 Transporte y Maquinaria -->
+                            <option value="Conductor Designado" {% if usuario['profesion'] == 'Conductor Designado' %}selected{% endif %}>Conductor Designado / Diligencias</option>
+                            <option value="Operación de Maquinaria Pesada" {% if usuario['profesion'] == 'Operación de Maquinaria Pesada' %}selected{% endif %}>Operación de Maquinaria Pesada</option>
+                            <!-- 🐶 Cuidado y Bienestar -->
+                            <option value="Niñera / Cuidado Infantil" {% if usuario['profesion'] == 'Niñera / Cuidado Infantil' %}selected{% endif %}>Niñera / Cuidado Infantil</option>
+                            <option value="Asistencia a Personas Mayores" {% if usuario['profesion'] == 'Asistencia a Personas Mayores' %}selected{% endif %}>Asistencia a Personas Mayores</option>
+                            <option value="Paseador y Cuidador de Perros" {% if usuario['profesion'] == 'Paseador y Cuidador de Perros' %}selected{% endif %}>Paseador y Cuidador de Perros</option>
                         </select>
+
+                        <!-- ⚠️ CONTENEDOR DINÁMICO DE ADVERTENCIAS DE SEGURIDAD -->
+                        <div id="alerta-seguridad" class="mt-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium flex items-start gap-3 hidden transition-all duration-300">
+                            <i class="fas fa-exclamation-triangle text-base text-amber-500 mt-0.5 flex-shrink-0"></i>
+                            <div id="alerta-texto-seguridad"></div>
+                        </div>
                     </div>
 
                     <div class="md:col-span-2">
@@ -261,6 +278,43 @@
     </div>
 
     <script>
+        // 🔒 DICCIONARIO DE ADVERTENCIAS DE SEGURIDAD Y CUMPLIMIENTO LEGAL
+        const ADVERTENCIAS_CATEGORIAS = {
+            "Electricidad": "<strong>Requisito Legal:</strong> Este oficio requiere certificación oficial vigente (CONTE, CONALTEL o equivalente) en Colombia. Al aceptar trabajos, declaras bajo gravedad de juramento contar con tu matrícula profesional activa.",
+            "Niñera / Cuidado Infantil": "<strong>Política de Protección Infantil:</strong> inWorker mantiene una política de cero tolerancia. Esta categoría requiere una auditoría estricta de antecedentes penales, judiciales y del sistema de registro de agresores sexuales antes de habilitar tu cuenta.",
+            "Asistencia a Personas Mayores": "<strong>Validación de Confianza:</strong> El cuidado de adultos mayores exige un historial judicial impecable. Se realizarán consultas automáticas en bases de datos de la Policía y Procuraduría de manera periódica.",
+            "Conductor Designado": "<strong>Seguridad Vial:</strong> Es obligatorio contar con licencia de conducción vigente (Categoría B1/C1 o superior) sin comparendos graves pendientes en el SIMIT. inWorker vigila de cerca la política de cero alcohol al volante.",
+            "Operación de Maquinaria Pesada": "<strong>Certificación Industrial:</strong> Debes contar con la licencia de conducción industrial y la certificación de competencias laborales vigente para el manejo de equipos como retroexcavadoras o bulldozers.",
+            "Plomería": "<strong>Responsabilidad Civil:</strong> Los daños estructurales por inundación o rotura de tuberías principales son responsabilidad directa del técnico contratado. Procura trabajar bajo protocolos seguros."
+        };
+
+        function evaluarAdvertenciaSeguridad() {
+            const selectProf = document.getElementById('field-profesion');
+            const contenedorAlerta = document.getElementById('alerta-seguridad');
+            const textoAlerta = document.getElementById('alerta-texto-seguridad');
+            
+            if (!selectProf || !contenedorAlerta || !textoAlerta) return;
+
+            const profesionSeleccionada = selectProf.value;
+
+            // Si la profesión seleccionada está en nuestro mapa de riesgos...
+            if (ADVERTENCIAS_CATEGORIAS[profesionSeleccionada]) {
+                textoAlerta.innerHTML = ADVERTENCIAS_CATEGORIAS[profesionSeleccionada];
+                contenedorAlerta.classList.remove('hidden'); // Mostramos la alerta
+            } else {
+                contenedorAlerta.classList.add('hidden'); // Ocultamos si es segura o general
+            }
+        }
+
+        // Escuchar el cambio en el selector y ejecutar la evaluación al cargar la página
+        document.addEventListener("DOMContentLoaded", function() {
+            const selectProf = document.getElementById('field-profesion');
+            if (selectProf) {
+                selectProf.addEventListener('change', evaluarAdvertenciaSeguridad);
+                evaluarAdvertenciaSeguridad(); // Ejecución inicial por si ya tiene una guardada
+            }
+        });
+
         function toggleCopilot() {
             const sidebar = document.getElementById('copilot-sidebar');
             if (sidebar) {
