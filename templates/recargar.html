@@ -3,48 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>inWorker - Cargar Billetera</title>
+    <title>Recargar Billetera - inWorker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex items-center justify-center p-4">
-
-    <div class="max-w-md w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-xl text-center">
-        <i class="fas fa-university text-blue-600 text-4xl mb-3"></i>
-        <h2 class="text-xl font-black text-slate-900 uppercase tracking-wide">Cargar Créditos inWorker</h2>
-        <p class="text-xs text-slate-400 mt-1">Elige un paquete para fondear tus órdenes técnicas de manera segura.</p>
-
-        <form action="/recargar_billetera" method="POST" class="mt-6 space-y-4">
-            <div class="grid grid-cols-2 gap-3">
-    <label class="border-2 border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition active:scale-95">
-        <input type="radio" name="creditos" value="1" checked class="hidden">
-        <span class="text-sm font-black text-slate-800">1 Crédito</span>
-        <span class="text-xs text-blue-600 font-bold mt-0.5">$10.000 COP</span>
-    </label>
-
-    <label class="border-2 border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition active:scale-95">
-        <input type="radio" name="creditos" value="2" class="hidden">
-        <span class="text-sm font-black text-slate-800">2 Créditos</span>
-        <span class="text-xs text-blue-600 font-bold mt-0.5">$20.000 COP</span>
-    </label>
-</div>
-
-            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-left flex items-start space-x-2">
-                <i class="fas fa-info-circle text-amber-600 mt-0.5 text-xs"></i>
-                <p class="text-[11px] text-amber-800 leading-normal font-medium">
-                    <strong>Modo Sandbox / Pruebas:</strong> Al presionar el botón se inyectará el saldo directamente a tu cuenta de simulación comercial sin generar cobros reales.
-                </p>
-            </div>
-
-            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 px-4 rounded-xl text-xs transition uppercase tracking-wider shadow-md">
-                ✔ Confirmar Transacción de Prueba
-            </button>
-            
-            <a href="javascript:history.back()" class="block text-xs text-slate-400 font-medium hover:text-slate-600 pt-2 transition">
-                Volver atrás
+<body class="bg-slate-50 min-h-screen pb-20 flex flex-col relative">
+    
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center gap-3">
+            <a href="/dashboard" class="w-9 h-9 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition border border-slate-200">
+                <i class="fas fa-arrow-left text-xs"></i>
             </a>
-        </form>
-    </div>
+            <h1 class="text-sm font-black tracking-tight text-slate-900 uppercase">Billetera <span class="text-blue-500">in</span>Worker</h1>
+        </div>
+    </header>
 
+    <main class="max-w-md mx-auto px-4 py-8 w-full flex-grow">
+        
+        <div class="bg-slate-900 rounded-3xl p-6 shadow-xl mb-8 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full blur-3xl opacity-20 -mr-10 -mt-10"></div>
+            <h2 class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Saldo Disponible</h2>
+            <div class="flex items-end gap-2">
+                <span class="text-4xl font-black text-white">{{ saldo }}</span>
+                <span class="text-blue-400 font-bold mb-1">Créditos</span>
+            </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <h3 class="text-sm font-black text-slate-800 uppercase tracking-wide mb-4">
+                <i class="fas fa-bolt text-blue-500 mr-2"></i>Nueva Recarga
+            </h3>
+            
+            <form action="/recargar_billetera" method="POST" class="space-y-6">
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-3">¿Cuántos créditos deseas recargar?</label>
+                    <div class="flex items-center gap-4">
+                        <button type="button" onclick="ajustarCreditos(-1)" class="w-14 h-14 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 font-black text-2xl transition flex items-center justify-center">-</button>
+                        
+                        <input type="number" id="input-creditos" name="creditos" value="1" min="1" max="100" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl text-center h-14 text-2xl font-black text-slate-900 focus:outline-none focus:border-blue-500 transition" onchange="calcularTotal()" onkeyup="calcularTotal()">
+                        
+                        <button type="button" onclick="ajustarCreditos(1)" class="w-14 h-14 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 font-black text-2xl transition flex items-center justify-center">+</button>
+                    </div>
+                    <p class="text-[9px] text-slate-400 mt-2 font-medium text-center">Límite máximo por transacción: 100 Créditos ($1,000,000 COP)</p>
+                </div>
+
+                <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-5 flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-600">Total a pagar:</span>
+                    <span class="text-xl font-black text-blue-700" id="total-cop">$10.000 COP</span>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center space-x-2 active:scale-95">
+                    <i class="fas fa-lock mr-1"></i>
+                    <span>Ir a Pagar Seguro</span>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // Magia JavaScript para calcular el precio en vivo sin recargar la página
+        function ajustarCreditos(cambio) {
+            const input = document.getElementById('input-creditos');
+            let valor = parseInt(input.value) || 0;
+            valor += cambio;
+            if (valor < 1) valor = 1;
+            if (valor > 100) valor = 100;
+            input.value = valor;
+            calcularTotal();
+        }
+
+        function calcularTotal() {
+            const input = document.getElementById('input-creditos');
+            let valor = parseInt(input.value) || 0;
+            if (valor < 1) valor = 1;
+            if (valor > 100) valor = 100;
+            
+            const total = valor * 10000;
+            document.getElementById('total-cop').innerText = '$' + total.toLocaleString('es-CO') + ' COP';
+        }
+        
+        // Ejecutar cálculo al iniciar la vista
+        document.addEventListener("DOMContentLoaded", calcularTotal);
+    </script>
 </body>
 </html>

@@ -48,6 +48,7 @@
                 currency: "COP",
                 amount: "{{ monto_pesos }}",
                 apiKey: "{{ bold_public_key }}",
+                integritySignature: "{{ firma_integridad }}", /* 🔐 ESTO DESCONGELA EL WIDGET */
                 redirectionUrl: "https://inworker.co/dashboard", 
                 description: "Recarga de {{ creditos }} créditos en inWorker",
                 payerEmail: "{{ usuario.correo }}",

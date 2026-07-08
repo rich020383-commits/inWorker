@@ -4,6 +4,7 @@ from PIL import Image
 import math
 import time
 import threading
+import hashlib
 from google import genai
 from moderacion import es_mensaje_seguro
 from disputas_ia import analizar_disputa_chat
@@ -1003,15 +1004,12 @@ def recargar_billetera():
         
     if request.method == 'POST':
         try:
-            # Capturamos cuántos créditos quiere el usuario
             creditos_a_cargar = float(request.form.get('creditos', 1))
         except ValueError:
             creditos_a_cargar = 0.0
             
-        # 💰 REGLA DE NEGOCIO: 1 Crédito = $10.000 COP
         monto_pesos = creditos_a_cargar * 10000
             
-        # 🚨 VALIDACIÓN DE LÍMITES
         if monto_pesos <= 0:
             flash("❌ Debes ingresar una cantidad válida.", "error")
             return redirect(url_for('recargar_billetera'))
@@ -1024,17 +1022,21 @@ def recargar_billetera():
             usuario = Usuario.query.filter_by(correo=correo_logueado).first()
             
             if usuario:
-                # 1. Sacamos la Llave Pública de Bold de tu bóveda de Render
                 bold_public_key = os.environ.get('BOLD_API_KEY', '')
+                bold_integrity_key = os.environ.get('BOLD_INTEGRITY_KEY', '')
                 
-                # 2. Generamos una Referencia Única de Pago (Ej: RECARGA-5-168902...)
                 referencia_pago = f"RECARGA-{usuario.id}-{int(time.time())}"
+                monto_str = str(int(monto_pesos))
                 
-                # 3. Redirigimos a la pantalla segura donde está el botón de Bold
+                # 🔐 MAGIA CRIPTOGRÁFICA: Generamos el Sello para descongelar Bold
+                cadena_firma = f"{referencia_pago}{monto_str}COP{bold_integrity_key}"
+                firma_integridad = hashlib.sha256(cadena_firma.encode('utf-8')).hexdigest()
+                
                 return render_template('pago_bold.html', 
-                                       creditos=creditos_a_cargar,
-                                       monto_pesos=int(monto_pesos),
+                                       creditos=int(creditos_a_cargar),
+                                       monto_pesos=monto_str,
                                        bold_public_key=bold_public_key,
+                                       firma_integridad=firma_integridad,  # Pasamos la firma
                                        referencia_pago=referencia_pago,
                                        usuario=usuario)
             else:
@@ -1046,7 +1048,7 @@ def recargar_billetera():
             
         return redirect(request.referrer or url_for('dashboard'))
         
-    # Si entra por GET, mostramos la vista normal de recarga
+    # Si entra por GET, mostramos la vista normal
     usuario_info = Usuario.query.filter_by(correo=correo_logueado).first()
     saldo_vista = round(usuario_info.saldo_creditos, 2) if usuario_info else 0.0
     
