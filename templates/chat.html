@@ -497,28 +497,61 @@
                         
                         let html = "";
                         if (msg.tipo && msg.tipo.includes('cotizacion')) {
-                            // HTML para Cotización Dinámica
+                            // HTML para Cotización Dinámica (¡AHORA CON BOTONES EN VIVO!)
                             let bordeColor = msg.tipo === 'cotizacion_pendiente' ? 'border-purple-200' : (msg.tipo === 'cotizacion_aceptada' ? 'border-emerald-200' : 'border-slate-200');
-                            const monto = msg.monto_pesos ? parseFloat(msg.monto_pesos) : parseFloat(msg.cotizacion_pesos);
                             
+                            // Extraemos el monto y el concepto de forma segura
+                            let monto = 0;
+                            let concepto = "";
+                            if (msg.mensaje && msg.mensaje.includes('|')) {
+                                monto = parseFloat(msg.mensaje.split('|')[0]);
+                                concepto = msg.mensaje.split('|')[1];
+                            } else {
+                                monto = msg.monto_pesos ? parseFloat(msg.monto_pesos) : parseFloat(msg.cotizacion_pesos || 0);
+                                concepto = msg.cotizacion_concepto || msg.mensaje;
+                            }
+
+                            // 🚀 MAGIA: Construimos los botones dependiendo de quién mira la pantalla
+                            let botonesHTML = "";
+                            
+                            if (msg.tipo === 'cotizacion_pendiente') {
+                                if (usuarioSesion === clienteCorreoTarea) {
+                                    botonesHTML = `
+                                    <form action="/chat/{{ tarea.id }}/responder_cotizacion/${msg.id}" method="POST" class="flex flex-col sm:flex-row gap-2 mt-4">
+                                        <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
+                                        <button type="submit" name="accion" value="Aceptar" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs transition shadow-sm active:scale-95">
+                                            <i class="fas fa-check mr-1"></i> Aceptar y Pagar
+                                        </button>
+                                        <button type="submit" name="accion" value="Rechazar" class="bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 font-bold px-4 py-2 rounded-xl text-xs transition">
+                                            Rechazar
+                                        </button>
+                                    </form>`;
+                                } else {
+                                    botonesHTML = `
+                                    <div class="bg-purple-50 text-purple-600 text-xs font-bold py-2 rounded-xl animate-pulse mt-4">
+                                        <i class="fas fa-clock mr-1"></i> Esperando al cliente...
+                                    </div>`;
+                                }
+                            } else if (msg.tipo === 'cotizacion_aceptada') {
+                                botonesHTML = `
+                                <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold py-2 rounded-xl flex justify-center items-center mt-4">
+                                    <i class="fas fa-lock mr-1.5"></i> Pago Asegurado en Garantía
+                                </div>`;
+                            } else {
+                                botonesHTML = `
+                                <div class="bg-slate-50 text-slate-400 text-xs font-bold py-2 rounded-xl mt-4">Cotización Declinada</div>`;
+                            }
+                            
+                            // Ensamblamos la tarjeta completa
                             html = `
                             <div id="msg-${msg.id}" class="flex flex-col items-center my-6 w-full">
                                 <div class="bg-white border shadow-sm rounded-2xl p-5 max-w-sm w-full text-center ${bordeColor}">
                                     <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Cotización</div>
-                                    <div class="text-3xl font-black text-slate-800 mb-2">$${monto.toLocaleString('es-CO')} COP</div>
-                                    <p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">${msg.cotizacion_concepto}</p>
+                                    <div class="text-3xl font-black text-slate-800 mb-2">$${monto.toLocaleString('es-CO')} <span class="text-xs font-medium text-slate-400">COP</span></div>
+                                    <p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">${concepto}</p>
+                                    ${botonesHTML}
                                 </div>
                                 <span class="text-[9px] font-medium text-slate-400 mt-1.5">${msg.fecha_envio}</span>
-                            </div>`;
-                        } else {
-                            // HTML para Mensaje Normal
-                            let contenido = msg.tipo === 'imagen' ? `<img src="/static/uploads/${msg.mensaje}" class="max-h-60 rounded">` : `<p class="leading-relaxed whitespace-pre-wrap">${msg.mensaje}</p>`;
-                            html = `
-                            <div id="msg-${msg.id}" class="flex flex-col ${alineacion}">
-                                <div class="max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 text-sm ${burbujaNormal}">
-                                    ${contenido}
-                                </div>
-                                <span class="text-[9px] font-medium text-slate-400 mt-1 mx-1">${msg.fecha_envio}</span>
                             </div>`;
                         }
                         cajaMensajes.insertAdjacentHTML('beforeend', html);
