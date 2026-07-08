@@ -988,9 +988,14 @@ def admin_retiros():
                            ordenes_mediacion=ordenes_mediacion, 
                            fondos_escrow=fondos_escrow)
 
+import os
+import time
+
+# =====================================================================
+# 💳 MÓDULO DE PAGOS: INICIO DE RECARGA CON BOLD (PASARELA)
+# =====================================================================
 @app.route('/recargar_billetera', methods=['GET', 'POST'])
 def recargar_billetera():
-    # 🛡️ Corregido para validar de forma segura con el correo o id unificado en sesión
     if 'usuario_correo' not in session:
         return redirect(url_for('login'))
         
@@ -998,35 +1003,50 @@ def recargar_billetera():
         
     if request.method == 'POST':
         try:
-            # Selecciona el paquete (Ej: $30.000 COP = 1 Crédito)
+            # Capturamos cuántos créditos quiere el usuario
             creditos_a_cargar = float(request.form.get('creditos', 1))
         except ValueError:
             creditos_a_cargar = 0.0
             
+        # 💰 REGLA DE NEGOCIO: 1 Crédito = $10.000 COP
+        monto_pesos = creditos_a_cargar * 10000
+            
+        # 🚨 VALIDACIÓN DE LÍMITES
+        if monto_pesos <= 0:
+            flash("❌ Debes ingresar una cantidad válida.", "error")
+            return redirect(url_for('recargar_billetera'))
+            
+        if monto_pesos > 1000000:
+            flash("❌ Por seguridad, la recarga máxima permitida es de $1.000.000 COP por transacción.", "error")
+            return redirect(url_for('recargar_billetera'))
+            
         try:
-            # ⚡ Buscamos al usuario de forma directa por su correo indexado
             usuario = Usuario.query.filter_by(correo=correo_logueado).first()
             
             if usuario:
-                # Sumamos los créditos directamente sobre el atributo del modelo
-                saldo_actual = usuario.saldo_creditos or 0.0
-                usuario.saldo_creditos = round(saldo_actual + creditos_a_cargar, 2)
-                db.session.commit() # Guarda de forma persistente en /data/
+                # 1. Sacamos la Llave Pública de Bold de tu bóveda de Render
+                bold_public_key = os.environ.get('BOLD_API_KEY', '')
                 
-                # Actualizamos el saldo en la sesión para refrescar la interfaz de inmediato
-                session['saldo'] = usuario.saldo_creditos
-                flash("¡Recarga simulada con éxito! Fondos agregados a tu billetera inWorker.", "success")
+                # 2. Generamos una Referencia Única de Pago (Ej: RECARGA-5-168902...)
+                referencia_pago = f"RECARGA-{usuario.id}-{int(time.time())}"
+                
+                # 3. Redirigimos a la pantalla segura donde está el botón de Bold
+                return render_template('pago_bold.html', 
+                                       creditos=creditos_a_cargar,
+                                       monto_pesos=int(monto_pesos),
+                                       bold_public_key=bold_public_key,
+                                       referencia_pago=referencia_pago,
+                                       usuario=usuario)
             else:
                 flash("❌ Error al identificar el usuario en el sistema.", "error")
                 
         except Exception as e:
-            db.session.rollback()
-            print(f"❌ Error crítico en recarga de billetera: {e}")
-            flash("❌ Ocurrió un error interno al procesar la recarga.", "error")
+            print(f"❌ Error crítico preparando pasarela Bold: {e}")
+            flash("❌ Ocurrió un error interno al conectar con el banco.", "error")
             
         return redirect(request.referrer or url_for('dashboard'))
         
-    # Si entra por GET, consultamos el saldo real directo de la BD para la vista
+    # Si entra por GET, mostramos la vista normal de recarga
     usuario_info = Usuario.query.filter_by(correo=correo_logueado).first()
     saldo_vista = round(usuario_info.saldo_creditos, 2) if usuario_info else 0.0
     
@@ -1600,7 +1620,6 @@ def ver_chat(tarea_id):
 # =====================================================================
 @app.route('/chat/<int:tarea_id>/enviar_cotizacion', methods=['POST'])
 def enviar_cotizacion(tarea_id):
-    # 🛡️ Soportamos tanto 'Trabajador' como 'Worker' por consistencia de roles
     if 'usuario_nombre' not in session or session.get('usuario_rol') not in ['Trabajador', 'Worker']:
         return redirect(url_for('index'))
         
@@ -1618,12 +1637,17 @@ def enviar_cotizacion(tarea_id):
             return jsonify({'success': False, 'error': 'Datos de cotización inválidos'}), 400
         flash("❌ Ingresa un valor en pesos válido y la descripción del servicio.", "error")
         return redirect(url_for('ver_chat', tarea_id=tarea_id))
+
+    # 🚨 REGLA: Si la recarga máxima es de $1.000.000, los técnicos no pueden cotizar más de eso.
+    if monto_pesos > 1000000:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'error': 'El valor máximo permitido por cotización es de $1.000.000 COP.'}), 400
+        flash("❌ El valor máximo permitido por cotización es de $1.000.000 COP por razones de seguridad.", "error")
+        return redirect(url_for('ver_chat', tarea_id=tarea_id))
         
-    # Empaquetamos la cadena con formato estructurado para el renderizado del frontend
     contenido_cotizacion = f"{monto_pesos}|{concepto}"
     
     try:
-        # ⚡ 1. Insertamos el mensaje de la oferta usando el ORM
         nueva_oferta = Mensaje(
             tarea_id=tarea_id,
             canal_trabajador=canal_sala,
@@ -1634,12 +1658,10 @@ def enviar_cotizacion(tarea_id):
         )
         db.session.add(nueva_oferta)
         
-        # ⚡ 2. Actualizamos el estado de la tarea vinculada de forma directa
         tarea_obj = Tarea.query.get(tarea_id)
         if tarea_obj:
             tarea_obj.estado = 'Cotización Pendiente'
             
-        # ⚡ 3. Consolidamos los cambios en un solo commit seguro en disco
         db.session.commit()
         flash(f"💼 ¡Oferta de ${monto_pesos:,.0f} COP enviada exitosamente!", "success")
         
@@ -1651,7 +1673,6 @@ def enviar_cotizacion(tarea_id):
         flash("❌ Ocurrió un error al procesar tu oferta. Inténtalo de nuevo.", "error")
         return redirect(url_for('ver_chat', tarea_id=tarea_id))
     
-    # Respuesta limpia para llamadas asíncronas AJAX (JavaScript)
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'multipart/form-data' in request.content_type:
         return jsonify({'success': True})
 
@@ -2049,45 +2070,62 @@ def consultar_tecnico():
     # Redirección nativa y ultra-segura usando url_for para el chat de negociación
     return redirect(url_for('ver_chat', tarea_id=id_tarea))
 
-
 # =====================================================================
-# 💰 WEBHOOK DIRECTO DE PASARELA (NEQUI) - OPTIMIZADO
+# 💰 WEBHOOK CENTRAL DE BOLD (TARJETAS, NEQUI Y PSE UNIFICADOS)
 # =====================================================================
-@app.route('/webhook-nequi', methods=['POST'])
-def webhook_nequi():
-    datos_pago = request.json or {}
-    id_servicio = datos_pago.get("id_servicio")
-    estado_pago = datos_pago.get("estado")  # Espera "APPROVED" o "DECLINED"
-    monto = datos_pago.get("monto", 0.0)     # Opcional: Monto recaudado
+@app.route('/webhook-bold', methods=['POST'])
+def webhook_bold():
+    # Bold nos envía un JSON con toda la información del pago
+    payload = request.json or {}
+    print(f"🔔 WEBHOOK BOLD RECIBIDO: {payload}")
     
-    if estado_pago == "APPROVED":
-        print(f"💰 ¡Pago aprobado para el servicio {id_servicio}! Tu comisión del 7.5% está asegurada.")
+    try:
+        # Extraemos el estado de la transacción según la estructura de Bold
+        # Generalmente envían un 'status' o un 'event_type'
+        estado = payload.get('status') or payload.get('payment_status') or payload.get('event_type', '')
         
-        try:
-            # ⚡ Buscamos la orden de servicio en la base de datos mediante el ORM
-            tarea = Tarea.query.get(id_servicio)
+        # Solo procedemos si Bold nos confirma que el dinero ya está asegurado
+        if 'APPROVED' in str(estado).upper() or 'SUCCESS' in str(estado).upper():
             
-            if tarea:
-                # Si el pago activa una tarea que estaba en borrador o pendiente, mutamos su estado
-                # tarea.estado = 'Disponible' 
-                
-                # Ejemplo de automatización de alerta integrada (Módulo de notificaciones en Python):
-                # if tarea.tecnico_correo:
-                #     alertar_nuevo_servicio_tecnico(tarea.tecnico_correo, tarea.id, tarea.titulo, tarea.zona)
-                
-                db.session.commit()
-                
-            return jsonify({
-                "status": "success", 
-                "message": "Servicio activado e inyectado correctamente en la infraestructura"
-            }), 200
+            # Extraemos la referencia única que nosotros creamos (Ej: RECARGA-5-168902...)
+            referencia = payload.get('reference') or payload.get('data', {}).get('reference', '')
             
-        except Exception as e:
-            db.session.rollback()
-            print(f"❌ Error procesando el webhook de Nequi para servicio #{id_servicio}: {e}")
-            return jsonify({"status": "error", "message": "Error interno al asentar el pago"}), 500
+            # Verificamos que sea un pago de recarga de billetera
+            if not referencia.startswith('RECARGA-'):
+                return jsonify({"status": "ignored", "message": "No es una recarga de billetera"}), 200
             
-    return jsonify({"status": "failed", "message": "Pago rechazado o pendiente"}), 200
+            # Rompemos la referencia para sacar el ID del usuario (el número de en medio)
+            partes = referencia.split('-')
+            if len(partes) >= 2:
+                usuario_id = int(partes[1])
+                
+                # Extraemos el monto pagado para calcular los créditos
+                monto = float(payload.get('amount') or payload.get('data', {}).get('amount', 0))
+                
+                # 💰 REGLA DE ORO: 1 Crédito = $10.000 COP
+                creditos_comprados = monto / 10000
+                
+                # Buscamos al usuario en la base de datos
+                usuario = Usuario.query.get(usuario_id)
+                if usuario:
+                    # Inyectamos los créditos directamente a su saldo
+                    saldo_actual = usuario.saldo_creditos or 0.0
+                    usuario.saldo_creditos = round(saldo_actual + creditos_comprados, 2)
+                    
+                    # Guardamos los cambios en disco
+                    db.session.commit()
+                    
+                    print(f"✅ ¡Recarga Exitosa! {creditos_comprados} créditos añadidos al usuario ID: {usuario.id}")
+                    return jsonify({"status": "success", "message": "Créditos inyectados correctamente"}), 200
+                    
+        # Si el pago fue rechazado o está pendiente, no hacemos nada y le avisamos a Bold que recibimos el mensaje
+        return jsonify({"status": "ignored", "message": "Transacción no aprobada o estructura distinta"}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error crítico procesando Webhook de Bold: {e}")
+        return jsonify({"status": "error", "message": "Error interno del servidor"}), 500
+
 # =====================================================================
 # ⚖️ ENDPOINT DE ARBITRAJE DE DISPUTAS CON IA (FASE 1.1 - BLINDADO)
 # =====================================================================
