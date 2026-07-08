@@ -1190,6 +1190,12 @@ def ver_perfil():
             habilidades = request.form.get('habilidades', 'Sin especificar')
             descripcion = request.form.get('descripcion', '')
             
+            # 💡 MAGIA BACKEND: Capturamos la sugerencia y la fusionamos si aplica
+            sugerencia = request.form.get('sugerencia_profesion')
+            if profesion == 'Otra' and sugerencia:
+                # Se guarda en la DB exactamente como "Otra: [texto del usuario]"
+                profesion = f"Otra: {sugerencia.strip()}"
+            
             try:
                 # ⚡ Buscamos al usuario de forma directa
                 usuario = Usuario.query.filter_by(correo=correo_logueado).first()

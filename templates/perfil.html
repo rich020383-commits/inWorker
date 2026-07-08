@@ -182,7 +182,8 @@
                             <option value="Niñera / Cuidado Infantil" {% if usuario['profesion'] == 'Niñera / Cuidado Infantil' %}selected{% endif %}>Niñera / Cuidado Infantil</option>
                             <option value="Asistencia a Personas Mayores" {% if usuario['profesion'] == 'Asistencia a Personas Mayores' %}selected{% endif %}>Asistencia a Personas Mayores</option>
                             <option value="Paseador y Cuidador de Perros" {% if usuario['profesion'] == 'Paseador y Cuidador de Perros' %}selected{% endif %}>Paseador y Cuidador de Perros</option>
-                            <option value="Otra" {% if usuario['profesion'] == 'Otra' %}selected{% endif %}>Otra (Sugerir nueva especialidad)</option>
+                            
+                            <option value="Otra" {% if usuario['profesion'] and 'Otra' in usuario['profesion'] %}selected{% endif %}>Otra (Sugerir nueva especialidad)</option>
                         </select>
 
                         <div id="alerta-seguridad" class="mt-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium flex items-start gap-3 hidden transition-all duration-300">
@@ -192,7 +193,12 @@
 
                         <div id="contenedor-sugerencia" class="mt-3 hidden transition-all duration-300 bg-indigo-50/50 border border-indigo-100 p-4 rounded-xl">
                             <label class="block text-[10px] font-black uppercase tracking-wider text-indigo-600 mb-1.5">¿Qué servicio te gustaría que agreguemos?</label>
-                            <input type="text" id="field-sugerencia" name="sugerencia_profesion" placeholder="Ej: Instalación de Paneles Solares..." class="w-full bg-white border border-indigo-200 rounded-lg px-4 py-2.5 text-sm text-indigo-900 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition shadow-sm">
+                            
+                            <input type="text" id="field-sugerencia" name="sugerencia_profesion" 
+                                   value="{{ usuario['profesion'].replace('Otra: ', '') if usuario['profesion'] and 'Otra: ' in usuario['profesion'] else '' }}" 
+                                   placeholder="Ej: Instalación de Paneles Solares..." 
+                                   class="w-full bg-white border border-indigo-200 rounded-lg px-4 py-2.5 text-sm text-indigo-900 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition shadow-sm">
+                            
                             <p class="text-[9px] text-indigo-400 mt-2 font-medium"><i class="fas fa-lightbulb mr-1"></i> Nuestro equipo evaluará tu sugerencia para incluirla si se alinea con la visión de inWorker.</p>
                         </div>
                     </div>
@@ -301,7 +307,8 @@
 
             // 2. Motor de Sugerencias de Nuevos Servicios
             if (contenedorSugerencia && inputSugerencia) {
-                if (profesionSeleccionada === 'Otra') {
+                // Comprobamos si el usuario seleccionó explícitamente 'Otra'
+                if (profesionSeleccionada === 'Otra' || profesionSeleccionada.startsWith('Otra')) {
                     // Muestra el input de sugerencia y lo vuelve obligatorio para enviar el formulario
                     contenedorSugerencia.classList.remove('hidden');
                     inputSugerencia.setAttribute('required', 'true');
