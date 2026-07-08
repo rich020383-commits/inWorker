@@ -1,30 +1,32 @@
 import os
 import re
-from PIL import Image
 import math
 import time
 import threading
 import hashlib
+from PIL import Image
 from google import genai
 from moderacion import es_mensaje_seguro
 from disputas_ia import analizar_disputa_chat
 
-# 🔧 CONFIGURACIÓN AVANZADA CON FLASK-SQLALCHEMY PARA OPTIMIZAR EL PLAN STARTER
+# 🔧 CONFIGURACIÓN AVANZADA CON FLASK-SQLALCHEMY
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, current_app, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import or_  
-from sqlalchemy import text
+from sqlalchemy import or_, text
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash 
-from PIL import Image
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
+# Inicialización de la App
 ruta_actual = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, template_folder=os.path.join(ruta_actual, "templates"))
 app.secret_key = "llave_ultra_secreta_2026"
+
+# Cliente Gemini
 client = genai.Client()
 
+# 📧 CONFIGURACIÓN DE FLASK-MAIL Y SUBIDAS
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
@@ -35,14 +37,24 @@ app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'inworkersoporte@gmail.com')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'ofdogcebyoumumsu')
 app.config['MAIL_DEFAULT_SENDER'] = ('inWorker Soporte', app.config['MAIL_USERNAME'])
+
 mail = Mail(app)
-serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+serializer = URLSafeTimedSerializer(app.secret_key)
 
-import re
+# 📸 CONFIGURACIÓN Y VALIDACIÓN DE IMÁGENES PERMITIDAS
+EXTENSIONES_PERMITIDAS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+app.config['UPLOAD_FOLDER'] = os.path.join(ruta_actual, 'static', 'uploads')
 
-# Asegúrate de tener importado genai (vi que ya lo tienes arriba en tu app.py)
-# from google import genai
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
 
+def archivo_permitido(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in EXTENSIONES_PERMITIDAS
+
+# =====================================================================
+# 🛡️ IA DE MODERACIÓN VISUAL (GEMINI VISION)
+# =====================================================================
 def imagen_contiene_contactos(ruta_imagen):
     """
     Usa Gemini Vision para leer el texto de la foto y detectar si intentan 
@@ -81,18 +93,9 @@ def imagen_contiene_contactos(ruta_imagen):
         # En caso de que la IA falle por red, dejamos pasar la foto para no trabar el chat
         return False
 
-# 📸 CONFIGURACIÓN Y VALIDACIÓN DE IMÁGENES PERMITIDAS
-EXTENSIONES_PERMITIDAS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-app.config['UPLOAD_FOLDER'] = os.path.join(ruta_actual, 'static', 'uploads')
-
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
-
-def archivo_permitido(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in EXTENSIONES_PERMITIDAS
-
-# 🔧 ENVÍO DE CORREOS EN SEGUNDO PLANO SIN PERDER EL CONTEXTO
+# =====================================================================
+# 📧 ENVÍO DE CORREOS EN SEGUNDO PLANO
+# =====================================================================
 def enviar_bienvenida_tecnico(app_contexto, correo_destino, nombre_usuario):
     with app_contexto.app_context():
         try:
@@ -110,7 +113,7 @@ def enviar_bienvenida_tecnico(app_contexto, correo_destino, nombre_usuario):
                     <p>Estamos muy felices de tenerte con nosotros. Desde ahora, eres parte de la plataforma que conecta el mejor talento con las mejores oportunidades en Colombia.</p>
                     <p>Ya puedes ingresar a tu panel, completar tu perfil con tus habilidades y empezar a recibir ofertas de trabajo en tu zona de inmediato.</p>
                     <div style="text-align: center; margin: 30px 0;">
-                        <a href="https://inworker.co/" style="background-color: #0052cc; color: white; padding: 12px 25px; text-align: center; text-decoration: none; font-weight: bold; border-radius: 5px;">Ingresar a mi Cuenta</a>
+                        <a href="https://inworker.co/dashboard" style="background-color: #0052cc; color: white; padding: 12px 25px; text-align: center; text-decoration: none; font-weight: bold; border-radius: 5px;">Ingresar a mi Cuenta</a>
                     </div>
                     <p style="font-size: 12px; color: #777777;">Si tienes alguna duda o inconveniente, responde a este correo y nuestro equipo de soporte te atenderá de inmediato.</p>
                 </div>
@@ -120,9 +123,9 @@ def enviar_bienvenida_tecnico(app_contexto, correo_destino, nombre_usuario):
             </div>
             """
             mail.send(msg)
-            print(f"📧 Correo enviado con éxito en segundo plano a: {correo_destino}")
+            print(f"📧 Correo de bienvenida enviado con éxito en segundo plano a: {correo_destino}")
         except Exception as e:
-            print(f"❌ Error real en el envío del correo por SMTP: {e}")
+            print(f"❌ Error real en el envío del correo de bienvenida por SMTP: {e}")
 
 def enviar_notificacion_asignacion(app_contexto, correo_destino, nombre_tecnico, titulo_tarea):
     """ Envía un correo premium al técnico cuando recibe una solicitud directa """
@@ -135,7 +138,7 @@ def enviar_notificacion_asignacion(app_contexto, correo_destino, nombre_tecnico,
             msg.html = f"""
             <html>
                 <body style="font-family: 'Arial', sans-serif; background-color: #f8fafc; padding: 20px;">
-                    <div style="max-w: 600px; margin: 0 auto; background: white; border-radius: 12px; padding: 30px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; padding: 30px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                         <h2 style="color: #2563eb; margin-bottom: 5px; font-weight: 900;">¡Hola, {nombre_tecnico}!</h2>
                         <p style="color: #475569; font-size: 16px; line-height: 1.5;">Tienes una nueva asignación o solicitud de cotización esperándote en <strong>inWorker</strong>.</p>
                         
@@ -2088,60 +2091,86 @@ def consultar_tecnico():
     return redirect(url_for('ver_chat', tarea_id=id_tarea))
 
 # =====================================================================
-# 💰 WEBHOOK CENTRAL DE BOLD (TARJETAS, NEQUI Y PSE UNIFICADOS)
+# 💰 WEBHOOK CENTRAL DE BOLD (CON LOGS DE CONTROL DETALLADOS)
 # =====================================================================
 @app.route('/webhook-bold', methods=['POST'])
 def webhook_bold():
-    # Bold nos envía un JSON con toda la información del pago
     payload = request.json or {}
     print(f"🔔 WEBHOOK BOLD RECIBIDO: {payload}")
     
     try:
-        # Extraemos el estado de la transacción según la estructura de Bold
-        # Generalmente envían un 'status' o un 'event_type'
-        estado = payload.get('status') or payload.get('payment_status') or payload.get('event_type', '')
+        # 1. Extraemos el tipo de evento directamente del JSON de Bold
+        estado = payload.get('type') or ''
+        print(f"🔍 [Paso 1] Estado del evento detectado: '{estado}'")
         
-        # Solo procedemos si Bold nos confirma que el dinero ya está asegurado
         if 'APPROVED' in str(estado).upper() or 'SUCCESS' in str(estado).upper():
+            data = payload.get('data', {})
             
-            # Extraemos la referencia única que nosotros creamos (Ej: RECARGA-5-168902...)
-            referencia = payload.get('reference') or payload.get('data', {}).get('reference', '')
+            # 2. Navegamos de forma segura en la estructura profunda de Bold
+            referencia = data.get('metadata', {}).get('reference', '')
+            print(f"🔍 [Paso 2] Referencia extraída: '{referencia}'")
             
-            # Verificamos que sea un pago de recarga de billetera
             if not referencia.startswith('RECARGA-'):
-                return jsonify({"status": "ignored", "message": "No es una recarga de billetera"}), 200
+                print(f"⚠️ [Ignorado] La referencia '{referencia}' no es una recarga de billetera.")
+                return jsonify({"status": "ignored", "message": "No es una recarga"}), 200
             
-            # Rompemos la referencia para sacar el ID del usuario (el número de en medio)
+            # 3. Rompemos la referencia para sacar el ID del usuario
             partes = referencia.split('-')
             if len(partes) >= 2:
                 usuario_id = int(partes[1])
+                print(f"🔍 [Paso 3] ID de usuario extraído de la referencia: {usuario_id}")
                 
-                # Extraemos el monto pagado para calcular los créditos
-                monto = float(payload.get('amount') or payload.get('data', {}).get('amount', 0))
+                # 4. Extraemos el total del objeto amount
+                monto = float(data.get('amount', {}).get('total', 0))
+                print(f"🔍 [Paso 4] Monto bruto recibido: ${monto} COP")
                 
-                # 💰 REGLA DE ORO: 1 Crédito = $10.000 COP
                 creditos_comprados = monto / 10000
+                print(f"🔍 [Paso 5] Créditos equivalentes a inyectar: {creditos_comprados}")
                 
-                # Buscamos al usuario en la base de datos
+                # 5. Buscamos al usuario en la BD
                 usuario = Usuario.query.get(usuario_id)
                 if usuario:
-                    # Inyectamos los créditos directamente a su saldo
-                    saldo_actual = usuario.saldo_creditos or 0.0
-                    usuario.saldo_creditos = round(saldo_actual + creditos_comprados, 2)
+                    saldo_anterior = usuario.saldo_creditos or 0.0
+                    usuario.saldo_creditos = round(saldo_anterior + creditos_comprados, 2)
                     
-                    # Guardamos los cambios en disco
+                    # Guardamos físicamente en la Base de Datos
                     db.session.commit()
+                    print(f"✅ [ÉXITO BASE DE DATOS] Usuario ID {usuario.id} actualizado. Saldo anterior: {saldo_anterior} -> Nuevo Saldo: {usuario.saldo_creditos}")
                     
-                    print(f"✅ ¡Recarga Exitosa! {creditos_comprados} créditos añadidos al usuario ID: {usuario.id}")
-                    return jsonify({"status": "success", "message": "Créditos inyectados correctamente"}), 200
+                    # 📩 SOPORTE DE CORREO (Opcional):
+                    # Bold le envía un recibo automático a 'payer_email' (sophiadebelfort10@gmail.com).
+                    # Si tú quieres enviar un correo propio de inWorker, puedes disparar tu función aquí:
+                    # enviar_correo_recarga(usuario.correo, monto)
                     
-        # Si el pago fue rechazado o está pendiente, no hacemos nada y le avisamos a Bold que recibimos el mensaje
-        return jsonify({"status": "ignored", "message": "Transacción no aprobada o estructura distinta"}), 200
-        
+                    return jsonify({"status": "success", "message": "Créditos inyectados correctamente en BD"}), 200
+                else:
+                    print(f"❌ [ERROR] No se encontró ningún usuario en la BD con el ID: {usuario_id}")
+                    return jsonify({"status": "error", "message": "Usuario no encontrado"}), 404
+            else:
+                print("❌ [ERROR] La estructura de la referencia de recarga está mal formada.")
+                return jsonify({"status": "error", "message": "Referencia mal formada"}), 400
+        else:
+            print(f"⚠️ [Ignorado] El pago no está aprobado. Estado actual: '{estado}'")
+            return jsonify({"status": "ignored", "message": "Transacción no aprobada"}), 200
+            
     except Exception as e:
         db.session.rollback()
-        print(f"❌ Error crítico procesando Webhook de Bold: {e}")
+        print(f"❌ [ERROR CRÍTICO INTERNO]: {e}")
         return jsonify({"status": "error", "message": "Error interno del servidor"}), 500
+
+# =====================================================================
+# 🔄 ACTUALIZADOR AUTOMÁTICO DE SESIÓN (Sincroniza BD con la Pantalla)
+# =====================================================================
+@app.before_request
+def actualizar_saldo_sesion():
+    # Si el usuario tiene una sesión activa, actualizamos sus créditos desde la BD real
+    if 'usuario_id' in session:
+        try:
+            usuario = Usuario.query.get(session['usuario_id'])
+            if usuario:
+                session['usuario_creditos'] = usuario.saldo_creditos or 0.0
+        except Exception:
+            pass # Evita que se caiga la app si la base de datos está ocupada
 
 # =====================================================================
 # 🏁 TRABAJADOR: ENTREGAR TRABAJO Y SOLICITAR PAGO
