@@ -216,12 +216,17 @@ class Tarea(db.Model):
     trabajador_nombre = db.Column(db.String(150))
     trabajador_correo = db.Column(db.String(150))
     costo_creditos = db.Column(db.Float, default=1.0)
-    latitud = db.Column(db.Float, default=10.9639)
-    longitud = db.Column(db.Float, default=-74.7964)
+    
+    # 📍 NUEVAS COORDENADAS POR DEFECTO: BOGOTÁ, D.C.
+    latitud = db.Column(db.Float, default=4.6097)
+    longitud = db.Column(db.Float, default=-74.0817)
+    
     confirmacion_cliente = db.Column(db.Integer, default=0)
     confirmacion_trabajador = db.Column(db.Integer, default=0)
     calificada = db.Column(db.Integer, default=0)
-    zona = db.Column(db.String(100), default='Barranquilla (Norte)')
+    
+    # 🏙️ ZONA ESTÁNDAR ACTUALIZADA
+    zona = db.Column(db.String(100), default='Bogotá, D.C.')
 
 class Mensaje(db.Model):
     __tablename__ = 'mensajes'
