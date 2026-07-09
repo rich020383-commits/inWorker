@@ -661,7 +661,7 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
-@app.route('/dashboard', methods=['GET', 'POST'])
+@app.route('/dashboard', methods=['GET'])
 def home():
     # 🛡️ PROTECCIÓN AMIGABLE: Validamos usando el correo
     if 'usuario_correo' not in session: 
@@ -671,92 +671,7 @@ def home():
     correo_logueado = session.get('usuario_correo')
     VALOR_CREDITO_COP = 10000 # Regla de oro de inWorker
     
-    # =====================================================================
-    # 💸 MANEJO DE SOLICITUD DE RETIRO (POST) CON NUEVAS REGLAS
-    # =====================================================================
-    if request.method == 'POST' and request.form.get('accion_perfil') == 'solicitar_retiro':
-        try:
-            creditos_retiro = float(request.form.get('creditos_retiro', 0))
-        except ValueError:
-            creditos_retiro = 0.0
-            
-        metodo = request.form.get('metodo_pago', 'No especificado').upper()
-        detalles = request.form.get('detalles_cuenta', '')
-        
-        usuario = Usuario.query.filter_by(correo=correo_logueado).first()
-        saldo_actual = usuario.saldo_creditos if usuario else 0.0
-        
-        if creditos_retiro > 0 and creditos_retiro <= saldo_actual:
-            monto_bruto_cop = creditos_retiro * VALOR_CREDITO_COP
-            
-            # 1. Regla: Retiro mínimo de $50.000 COP (5 créditos)
-            if monto_bruto_cop < 50000:
-                flash("❌ El retiro mínimo es de 5 créditos ($50.000 COP).", "error")
-                return redirect(url_for('home')) # ¡AQUÍ ESTÁ LA MAGIA DEL REDIRECT!
-                
-            # 2. Regla: Comisión inWorker (12%)
-            comision_plataforma = monto_bruto_cop * 0.12
-            
-            # 3. Regla: Costo Interbancario ($3.500 si no es Nequi/Bancolombia)
-            costo_bancario = 0
-            bancos_sin_costo = ['NEQUI', 'BANCOLOMBIA']
-            # Verificamos si la palabra NEQUI o BANCOLOMBIA está dentro del texto del método
-            if not any(banco in metodo for banco in bancos_sin_costo):
-                costo_bancario = 3500
-                
-            # 4. Calculamos cuánto dinero real le vas a transferir
-            monto_neto = monto_bruto_cop - comision_plataforma - costo_bancario
-            
-            if monto_neto <= 0:
-                flash("❌ El monto no cubre los gastos de transferencia y plataforma.", "error")
-                return redirect(url_for('home'))
-                
-            nuevo_saldo = round(saldo_actual - creditos_retiro, 2)
-            
-            try:
-                # Descontamos el saldo
-                usuario.saldo_creditos = nuevo_saldo
-                
-                # Armamos el desglose para que tú (el Admin) lo veas claro en la BD
-                desglose_admin = f"{detalles} | Bruto: ${monto_bruto_cop} | Com 12%: ${comision_plataforma} | Transf: ${costo_bancario}"
-                
-                # Registramos en tu tabla BilleteraRetiro
-                # Guardamos el monto NETO en equivalente_pesos para que sepas exacto cuánto girar
-                nuevo_retiro = BilleteraRetiro(
-                    usuario_correo=correo_logueado,
-                    monto_creditos=creditos_retiro,
-                    equivalente_pesos=monto_neto, 
-                    metodo_pago=metodo,
-                    detalles_cuenta=desglose_admin, 
-                    estado='Pendiente'
-                )
-                db.session.add(nuevo_retiro)
-                db.session.commit()
-                
-                # Mensaje dinámico y transparente para el trabajador
-                msg = f"✅ Solicitud exitosa. Recibirás ${monto_neto:,.0f} COP (descontando 12% de plataforma"
-                if costo_bancario > 0:
-                    msg += f" y ${costo_bancario:,.0f} por giro a otros bancos)."
-                else:
-                    msg += ")."
-                    
-                flash(msg, "success")
-                
-            except Exception as e:
-                db.session.rollback()
-                print(f"❌ Error al procesar el retiro financiero: {e}")
-                flash("❌ Ocurrió un error al procesar tu transacción. Fondos protegidos.", "error")
-        else:
-            flash("❌ Fondos insuficientes o cantidad de créditos inválida.", "error")
-            
-        # 🔄 EL TRUCO QUE FALTABA: Refrescar la página limpiamente tras el POST
-        return redirect(url_for('home'))
-
-    # =====================================================================
-    # 📊 SECCIÓN GET (CARGA DEL DASHBOARD NORMAL)
-    # =====================================================================
-    
-    # 🔔 CONTEO DE NOTIFICACIONES
+    # 🔔 CONTEO DE NOTIFICACIONES (Cruzando con la tabla Tarea para evitar errores)
     try:
         mensajes_nuevos = db.session.query(Mensaje).join(Tarea, Mensaje.tarea_id == Tarea.id).filter(
             db.or_(Tarea.cliente_correo == correo_logueado, Tarea.trabajador_correo == correo_logueado),
@@ -764,29 +679,34 @@ def home():
             Mensaje.leido == 0
         ).count()
     except Exception as e:
-        print(f"Aviso: No se pudo contar mensajes nuevos: {e}")
+        print(f"Aviso silencioso - Error contando mensajes: {e}")
         mensajes_nuevos = 0
     
-    # 📊 MÉTRICAS
+    # 📊 SECCIÓN DE MÉTRICAS DEL DASHBOARD (Agregaciones optimizadas)
     total_workers = Usuario.query.filter_by(rol='Trabajador').count()
     
+    # 🚀 Filtramos las órdenes en mediación SOLO para este usuario según su rol
     rol_usuario = session.get('usuario_rol')
     if rol_usuario == 'Cliente':
         ordenes_mediacion = Tarea.query.filter_by(cliente_correo=correo_logueado).filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).count()
     else:
         ordenes_mediacion = Tarea.query.filter_by(trabajador_correo=correo_logueado).filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).count()
     
+    # 🚀 SUMA TOTAL PARA LA CAMPANITA (Solo mensajes nuevos)
     alertas_totales = mensajes_nuevos
 
+    # Suma limpia de fondos en Escrow (Maneja si es None devolviendo 0.0)
     fondos_escrow = db.session.query(db.func.sum(db.func.cast(Tarea.pago, db.Float)))\
         .filter(Tarea.estado == 'En Garantia').scalar() or 0.0
     
-    # 💰 SALDO Y PERFIL
+    # 💰 CONSULTA REAL DE SALDO EN BASE DE DATOS Y EXTRACCIÓN DE PERFIL
     usuario_info = Usuario.query.filter_by(correo=correo_logueado).first()
     saldo_real = round(usuario_info.saldo_creditos, 2) if usuario_info else 0.0
     
-    # ⚖️ DISPUTAS
+    # ⚖️ CONSULTA DE DISPUTAS ACTIVAS PARA LA CONSOLA DE ARBITRAJE
     disputas_query = Tarea.query.filter_by(estado='En Arbitraje Admin').order_by(Tarea.id.desc()).all()
+    
+    # Adaptación a diccionarios planos para mantener compatibilidad con tu frontend actual
     lista_disputas = [{
         'id': d.id,
         'titulo': d.titulo,
@@ -796,6 +716,7 @@ def home():
         'costo_creditos': d.costo_creditos
     } for d in disputas_query]
     
+    # Armamos el diccionario dinámico para las plantillas
     perfil_real = {'saldo_creditos': saldo_real, 'saldo': saldo_real}
     
     return render_template('index.html', 
@@ -809,7 +730,89 @@ def home():
                            trabajador_perfil=perfil_real,
                            lista_disputas=lista_disputas,
                            notificaciones_sin_leer=alertas_totales,
-                           usuario=usuario_info)
+                           usuario=usuario_info) # 🪪 INYECTAMOS EL PERFIL AQUÍ PARA LA TARJETA
+
+# =====================================================================
+# 💸 MÓDULO FINANCIERO: PROCESAMIENTO DE RETIROS (INDEPENDIENTE)
+# =====================================================================
+@app.route('/solicitar_retiro', methods=['POST'])
+def solicitar_retiro():
+    if 'usuario_correo' not in session:
+        return redirect(url_for('login'))
+        
+    correo_logueado = session['usuario_correo']
+    usuario = Usuario.query.filter_by(correo=correo_logueado).first()
+    
+    try:
+        creditos_retiro = float(request.form.get('creditos_retiro', 0))
+    except ValueError:
+        creditos_retiro = 0.0
+        
+    metodo = request.form.get('metodo_pago', 'No especificado').upper()
+    detalles = request.form.get('detalles_cuenta', '')
+    
+    saldo_actual = usuario.saldo_creditos if usuario else 0.0
+    VALOR_CREDITO_COP = 10000
+    
+    # 1. Validación de saldo
+    if creditos_retiro > 0 and creditos_retiro <= saldo_actual:
+        monto_bruto_cop = creditos_retiro * VALOR_CREDITO_COP
+        
+        # 2. Regla: Retiro mínimo de $50.000 COP (5 créditos)
+        if monto_bruto_cop < 50000:
+            flash("❌ El retiro mínimo es de 5 créditos ($50.000 COP).", "error")
+            return redirect(url_for('home'))
+            
+        # 3. Regla: Comisión inWorker (12%)
+        comision_plataforma = monto_bruto_cop * 0.12
+        
+        # 4. Regla: Costo Interbancario
+        costo_bancario = 0
+        bancos_sin_costo = ['NEQUI', 'BANCOLOMBIA']
+        if not any(banco in metodo for banco in bancos_sin_costo):
+            costo_bancario = 3500
+            
+        # 5. Calculamos el Neto
+        monto_neto = monto_bruto_cop - comision_plataforma - costo_bancario
+        
+        if monto_neto <= 0:
+            flash("❌ El monto no cubre los gastos de transferencia y plataforma.", "error")
+            return redirect(url_for('home'))
+            
+        nuevo_saldo = round(saldo_actual - creditos_retiro, 2)
+        
+        try:
+            # Descontamos el saldo
+            usuario.saldo_creditos = nuevo_saldo
+            
+            # Armamos el desglose para la BD del Admin
+            desglose_admin = f"{detalles} | Bruto: ${monto_bruto_cop} | Com 12%: ${comision_plataforma} | Transf: ${costo_bancario}"
+            
+            # Registramos en la tabla BilleteraRetiro
+            nuevo_retiro = BilleteraRetiro(
+                usuario_correo=correo_logueado,
+                monto_creditos=creditos_retiro,
+                equivalente_pesos=monto_neto, 
+                metodo_pago=metodo,
+                detalles_cuenta=desglose_admin, 
+                estado='Pendiente'
+            )
+            db.session.add(nuevo_retiro)
+            db.session.commit()
+            
+            msg = f"✅ Solicitud exitosa. Recibirás ${monto_neto:,.0f} COP (descontando 12% de plataforma"
+            msg += f" y ${costo_bancario:,.0f} por giro a otros bancos)." if costo_bancario > 0 else ")."
+                
+            flash(msg, "success")
+            
+        except Exception as e:
+            db.session.rollback()
+            print(f"❌ Error al procesar el retiro: {e}")
+            flash("❌ Ocurrió un error al procesar tu transacción. Fondos protegidos.", "error")
+    else:
+        flash("❌ Fondos insuficientes o cantidad de créditos inválida.", "error")
+        
+    return redirect(url_for('home'))
 
 @app.route('/ir_al_chat_reciente')
 def ir_al_chat_reciente():
@@ -955,7 +958,7 @@ def admin_reportes():
                            total_workers=total_workers, 
                            nombre_usuario=session['usuario_nombre'])
 
-# --- MÓDULO ADMINISTRATIVO DE GESTIÓN DE RETIROS (COBROS) - OPTIMIZADO ---
+# --- MÓDULO ADMINISTRATIVO DE GESTIÓN DE RETIROS Y DISPUTAS (COBROS) - OPTIMIZADO ---
 @app.route('/admin/retiros', methods=['GET', 'POST'])
 def admin_retiros():
     if 'usuario_nombre' not in session or session.get('usuario_rol') != 'Admin':
@@ -1026,14 +1029,28 @@ def admin_retiros():
     total_workers = Usuario.query.filter_by(rol='Trabajador').count()
     ordenes_mediacion = Tarea.query.filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).count()
     
-    # 🛡️ CÁLCULO DE MÉTRICAS FALTANTES PARA EL DASHBOARD (ALINEADO Y CORREGIDO)
+    # 🛡️ CÁLCULO DE FONDOS ESCROW GLOBALES (Para el Admin)
     fondos_escrow = db.session.query(db.func.sum(Tarea.costo_creditos)).filter(
-        Tarea.estado == 'En Garantia',
-        db.or_(Tarea.cliente_correo == correo_logueado, Tarea.trabajador_correo == correo_logueado)
+        Tarea.estado == 'En Garantia'
     ).scalar() or 0.0
+        
+    # =====================================================================
+    # ⚖️ NUEVO: CONSULTA DE DISPUTAS ACTIVAS PARA EL ADMIN
+    # =====================================================================
+    disputas_query = Tarea.query.filter_by(estado='En Arbitraje Admin').order_by(Tarea.id.desc()).all()
+    
+    lista_disputas = [{
+        'id': d.id,
+        'titulo': d.titulo,
+        'estado': d.estado,
+        'cliente_correo': d.cliente_correo,
+        'trabajador_correo': d.trabajador_correo,
+        'costo_creditos': d.costo_creditos
+    } for d in disputas_query]
         
     return render_template('admin_retiros.html', 
                            solicitudes=lista_retiros, 
+                           disputas=lista_disputas, # 👈 AQUÍ INYECTAMOS LAS DISPUTAS AL HTML
                            nombre_usuario=session.get('usuario_nombre', 'Admin'),
                            total_workers=total_workers, 
                            ordenes_mediacion=ordenes_mediacion, 
@@ -2240,7 +2257,12 @@ def solicitar_liberacion(tarea_id):
     correo_logueado = session['usuario_correo']
     
     try:
-        # Inyectamos un mensaje en el chat avisando al cliente
+        # 1. Opcional pero recomendado: Actualizamos el estado de la tarea
+        tarea = Tarea.query.get(tarea_id)
+        if tarea and tarea.trabajador_correo == correo_logueado:
+            tarea.estado = 'Esperando Liberacion' # O el estado que manejes en tu flujo
+            
+        # 2. Inyectamos un mensaje en el chat avisando al cliente
         mensaje_sistema = Mensaje(
             tarea_id=tarea_id,
             canal_trabajador=canal_sala,
@@ -2258,6 +2280,7 @@ def solicitar_liberacion(tarea_id):
         print(f"❌ Error al solicitar liberación: {e}")
         flash("❌ Error interno al enviar la notificación.", "error")
         
+    # 🚨 Paréntesis de cierre corregido aquí abajo:
     return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
 
 # =====================================================================
