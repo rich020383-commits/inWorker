@@ -663,56 +663,100 @@ def logout():
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def home():
-    # 🛡️ PROTECCIÓN AMIGABLE: Validamos usando el correo (más seguro que el nombre)
+    # 🛡️ PROTECCIÓN AMIGABLE: Validamos usando el correo
     if 'usuario_correo' not in session: 
         flash("🔒 Por favor, inicia sesión para acceder al panel.", "error")
         return redirect(url_for('login'))
         
     correo_logueado = session.get('usuario_correo')
+    VALOR_CREDITO_COP = 10000 # Regla de oro de inWorker
     
-    # Manejo de Solicitud de Retiro (POST)
+    # =====================================================================
+    # 💸 MANEJO DE SOLICITUD DE RETIRO (POST) CON NUEVAS REGLAS
+    # =====================================================================
     if request.method == 'POST' and request.form.get('accion_perfil') == 'solicitar_retiro':
         try:
             creditos_retiro = float(request.form.get('creditos_retiro', 0))
         except ValueError:
             creditos_retiro = 0.0
             
-        metodo = request.form.get('metodo_pago', 'No especificado')
+        metodo = request.form.get('metodo_pago', 'No especificado').upper()
         detalles = request.form.get('detalles_cuenta', '')
         
-        # Buscamos al usuario de forma directa
         usuario = Usuario.query.filter_by(correo=correo_logueado).first()
         saldo_actual = usuario.saldo_creditos if usuario else 0.0
         
         if creditos_retiro > 0 and creditos_retiro <= saldo_actual:
-            equivalente_cop = creditos_retiro * VALOR_CREDITO_COP
+            monto_bruto_cop = creditos_retiro * VALOR_CREDITO_COP
+            
+            # 1. Regla: Retiro mínimo de $50.000 COP (5 créditos)
+            if monto_bruto_cop < 50000:
+                flash("❌ El retiro mínimo es de 5 créditos ($50.000 COP).", "error")
+                return redirect(url_for('home')) # ¡AQUÍ ESTÁ LA MAGIA DEL REDIRECT!
+                
+            # 2. Regla: Comisión inWorker (12%)
+            comision_plataforma = monto_bruto_cop * 0.12
+            
+            # 3. Regla: Costo Interbancario ($3.500 si no es Nequi/Bancolombia)
+            costo_bancario = 0
+            bancos_sin_costo = ['NEQUI', 'BANCOLOMBIA']
+            # Verificamos si la palabra NEQUI o BANCOLOMBIA está dentro del texto del método
+            if not any(banco in metodo for banco in bancos_sin_costo):
+                costo_bancario = 3500
+                
+            # 4. Calculamos cuánto dinero real le vas a transferir
+            monto_neto = monto_bruto_cop - comision_plataforma - costo_bancario
+            
+            if monto_neto <= 0:
+                flash("❌ El monto no cubre los gastos de transferencia y plataforma.", "error")
+                return redirect(url_for('home'))
+                
             nuevo_saldo = round(saldo_actual - creditos_retiro, 2)
             
             try:
-                # 1. Descontamos el saldo al usuario asignando la propiedad
+                # Descontamos el saldo
                 usuario.saldo_creditos = nuevo_saldo
                 
-                # 2. Registramos la solicitud en la tabla de retiros
+                # Armamos el desglose para que tú (el Admin) lo veas claro en la BD
+                desglose_admin = f"{detalles} | Bruto: ${monto_bruto_cop} | Com 12%: ${comision_plataforma} | Transf: ${costo_bancario}"
+                
+                # Registramos en tu tabla BilleteraRetiro
+                # Guardamos el monto NETO en equivalente_pesos para que sepas exacto cuánto girar
                 nuevo_retiro = BilleteraRetiro(
                     usuario_correo=correo_logueado,
                     monto_creditos=creditos_retiro,
-                    equivalente_pesos=equivalente_cop,
+                    equivalente_pesos=monto_neto, 
                     metodo_pago=metodo,
-                    detalles_cuenta=detalles,
+                    detalles_cuenta=desglose_admin, 
                     estado='Pendiente'
                 )
                 db.session.add(nuevo_retiro)
-                db.session.commit() # Guarda ambas acciones de forma atómica en el disco persistente
+                db.session.commit()
                 
-                flash(f"✅ Solicitud por ${equivalente_cop:,.0f} COP enviada a revisión técnica.", "success")
+                # Mensaje dinámico y transparente para el trabajador
+                msg = f"✅ Solicitud exitosa. Recibirás ${monto_neto:,.0f} COP (descontando 12% de plataforma"
+                if costo_bancario > 0:
+                    msg += f" y ${costo_bancario:,.0f} por giro a otros bancos)."
+                else:
+                    msg += ")."
+                    
+                flash(msg, "success")
+                
             except Exception as e:
                 db.session.rollback()
                 print(f"❌ Error al procesar el retiro financiero: {e}")
                 flash("❌ Ocurrió un error al procesar tu transacción. Fondos protegidos.", "error")
         else:
             flash("❌ Fondos insuficientes o cantidad de créditos inválida.", "error")
+            
+        # 🔄 EL TRUCO QUE FALTABA: Refrescar la página limpiamente tras el POST
+        return redirect(url_for('home'))
 
-    # 🔔 CORRECCIÓN: CONTEO DE NOTIFICACIONES (Cruzando con la tabla Tarea para evitar errores)
+    # =====================================================================
+    # 📊 SECCIÓN GET (CARGA DEL DASHBOARD NORMAL)
+    # =====================================================================
+    
+    # 🔔 CONTEO DE NOTIFICACIONES
     try:
         mensajes_nuevos = db.session.query(Mensaje).join(Tarea, Mensaje.tarea_id == Tarea.id).filter(
             db.or_(Tarea.cliente_correo == correo_logueado, Tarea.trabajador_correo == correo_logueado),
@@ -723,45 +767,39 @@ def home():
         print(f"Aviso: No se pudo contar mensajes nuevos: {e}")
         mensajes_nuevos = 0
     
-    # 📊 SECCIÓN DE MÉTRICAS DEL DASHBOARD (Agregaciones optimizadas)
+    # 📊 MÉTRICAS
     total_workers = Usuario.query.filter_by(rol='Trabajador').count()
     
-    # 🚀 Filtramos las órdenes en mediación SOLO para este usuario según su rol
     rol_usuario = session.get('usuario_rol')
     if rol_usuario == 'Cliente':
         ordenes_mediacion = Tarea.query.filter_by(cliente_correo=correo_logueado).filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).count()
     else:
         ordenes_mediacion = Tarea.query.filter_by(trabajador_correo=correo_logueado).filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).count()
     
-    # 🚀 SUMA TOTAL PARA LA CAMPANITA (Solo mensajes nuevos)
     alertas_totales = mensajes_nuevos
 
-    # Suma limpia de fondos en Escrow (Maneja si es None devolviendo 0.0)
     fondos_escrow = db.session.query(db.func.sum(db.func.cast(Tarea.pago, db.Float)))\
         .filter(Tarea.estado == 'En Garantia').scalar() or 0.0
     
-    # 💰 CONSULTA REAL DE SALDO EN BASE DE DATOS Y EXTRACCIÓN DE PERFIL
+    # 💰 SALDO Y PERFIL
     usuario_info = Usuario.query.filter_by(correo=correo_logueado).first()
     saldo_real = round(usuario_info.saldo_creditos, 2) if usuario_info else 0.0
     
-    # ⚖️ CONSULTA DE DISPUTAS ACTIVAS PARA LA CONSOLA DE ARBITRAJE
+    # ⚖️ DISPUTAS
     disputas_query = Tarea.query.filter_by(estado='En Arbitraje Admin').order_by(Tarea.id.desc()).all()
-    
-    # Adaptación a diccionarios planos para mantener compatibilidad con tu frontend actual
     lista_disputas = [{
         'id': d.id,
         'titulo': d.titulo,
         'estado': d.estado,
-        'reportado_por': getattr(d, 'reportado_por', 'No especificado'),  # Seguro si aún estás migrando columnas
+        'reportado_por': getattr(d, 'reportado_por', 'No especificado'),
         'motivo_disputa': getattr(d, 'motivo_disputa', 'Sin motivo'),
         'costo_creditos': d.costo_creditos
     } for d in disputas_query]
     
-    # Armamos el diccionario dinámico para las plantillas
     perfil_real = {'saldo_creditos': saldo_real, 'saldo': saldo_real}
     
     return render_template('index.html', 
-                           nombre_usuario=session['usuario_nombre'],
+                           nombre_usuario=session.get('usuario_nombre'),
                            total_workers=total_workers,
                            ordenes_mediacion=ordenes_mediacion,
                            fondos_escrow=fondos_escrow,
@@ -771,7 +809,7 @@ def home():
                            trabajador_perfil=perfil_real,
                            lista_disputas=lista_disputas,
                            notificaciones_sin_leer=alertas_totales,
-                           usuario=usuario_info) # 🪪 INYECTAMOS EL PERFIL AQUÍ PARA LA TARJETA
+                           usuario=usuario_info)
 
 @app.route('/ir_al_chat_reciente')
 def ir_al_chat_reciente():
@@ -921,7 +959,7 @@ def admin_reportes():
 @app.route('/admin/retiros', methods=['GET', 'POST'])
 def admin_retiros():
     if 'usuario_nombre' not in session or session.get('usuario_rol') != 'Admin':
-        return redirect(url_for('index'))
+        return redirect(url_for('dashboard')) # Mejor mandarlo al dashboard que al index vacío
         
     # ⚡ Definimos la variable para que el filtro de Escrow no lance NameError
     correo_logueado = session.get('usuario_correo', '')
@@ -936,8 +974,8 @@ def admin_retiros():
             
             if solicitud and solicitud.estado == 'Pendiente':
                 if accion == 'Completado':  # Botón "Marcar Pagado"
-                    solicitud.estado = 'Aprobado'
-                    flash(f"✅ Retiro #{solicitud_id} aprobado para transferencia manual.", "success")
+                    solicitud.estado = 'Completado' # 🚨 Ajustado para que encaje con el CSS de tu HTML
+                    flash(f"✅ Transferencia #{solicitud_id} marcada como Completada.", "success")
                     
                 elif accion == 'Rechazado':  # Botón "Rechazar"
                     # Buscamos al usuario dueño del correo asociado al cobro
@@ -958,16 +996,20 @@ def admin_retiros():
             db.session.rollback() # Si algo falla en la mitad, la BD vuelve a su estado seguro
             print(f"❌ Error crítico procesando acción de retiro #{solicitud_id}: {e}")
             flash("❌ Ocurrió un error interno al procesar el estado del retiro.", "error")
+            
+        return redirect(url_for('admin_retiros'))
 
-    # 📊 CONSTRUCCIÓN DE LA LISTA DE RETIROS PENDIENTES CON JOIN DE MODELOS
-    solicitudes_pendientes = db.session.query(BilleteraRetiro, Usuario)\
+    # 📊 CONSTRUCCIÓN DE LA LISTA DE RETIROS CON JOIN DE MODELOS Y ORDENAMIENTO
+    from sqlalchemy.sql.expression import case
+    orden = case((BilleteraRetiro.estado == 'Pendiente', 1), else_=2)
+
+    solicitudes_db = db.session.query(BilleteraRetiro, Usuario)\
         .outerjoin(Usuario, db.func.lower(db.func.trim(BilleteraRetiro.usuario_correo)) == db.func.lower(db.func.trim(Usuario.correo)))\
-        .filter(BilleteraRetiro.estado == 'Pendiente')\
-        .order_by(BilleteraRetiro.id.desc()).all()
+        .order_by(orden, BilleteraRetiro.id.desc()).all()
         
     # Formateamos exactamente como lo pide tu HTML usando un mapeo plano
     lista_retiros = []
-    for ret, usr in solicitudes_pendientes:
+    for ret, usr in solicitudes_db:
         lista_retiros.append({
             'id': ret.id,
             'monto_creditos': ret.monto_creditos,
@@ -987,7 +1029,7 @@ def admin_retiros():
     # 🛡️ CÁLCULO DE MÉTRICAS FALTANTES PARA EL DASHBOARD (ALINEADO Y CORREGIDO)
     fondos_escrow = db.session.query(db.func.sum(Tarea.costo_creditos)).filter(
         Tarea.estado == 'En Garantia',
-        or_(Tarea.cliente_correo == correo_logueado, Tarea.trabajador_correo == correo_logueado)
+        db.or_(Tarea.cliente_correo == correo_logueado, Tarea.trabajador_correo == correo_logueado)
     ).scalar() or 0.0
         
     return render_template('admin_retiros.html', 
@@ -1003,6 +1045,9 @@ import time
 # =====================================================================
 # 💳 MÓDULO DE PAGOS: INICIO DE RECARGA CON BOLD (PASARELA)
 # =====================================================================
+# =====================================================================
+# 💳 RUTA PARA PROCESAR EL FORMULARIO DE RECARGA (CON COMISIÓN INCLUIDA)
+# =====================================================================
 @app.route('/recargar_billetera', methods=['GET', 'POST'])
 def recargar_billetera():
     if 'usuario_correo' not in session:
@@ -1012,11 +1057,14 @@ def recargar_billetera():
         
     if request.method == 'POST':
         try:
+            # 1. Capturamos AMBOS valores enviados desde el frontend
             creditos_a_cargar = float(request.form.get('creditos', 1))
+            monto_pesos = float(request.form.get('monto_cobrar', 0)) # Este ya trae los $1.500 del banco
         except ValueError:
             creditos_a_cargar = 0.0
+            monto_pesos = 0.0
             
-        monto_pesos = creditos_a_cargar * 10000
+        # ¡ELIMINAMOS la multiplicación * 10000 porque el frontend ya hace el cálculo total!
             
         if monto_pesos <= 0:
             flash("❌ Debes ingresar una cantidad válida.", "error")
@@ -1033,7 +1081,10 @@ def recargar_billetera():
                 bold_public_key = os.environ.get('BOLD_API_KEY', '')
                 bold_integrity_key = os.environ.get('BOLD_INTEGRITY_KEY', '')
                 
-                referencia_pago = f"RECARGA-{usuario.id}-{int(time.time())}"
+                # 2. 💡 JUGADA MAESTRA: Metemos los créditos en la referencia
+                # Ejemplo resultante: RECARGA-8-3-1783534234 (Usuario 8, compra 3 créditos)
+                referencia_pago = f"RECARGA-{usuario.id}-{int(creditos_a_cargar)}-{int(time.time())}"
+                
                 monto_str = str(int(monto_pesos))
                 
                 # 🔐 MAGIA CRIPTOGRÁFICA: Generamos el Sello para descongelar Bold
@@ -1044,7 +1095,7 @@ def recargar_billetera():
                                        creditos=int(creditos_a_cargar),
                                        monto_pesos=monto_str,
                                        bold_public_key=bold_public_key,
-                                       firma_integridad=firma_integridad,  # Pasamos la firma
+                                       firma_integridad=firma_integridad,  
                                        referencia_pago=referencia_pago,
                                        usuario=usuario)
             else:
@@ -1056,7 +1107,7 @@ def recargar_billetera():
             
         return redirect(request.referrer or url_for('dashboard'))
         
-    # Si entra por GET, mostramos la vista normal
+    # GET: Mostrar vista normal
     usuario_info = Usuario.query.filter_by(correo=correo_logueado).first()
     saldo_vista = round(usuario_info.saldo_creditos, 2) if usuario_info else 0.0
     
@@ -2091,7 +2142,7 @@ def consultar_tecnico():
     return redirect(url_for('ver_chat', tarea_id=id_tarea))
 
 # =====================================================================
-# 💰 WEBHOOK CENTRAL DE BOLD (CON LOGS DE CONTROL DETALLADOS)
+# 💰 WEBHOOK CENTRAL DE BOLD (ACTUALIZADO CON NUEVA REFERENCIA)
 # =====================================================================
 @app.route('/webhook-bold', methods=['POST'])
 def webhook_bold():
@@ -2114,40 +2165,45 @@ def webhook_bold():
                 print(f"⚠️ [Ignorado] La referencia '{referencia}' no es una recarga de billetera.")
                 return jsonify({"status": "ignored", "message": "No es una recarga"}), 200
             
-            # 3. Rompemos la referencia para sacar el ID del usuario
+            # 3. Rompemos la referencia para sacar el ID y los CRÉDITOS
+            # Nuevo formato: RECARGA-{ID}-{CREDITOS}-{TIMESTAMP}
             partes = referencia.split('-')
-            if len(partes) >= 2:
+            
+            # Verificamos que tenga al menos 3 partes
+            if len(partes) >= 3:
                 usuario_id = int(partes[1])
-                print(f"🔍 [Paso 3] ID de usuario extraído de la referencia: {usuario_id}")
+                # ¡LA MAGIA! Sacamos los créditos exactos que pidió el usuario desde la referencia
+                creditos_comprados = float(partes[2]) 
                 
-                # 4. Extraemos el total del objeto amount
+                print(f"🔍 [Paso 3] ID de usuario extraído: {usuario_id}")
+                print(f"🔍 [Paso 4] Créditos extraídos de la referencia: {creditos_comprados}")
+                
+                # Extraemos el total pagado solo para el registro o para el correo (ya incluye la comisión)
                 monto = float(data.get('amount', {}).get('total', 0))
-                print(f"🔍 [Paso 4] Monto bruto recibido: ${monto} COP")
+                print(f"🔍 [Paso 5] Monto bruto pagado en Bold: ${monto} COP")
                 
-                creditos_comprados = monto / 10000
-                print(f"🔍 [Paso 5] Créditos equivalentes a inyectar: {creditos_comprados}")
-                
-                # 5. Buscamos al usuario en la BD
+                # 4. Buscamos al usuario en la BD
                 usuario = Usuario.query.get(usuario_id)
                 if usuario:
                     saldo_anterior = usuario.saldo_creditos or 0.0
+                    
+                    # Sumamos los créditos limpios, sin importar cuánto cobró Bold
                     usuario.saldo_creditos = round(saldo_anterior + creditos_comprados, 2)
                     
                     # Guardamos físicamente en la Base de Datos
                     db.session.commit()
                     print(f"✅ [ÉXITO BASE DE DATOS] Usuario ID {usuario.id} actualizado. Saldo anterior: {saldo_anterior} -> Nuevo Saldo: {usuario.saldo_creditos}")
                     
-                    # 📩 SOPORTE DE CORREO (Opcional):
-                    # Bold le envía un recibo automático a 'payer_email' (sophiadebelfort10@gmail.com).
-                    # Si tú quieres enviar un correo propio de inWorker, puedes disparar tu función aquí:
-                    # enviar_correo_recarga(usuario.correo, monto)
+                    # 📩 SOPORTE DE CORREO:
+                    # Descomenta esta línea si vas a usar tu función de envío de correos
+                    # enviar_correo_recarga(usuario.correo, usuario.nombre, monto, referencia)
                     
                     return jsonify({"status": "success", "message": "Créditos inyectados correctamente en BD"}), 200
                 else:
                     print(f"❌ [ERROR] No se encontró ningún usuario en la BD con el ID: {usuario_id}")
                     return jsonify({"status": "error", "message": "Usuario no encontrado"}), 404
             else:
-                print("❌ [ERROR] La estructura de la referencia de recarga está mal formada.")
+                print("❌ [ERROR] La estructura de la referencia está mal formada o es una versión vieja.")
                 return jsonify({"status": "error", "message": "Referencia mal formada"}), 400
         else:
             print(f"⚠️ [Ignorado] El pago no está aprobado. Estado actual: '{estado}'")

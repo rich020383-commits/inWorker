@@ -51,51 +51,73 @@
                     <i class="fas fa-money-bill-wave text-xl"></i>
                 </div>
                 <div>
-                    <h2 class="text-xl font-black text-white tracking-wide">Solicitar Retiro / Pago</h2>
-                    <p class="text-xs text-gray-400">Envía tus fondos acumulados a tu cuenta bancaria o billetera digital.</p>
+                    <h2 class="text-xl font-black text-white tracking-wide">Solicitar Retiro</h2>
+                    <p class="text-xs text-gray-400">Transfiere tus ganancias. Retiro mínimo: 5 Créditos.</p>
                 </div>
             </div>
 
             <div class="bg-gray-950 border border-gray-700 rounded-xl p-4 mb-6 flex justify-between items-center">
-                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Tu Saldo Disponible:</span>
-                <span class="text-xl font-black text-emerald-400">${{ usuario.saldo | default('0.00') }}</span>
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Saldo Disponible:</span>
+                <span class="text-xl font-black text-emerald-400">{{ usuario.saldo_creditos | default('0.00') }} <span class="text-sm">Créditos</span></span>
             </div>
 
-            <form action="/solicitar_pago" method="POST" class="space-y-5">
+            <form action="/dashboard" method="POST" class="space-y-5">
+                <input type="hidden" name="accion_perfil" value="solicitar_retiro">
                 
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Monto a retirar ($)</label>
-                    <input type="number" name="monto" step="0.01" min="1" max="{{ usuario.saldo }}" placeholder="Ej: 50.00" required
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">¿Cuántos créditos deseas retirar?</label>
+                    <input type="number" name="creditos_retiro" id="input-creditos" step="0.01" min="5" max="{{ usuario.saldo_creditos }}" placeholder="Mínimo 5 créditos ($50.000 COP)" required onchange="calcularDesglose()" onkeyup="calcularDesglose()"
                         class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white font-bold focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Método de Transferencia</label>
-                    <select name="metodo_pago" required
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Banco de Destino</label>
+                    <select name="metodo_pago" id="select-banco" required onchange="calcularDesglose()"
                         class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-gray-300 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition">
-                        <option value="" disabled selected>Selecciona una opción...</option>
-                        <option value="Transferencia Bancaria">Transferencia Bancaria</option>
-                        <option value="Billetera Digital">Billetera Digital (Nequi / Daviplata)</option>
-                        <option value="PayPal">PayPal</option>
+                        <option value="" disabled selected>Selecciona tu banco...</option>
+                        <option value="NEQUI">Nequi (¡Giro Gratis!)</option>
+                        <option value="BANCOLOMBIA">Bancolombia (¡Giro Gratis!)</option>
+                        <option value="DAVIVIENDA">Davivienda / Daviplata (+ $3.500 costo bancario)</option>
+                        <option value="OTROS BANCOS">Otros Bancos (+ $3.500 costo bancario)</option>
                     </select>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Detalles de la Cuenta de Destino</label>
-                    <textarea name="detalles_pago" rows="3" required
-                        placeholder="Ej: Banco, Tipo de cuenta, Número de cuenta, Nombre completo del titular y Cédula..." 
+                    <textarea name="detalles_cuenta" rows="3" required
+                        placeholder="Ej: Ahorros Bancolombia, Cta: 123456789, Titular: Juan Pérez, CC: 10987654" 
                         class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 transition"></textarea>
-                    <p class="text-[10px] text-gray-500 mt-1">Asegúrate de que los datos ingresados sean correctos para evitar demoras en la transacción.</p>
+                </div>
+
+                <div class="bg-gray-900 border border-gray-700 rounded-xl p-4 space-y-2">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-700 pb-2 mb-2">Desglose de la Transacción</h3>
+                    
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400">Monto Bruto:</span>
+                        <span class="text-white font-bold" id="val-bruto">$0 COP</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400">Uso de Plataforma (12%):</span>
+                        <span class="text-rose-400 font-bold" id="val-comision">-$0 COP</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400">Costo Transferencia:</span>
+                        <span class="text-rose-400 font-bold" id="val-banco">-$0 COP</span>
+                    </div>
+                    <div class="flex justify-between text-lg pt-2 border-t border-gray-700 mt-2">
+                        <span class="text-gray-300 font-bold">Total a Recibir:</span>
+                        <span class="text-teal-400 font-black" id="val-neto">$0 COP</span>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 pt-2">
-                    <a href="/perfil" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 transition">
+                    <a href="/dashboard" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 transition">
                         <i class="fas fa-arrow-left"></i>
                         <span>Cancelar</span>
                     </a>
                     <button type="submit" class="bg-teal-500 hover:bg-teal-400 text-gray-900 font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 transition shadow-lg">
                         <i class="fas fa-paper-plane"></i>
-                        <span>Enviar Solicitud</span>
+                        <span>Solicitar Retiro</span>
                     </button>
                 </div>
 
@@ -103,5 +125,32 @@
         </div>
     </main>
 
+    <script>
+        // Lógica de cálculo en vivo para mostrar la transparencia financiera
+        function calcularDesglose() {
+            const creditos = parseFloat(document.getElementById('input-creditos').value) || 0;
+            const banco = document.getElementById('select-banco').value;
+            
+            // 1 Crédito = $10.000 COP
+            const bruto = creditos * 10000;
+            const comision = bruto * 0.12;
+            
+            let costoBanco = 0;
+            if (banco !== 'NEQUI' && banco !== 'BANCOLOMBIA' && banco !== '') {
+                costoBanco = 3500;
+            }
+
+            let neto = bruto - comision - costoBanco;
+            if (neto < 0) neto = 0;
+
+            // Formatear a pesos colombianos
+            const formatoCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
+            document.getElementById('val-bruto').innerText = formatoCOP.format(bruto);
+            document.getElementById('val-comision').innerText = "-" + formatoCOP.format(comision);
+            document.getElementById('val-banco').innerText = "-" + formatoCOP.format(costoBanco);
+            document.getElementById('val-neto').innerText = formatoCOP.format(neto);
+        }
+    </script>
 </body>
 </html>

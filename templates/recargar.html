@@ -18,9 +18,9 @@
         </div>
     </header>
 
-    <main class="max-w-md mx-auto px-4 py-8 w-full flex-grow">
+    <main class="max-w-4xl mx-auto px-4 py-8 w-full flex-grow">
         
-        <div class="bg-slate-900 rounded-3xl p-6 shadow-xl mb-8 relative overflow-hidden">
+        <div class="bg-slate-900 rounded-3xl p-6 shadow-xl mb-8 relative overflow-hidden max-w-md mx-auto">
             <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full blur-3xl opacity-20 -mr-10 -mt-10"></div>
             <h2 class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Saldo Disponible</h2>
             <div class="flex items-end gap-2">
@@ -29,61 +29,81 @@
             </div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <h3 class="text-sm font-black text-slate-800 uppercase tracking-wide mb-4">
-                <i class="fas fa-bolt text-blue-500 mr-2"></i>Nueva Recarga
-            </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            <form action="/recargar_billetera" method="POST" class="space-y-6">
-                <div>
-                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-3">¿Cuántos créditos deseas recargar?</label>
-                    <div class="flex items-center gap-4">
-                        <button type="button" onclick="ajustarCreditos(-1)" class="w-14 h-14 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 font-black text-2xl transition flex items-center justify-center">-</button>
-                        
-                        <input type="number" id="input-creditos" name="creditos" value="1" min="1" max="100" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl text-center h-14 text-2xl font-black text-slate-900 focus:outline-none focus:border-blue-500 transition" onchange="calcularTotal()" onkeyup="calcularTotal()">
-                        
-                        <button type="button" onclick="ajustarCreditos(1)" class="w-14 h-14 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 font-black text-2xl transition flex items-center justify-center">+</button>
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col">
+                <h3 class="text-sm font-black text-slate-800 uppercase tracking-wide mb-1">
+                    <i class="fas fa-bolt text-blue-500 mr-2"></i>Recarga Rápida
+                </h3>
+                <p class="text-[11px] text-slate-500 mb-5">Acreditación inmediata. Tarifa de pasarela asumida por el usuario.</p>
+                
+                <form action="/recargar_billetera" method="POST" id="form-bold" class="space-y-4 flex-grow flex flex-col">
+                    <input type="hidden" name="creditos" id="bold-creditos" value="3">
+                    <input type="hidden" name="monto_cobrar" id="bold-monto" value="32500">
+                    
+                    <div class="paquete-card border border-slate-200 rounded-xl p-4 cursor-pointer transition hover:border-blue-500 bg-white" onclick="seleccionarPaquete(this, 1, 11500)">
+                        <div class="flex justify-between items-center mb-1">
+                            <h4 class="font-bold text-slate-800">1 Crédito</h4>
+                            <span class="font-black text-blue-600 text-lg">$11.500</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500">Saldo: $10.000 | Pasarela Bold: $1.500</p>
                     </div>
-                    <p class="text-[9px] text-slate-400 mt-2 font-medium text-center">Límite máximo por transacción: 100 Créditos ($1,000,000 COP)</p>
+
+                    <div class="paquete-card border-2 border-blue-500 rounded-xl p-4 cursor-pointer transition bg-blue-50 relative" onclick="seleccionarPaquete(this, 3, 32500)">
+                        <div class="absolute -top-3 right-4 bg-blue-500 text-white text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                            Mejor Valor
+                        </div>
+                        <div class="flex justify-between items-center mb-1">
+                            <h4 class="font-bold text-slate-800">3 Créditos</h4>
+                            <span class="font-black text-blue-600 text-lg">$32.500</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500">Saldo: $30.000 | Pasarela Bold: $2.500</p>
+                    </div>
+
+                    <div class="paquete-card border border-slate-200 rounded-xl p-4 cursor-pointer transition hover:border-blue-500 bg-white" onclick="seleccionarPaquete(this, 5, 53500)">
+                        <div class="flex justify-between items-center mb-1">
+                            <h4 class="font-bold text-slate-800">5 Créditos</h4>
+                            <span class="font-black text-blue-600 text-lg">$53.500</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500">Saldo: $50.000 | Pasarela Bold: $3.500</p>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center space-x-2 mt-auto active:scale-95">
+                        <i class="fas fa-lock mr-1"></i>
+                        <span id="btn-text-bold">Pagar $32.500 con Bold</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-[#3f1e54] rounded-2xl p-6 shadow-md text-white flex flex-col relative overflow-hidden">
+                <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-[#ea4c89] rounded-full blur-3xl opacity-20"></div>
+                
+                <div class="flex justify-between items-start mb-4 relative z-10">
+                    <div>
+                        <h3 class="text-sm font-black text-white uppercase tracking-wide mb-1">
+                            <i class="fas fa-mobile-screen mr-2"></i>Nequi Directo
+                        </h3>
+                        <p class="text-[11px] text-purple-200">Aprobación mediante Inteligencia Artificial.</p>
+                    </div>
+                    <span class="bg-[#10b981] text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                        0% Comisión
+                    </span>
                 </div>
 
-                <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-5 flex justify-between items-center">
-                    <span class="text-xs font-bold text-slate-600">Total a pagar:</span>
-                    <span class="text-xl font-black text-blue-700" id="total-cop">$10.000 COP</span>
+                <div class="bg-white p-3 rounded-xl w-40 h-40 mx-auto my-2 shadow-inner relative z-10 flex items-center justify-center">
+                    <img src="/static/img/qr_nequi_negocios.png" alt="QR Nequi" class="w-full h-full object-contain rounded-lg">
                 </div>
 
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center space-x-2 active:scale-95">
-                    <i class="fas fa-lock mr-1"></i>
-                    <span>Ir a Pagar Seguro</span>
-                </button>
-            </form>
-        </div>
-    </main>
+                <div class="text-[11px] text-purple-100 mb-6 mt-4 space-y-2 relative z-10">
+                    <p class="font-bold text-white text-xs mb-2">Instrucciones de Recarga:</p>
+                    <p><i class="fas fa-check-circle text-[#10b981] mr-1"></i> Escanea el QR desde tu app Nequi.</p>
+                    <p><i class="fas fa-check-circle text-[#10b981] mr-1"></i> Transfiere múltiplos de 10.000 ($10.000 = 1 Crédito, $20.000 = 2 Créditos).</p>
+                    <p><i class="fas fa-check-circle text-[#10b981] mr-1"></i> Toma pantallazo de "Transacción Exitosa" y súbelo aquí.</p>
+                </div>
 
-    <script>
-        // Magia JavaScript para calcular el precio en vivo sin recargar la página
-        function ajustarCreditos(cambio) {
-            const input = document.getElementById('input-creditos');
-            let valor = parseInt(input.value) || 0;
-            valor += cambio;
-            if (valor < 1) valor = 1;
-            if (valor > 100) valor = 100;
-            input.value = valor;
-            calcularTotal();
-        }
-
-        function calcularTotal() {
-            const input = document.getElementById('input-creditos');
-            let valor = parseInt(input.value) || 0;
-            if (valor < 1) valor = 1;
-            if (valor > 100) valor = 100;
-            
-            const total = valor * 10000;
-            document.getElementById('total-cop').innerText = '$' + total.toLocaleString('es-CO') + ' COP';
-        }
-        
-        // Ejecutar cálculo al iniciar la vista
-        document.addEventListener("DOMContentLoaded", calcularTotal);
-    </script>
-</body>
-</html>
+                <form action="/subir_comprobante" method="POST" enctype="multipart/form-data" class="mt-auto relative z-10">
+                    <input type="file" name="comprobante" id="fileComprobante" class="hidden" accept="image/*">
+                    
+                    <button type="button" onclick="document.getElementById('fileComprobante').click()" class="w-full bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold py-4 rounded-xl text-xs uppercase tracking-wider transition flex items-center justify-center space-x-2">
+                        <i class="fas fa-camera mr-1"></i>
+                        <span id="btn-text-upload">Subir Comprob
