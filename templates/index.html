@@ -382,8 +382,8 @@ function analizarConIA(tareaId) {
                 <span class="text-lg font-black text-emerald-600">${{ "{:,.0f}".format((saldo | default(0) | float) * 10000) }}</span>
             </div>
 
-            <form action="{{ url_for('home') }}" method="POST" class="space-y-4">
-                <input type="hidden" name="accion_perfil" value="solicitar_retiro">
+            <form action="/solicitar_retiro" method="POST" class="space-y-4">
+                
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Créditos a Retirar (1 Cr = $10.000 COP)</label>
                     <input type="number" name="creditos_retiro" min="0.1" step="0.1" required placeholder="Ej: 5.5" class="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition">
