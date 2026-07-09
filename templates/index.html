@@ -109,6 +109,48 @@
             </div>
         </div>
     </header>
+<!-- ========================================== -->
+    <!-- 🔔 SISTEMA DE ALERTAS (FLASH MESSAGES)     -->
+    <!-- ========================================== -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="fixed top-24 right-4 z-[9999] flex flex-col gap-3" id="contenedor-alertas">
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-xl shadow-2xl border text-sm font-bold flex items-center justify-between min-w-[300px] transition-all duration-300 transform translate-y-0 opacity-100
+                        {% if category == 'success' %} bg-emerald-50 border-emerald-200 text-emerald-800
+                        {% elif category == 'error' %} bg-rose-50 border-rose-200 text-rose-800
+                        {% else %} bg-blue-50 border-blue-200 text-blue-800 {% endif %}">
+                        
+                        <div class="flex items-center gap-3">
+                            {% if category == 'success' %}
+                                <i class="fas fa-check-circle text-emerald-500 text-xl"></i>
+                            {% elif category == 'error' %}
+                                <i class="fas fa-exclamation-circle text-rose-500 text-xl"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                        
+                        <button onclick="this.parentElement.remove()" class="ml-4 text-slate-400 hover:text-slate-700 transition">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Script para auto-destruir la alerta después de 5 segundos -->
+            <script>
+                setTimeout(() => {
+                    const alertas = document.getElementById('contenedor-alertas');
+                    if(alertas) {
+                        alertas.style.opacity = '0';
+                        setTimeout(() => alertas.remove(), 300);
+                    }
+                }, 5000);
+            </script>
+        {% endif %}
+    {% endwith %}
 <div id="pwa-install-banner" class="hidden bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 flex justify-between items-center shadow-md border-b border-indigo-700">
         <div class="flex items-center space-x-3">
             <div class="bg-white/20 p-2 rounded-lg"><i class="fas fa-mobile-alt text-lg"></i></div>
