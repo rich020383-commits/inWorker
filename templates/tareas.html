@@ -29,7 +29,6 @@
     </script>
 
     <style>
-        /* Ocultar flechas en inputs numéricos */
         input[type="number"]::-webkit-inner-spin-button, 
         input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
@@ -42,7 +41,7 @@
             <div class="flex items-center space-x-3">
                 <a href="{{ url_for('home') }}" class="flex items-center space-x-2 select-none group">
                     <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-8 w-auto object-contain transition-transform duration-200 group-hover:scale-105" onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/inwor.jpg') }}?v=1';">
-                    <div class="flex flex-col border-l border-slate-300/50 pl-3 ml-1">
+                    <div class="hidden sm:flex flex-col border-l border-slate-300/50 pl-3 ml-1">
                         <span class="text-[10px] font-black uppercase tracking-widest text-slate-800">Marketplace</span>
                     </div>
                 </a>
@@ -86,23 +85,22 @@
 
     <main class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full">
         
-        <!-- HEADER DEL MARKETPLACE Y BOTONES ARREGLADOS -->
         <div class="bg-white border border-slate-200 rounded-[2rem] p-6 sm:p-8 mb-8 shadow-sm relative overflow-hidden">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
             
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
                 <div>
-                    <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Mercado de Servicios</h1>
+                    <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                        Mercado de Servicios
+                    </h1>
                     <p class="text-sm text-slate-500 mt-2 max-w-lg font-medium leading-relaxed">Conecta con especialistas, negocia precios justos y asegura tu dinero mediante el sistema de garantías en Escrow.</p>
                 </div>
                 
                 {% if session.get('usuario_rol') == 'Cliente' %}
                 <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                    <!-- Botón buscar especialista -->
                     <a href="/tecnicos" class="px-6 py-3.5 bg-white border border-slate-200 text-slate-700 font-black rounded-2xl hover:bg-slate-50 hover:text-blue-600 transition shadow-sm flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
                         <i class="fas fa-search text-blue-500"></i> Buscar Especialista
                     </a>
-                    <!-- Botón publicar con onclick directo -->
                     <button type="button" onclick="abrirModal()" class="px-6 py-3.5 bg-blue-600 text-white font-black rounded-2xl shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:shadow-blue-600/50 transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider active:scale-95">
                         <i class="fas fa-plus"></i> Publicar Servicio
                     </button>
@@ -110,44 +108,25 @@
                 {% endif %}
             </div>
 
-            <!-- FORMULARIO DE BÚSQUEDA FUNCIONAL -->
             <form action="/tareas" method="GET" class="mt-8 pt-8 border-t border-slate-100 flex flex-col sm:flex-row gap-3 relative z-10">
                 <div class="relative flex-1 group">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-search text-slate-400 group-focus-within:text-blue-500 transition-colors"></i></div>
-                    <input type="text" name="q" placeholder="Buscar por palabra clave o categoría..." value="{{ request.args.get('q', '') }}" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl pl-12 pr-4 py-4 text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner">
+                    <input type="text" name="q" placeholder="Buscar por palabra clave..." value="{{ request.args.get('q', '') }}" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl pl-12 pr-4 py-4 text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner">
                 </div>
                 <div class="flex gap-2">
                     <select name="categoria_filtro" class="bg-white border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-slate-600 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm hover:bg-slate-50 transition">
                         <option value="">Todas las categorías</option>
-                        <option value="Soporte Técnico">Soporte Técnico</option>
-                        <option value="Plomería">Plomería</option>
-                        <option value="Electricidad">Electricidad</option>
+                        <option value="Soporte Técnico" {% if request.args.get('categoria_filtro') == 'Soporte Técnico' %}selected{% endif %}>Soporte IT / Redes</option>
+                        <option value="Línea Blanca" {% if request.args.get('categoria_filtro') == 'Línea Blanca' %}selected{% endif %}>Línea Blanca / Electro</option>
+                        <option value="Electricidad" {% if request.args.get('categoria_filtro') == 'Electricidad' %}selected{% endif %}>Electricidad General</option>
+                        <option value="Plomería" {% if request.args.get('categoria_filtro') == 'Plomería' %}selected{% endif %}>Plomería</option>
+                        <option value="Mantenimiento" {% if request.args.get('categoria_filtro') == 'Mantenimiento' %}selected{% endif %}>Mantenimiento General</option>
                     </select>
-                    <!-- El botón ahora es tipo submit para enviar el formulario -->
                     <button type="submit" class="bg-blue-600 border border-blue-600 rounded-2xl px-5 py-4 text-white hover:bg-blue-700 transition shadow-sm flex items-center justify-center gap-2 font-bold text-sm">
                         <i class="fas fa-search"></i> <span class="hidden sm:inline">Buscar</span>
                     </button>
                 </div>
             </form>
-        </div>
-
-            <div class="mt-8 pt-8 border-t border-slate-100 flex flex-col sm:flex-row gap-3 relative z-10">
-                <div class="relative flex-1 group">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-search text-slate-400 group-focus-within:text-blue-500 transition-colors"></i></div>
-                    <input type="text" placeholder="Buscar por palabra clave o categoría..." class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl pl-12 pr-4 py-4 text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner">
-                </div>
-                <div class="flex gap-2">
-                    <select class="bg-white border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-slate-600 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm hover:bg-slate-50 transition">
-                        <option>Todas las categorías</option>
-                        <option>Soporte Técnico</option>
-                        <option>Plomería</option>
-                        <option>Electricidad</option>
-                    </select>
-                    <button class="bg-white border border-slate-200 rounded-2xl px-5 py-4 text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition shadow-sm">
-                        <i class="fas fa-sliders-h"></i>
-                    </button>
-                </div>
-            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -177,7 +156,6 @@
                 </div>
 
                 <div class="relative z-10 mt-2">
-                    
                     <div class="bg-slate-50/80 rounded-2xl p-4 border border-slate-100 mb-5 flex justify-between items-center shadow-inner">
                         <div>
                             <span class="text-[9px] text-slate-400 block uppercase font-black tracking-widest mb-0.5">Presupuesto</span>
@@ -224,9 +202,9 @@
                     <i class="fas fa-search text-4xl text-slate-300"></i>
                 </div>
                 <h3 class="text-xl font-black text-slate-900 mb-2">Sin Resultados Locales</h3>
-                <p class="text-sm text-slate-500 max-w-md mx-auto font-medium">Actualmente no hay requerimientos activos en tu radio de búsqueda. Revisa más tarde o amplía tu cobertura.</p>
+                <p class="text-sm text-slate-500 max-w-md mx-auto font-medium">Actualmente no hay requerimientos activos en tu búsqueda. Revisa más tarde o amplía tu cobertura.</p>
                 {% if session.get('usuario_rol') == 'Cliente' %}
-                <button onclick="document.getElementById('modalPublicar').classList.remove('hidden')" class="mt-8 px-8 py-4 bg-blue-600 text-white font-black rounded-2xl shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition-all text-xs uppercase tracking-wider active:scale-95">
+                <button type="button" onclick="abrirModal()" class="mt-8 px-8 py-4 bg-blue-600 text-white font-black rounded-2xl shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition-all text-xs uppercase tracking-wider active:scale-95">
                     <i class="fas fa-plus mr-2"></i> Ser el primero en publicar
                 </button>
                 {% endif %}
@@ -235,7 +213,7 @@
         </div>
     </main>
 
-    <div id="modalPublicar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
+    <div id="modalPublicar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white border border-slate-200 rounded-[2rem] max-w-lg w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="modalPublicarContent">
             
             <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
@@ -247,7 +225,7 @@
                         Crear Nueva Solicitud
                     </h2>
                 </div>
-                <button onclick="cerrarModal()" class="text-slate-400 hover:text-rose-500 transition-colors bg-white p-2 rounded-full border border-slate-200 shadow-sm active:scale-90">
+                <button type="button" onclick="cerrarModal()" class="text-slate-400 hover:text-rose-500 transition-colors bg-white p-2 rounded-full border border-slate-200 shadow-sm active:scale-90">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -299,32 +277,32 @@
     </div>
 
     <script>
-        // Animaciones del Modal
+        // Funciones para abrir y cerrar el Modal
         function abrirModal() {
             const modal = document.getElementById('modalPublicar');
             const content = document.getElementById('modalPublicarContent');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                content.classList.remove('scale-95');
-            }, 10);
+            if(modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
+                }, 10);
+            }
         }
 
         function cerrarModal() {
             const modal = document.getElementById('modalPublicar');
             const content = document.getElementById('modalPublicarContent');
-            modal.classList.add('opacity-0');
-            content.classList.add('scale-95');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
+            if(modal) {
+                modal.classList.add('opacity-0');
+                content.classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
         }
 
-        document.querySelectorAll('button[onclick="document.getElementById(\\'modalPublicar\\').classList.remove(\\'hidden\\')"]').forEach(btn => {
-            btn.onclick = abrirModal;
-        });
-
-        // Polling de Notificaciones Actualizado
+        // Script de Notificaciones Globales
         let ultimoConteoMensajesIndex = 0;
         let primeraCargaIndex = true;
 
@@ -357,7 +335,7 @@
                             sonidoNotifIndex.play().catch(e => console.log("Audio esperando interacción."));
                             if (Notification.permission === "granted") {
                                 new Notification("💬 Nuevo Mensaje en inWorker", {
-                                    body: `Tienes ${totalMensajes} mensaje(s) pendiente(s) en tus salas de negociación.`,
+                                    body: `Tienes ${totalMensajes} mensaje(s) pendiente(s).`,
                                     icon: "/static/img/favicon.png"
                                 });
                             }
@@ -369,7 +347,7 @@
                 .catch(err => console.error("Error en polleo notificaciones:", err));
         }
 
-        // Geolocalización
+        // Geolocalización y Arranque
         window.addEventListener('DOMContentLoaded', () => {
             verificarAlertasDashboard();
             setInterval(verificarAlertasDashboard, 7000);
@@ -383,11 +361,11 @@
                     document.getElementById('form-longitud').value = lng;
                     
                     const urlParams = new URLSearchParams(window.location.search);
-                    if (!urlParams.has('lat')) {
+                    if (!urlParams.has('lat') && !urlParams.has('q') && !urlParams.has('categoria_filtro')) {
                         window.location.href = `/tareas?lat=${lat}&lng=${lng}`;
                     }
                 }, (error) => {
-                    console.log("GPS denegado. Usando base Soledad/Barranquilla.");
+                    console.log("GPS denegado. Usando ubicaciones por defecto.");
                 });
             }
         });
