@@ -1145,11 +1145,30 @@ def ver_tareas():
     usuario_db = Usuario.query.filter_by(correo=correo_logueado).first()
     saldo_actual = round(usuario_db.saldo_creditos, 2) if usuario_db else 0.0
     
-    # 🔔 NUEVO: CONTEO DE NOTIFICACIONES (Mensajes sin leer)
+    # 🔔 NUEVO: CONTEO DE NOTIFICACIONES (Mensajes sin leer) ARREGLADO
+    rol_logueado = session.get('usuario_rol')
+    mensajes_nuevos = 0
+
     try:
-        mensajes_nuevos = Mensaje.query.filter_by(destinatario_correo=correo_logueado, leido=0).count()
+        if rol_logueado == 'Cliente':
+            mensajes_nuevos = db.session.query(db.func.count(Mensaje.id))\
+                .join(Tarea, Mensaje.tarea_id == Tarea.id)\
+                .filter(
+                    Tarea.cliente_correo == correo_logueado,
+                    Mensaje.remitente_correo != correo_logueado,
+                    Mensaje.leido == 0
+                ).scalar() or 0
+        elif rol_logueado in ['Trabajador', 'Worker']:
+            mensajes_nuevos = db.session.query(db.func.count(Mensaje.id))\
+                .join(Tarea, Mensaje.tarea_id == Tarea.id)\
+                .filter(
+                    (Tarea.trabajador_correo == correo_logueado) | 
+                    (Mensaje.canal_trabajador == 'sala_' + db.func.cast(Tarea.id, db.String)),
+                    Mensaje.remitente_correo != correo_logueado,
+                    Mensaje.leido == 0
+                ).scalar() or 0
     except Exception as e:
-        print(f"Aviso: No se pudo contar mensajes nuevos (¿Falta columna 'leido'?): {e}")
+        print(f"Aviso: Error al contar notificaciones en tareas: {e}")
         mensajes_nuevos = 0
 
     # Extraemos todas las tareas registradas

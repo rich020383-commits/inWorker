@@ -86,28 +86,50 @@
 
     <main class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full">
         
+        <!-- HEADER DEL MARKETPLACE Y BOTONES ARREGLADOS -->
         <div class="bg-white border border-slate-200 rounded-[2rem] p-6 sm:p-8 mb-8 shadow-sm relative overflow-hidden">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
             
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
                 <div>
-                    <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                        Mercado de Servicios
-                    </h1>
-                    <p class="text-sm text-slate-500 mt-2 max-w-lg font-medium leading-relaxed">Conecta con especialistas, negocia precios justos y asegura tu dinero mediante el sistema de garantías en Escrow de inWorker.</p>
+                    <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Mercado de Servicios</h1>
+                    <p class="text-sm text-slate-500 mt-2 max-w-lg font-medium leading-relaxed">Conecta con especialistas, negocia precios justos y asegura tu dinero mediante el sistema de garantías en Escrow.</p>
                 </div>
                 
                 {% if session.get('usuario_rol') == 'Cliente' %}
                 <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <!-- Botón buscar especialista -->
                     <a href="/tecnicos" class="px-6 py-3.5 bg-white border border-slate-200 text-slate-700 font-black rounded-2xl hover:bg-slate-50 hover:text-blue-600 transition shadow-sm flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
                         <i class="fas fa-search text-blue-500"></i> Buscar Especialista
                     </a>
-                    <button onclick="document.getElementById('modalPublicar').classList.remove('hidden')" class="px-6 py-3.5 bg-blue-600 text-white font-black rounded-2xl shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:shadow-blue-600/50 transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider active:scale-95">
+                    <!-- Botón publicar con onclick directo -->
+                    <button type="button" onclick="abrirModal()" class="px-6 py-3.5 bg-blue-600 text-white font-black rounded-2xl shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:shadow-blue-600/50 transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider active:scale-95">
                         <i class="fas fa-plus"></i> Publicar Servicio
                     </button>
                 </div>
                 {% endif %}
             </div>
+
+            <!-- FORMULARIO DE BÚSQUEDA FUNCIONAL -->
+            <form action="/tareas" method="GET" class="mt-8 pt-8 border-t border-slate-100 flex flex-col sm:flex-row gap-3 relative z-10">
+                <div class="relative flex-1 group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-search text-slate-400 group-focus-within:text-blue-500 transition-colors"></i></div>
+                    <input type="text" name="q" placeholder="Buscar por palabra clave o categoría..." value="{{ request.args.get('q', '') }}" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl pl-12 pr-4 py-4 text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner">
+                </div>
+                <div class="flex gap-2">
+                    <select name="categoria_filtro" class="bg-white border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-slate-600 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm hover:bg-slate-50 transition">
+                        <option value="">Todas las categorías</option>
+                        <option value="Soporte Técnico">Soporte Técnico</option>
+                        <option value="Plomería">Plomería</option>
+                        <option value="Electricidad">Electricidad</option>
+                    </select>
+                    <!-- El botón ahora es tipo submit para enviar el formulario -->
+                    <button type="submit" class="bg-blue-600 border border-blue-600 rounded-2xl px-5 py-4 text-white hover:bg-blue-700 transition shadow-sm flex items-center justify-center gap-2 font-bold text-sm">
+                        <i class="fas fa-search"></i> <span class="hidden sm:inline">Buscar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
 
             <div class="mt-8 pt-8 border-t border-slate-100 flex flex-col sm:flex-row gap-3 relative z-10">
                 <div class="relative flex-1 group">
