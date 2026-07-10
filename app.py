@@ -747,9 +747,11 @@ def home():
     # 🚀 Filtramos las órdenes en mediación SOLO para este usuario según su rol
     rol_usuario = session.get('usuario_rol')
     if rol_usuario == 'Cliente':
-        ordenes_mediacion = Tarea.query.filter_by(cliente_correo=correo_logueado).filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).count()
+        tareas_activas_objs = Tarea.query.filter_by(cliente_correo=correo_logueado).filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).all()
+        ordenes_mediacion = len(tareas_activas_objs)
     else:
-        ordenes_mediacion = Tarea.query.filter_by(trabajador_correo=correo_logueado).filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).count()
+        tareas_activas_objs = Tarea.query.filter_by(trabajador_correo=correo_logueado).filter(Tarea.estado.in_(['Cotización Pendiente', 'En Garantia'])).all()
+        ordenes_mediacion = len(tareas_activas_objs)
     
     # 🚀 SUMA TOTAL PARA LA CAMPANITA (Solo mensajes nuevos)
     alertas_totales = mensajes_nuevos
@@ -777,7 +779,35 @@ def home():
     
     # Armamos el diccionario dinámico para las plantillas
     perfil_real = {'saldo_creditos': saldo_real, 'saldo': saldo_real}
-    
+
+    # 📥 GENERACIÓN DE LA BANDEJA DE ENTRADA (Chats Activos)
+    bandeja_entrada = []
+    try:
+        for t in tareas_activas_objs:
+            # Contar no leídos para esta tarea específica
+            no_leidos = db.session.query(Mensaje).filter(
+                Mensaje.tarea_id == t.id, 
+                Mensaje.leido == 0,
+                Mensaje.remitente_correo != correo_logueado
+            ).count()
+            
+            # Extraer el último mensaje para el snippet
+            ultimo_mensaje = db.session.query(Mensaje).filter(Mensaje.tarea_id == t.id).order_by(Mensaje.id.desc()).first()
+            snippet = ultimo_mensaje.texto if ultimo_mensaje else "Inicia la conversación..."
+            
+            bandeja_entrada.append({
+                'id': t.id,
+                'titulo': t.titulo,
+                'estado': t.estado,
+                'no_leidos': no_leidos,
+                'snippet': snippet
+            })
+            
+        # Ordenamos la bandeja: Primero los que tienen mensajes sin leer, luego por ID más reciente
+        bandeja_entrada.sort(key=lambda x: (x['no_leidos'] > 0, x['id']), reverse=True)
+    except Exception as e:
+        print(f"Error generando bandeja de entrada: {e}")
+
     return render_template('index.html', 
                            nombre_usuario=session.get('usuario_nombre'),
                            total_workers=total_workers,
@@ -789,7 +819,8 @@ def home():
                            trabajador_perfil=perfil_real,
                            lista_disputas=lista_disputas,
                            notificaciones_sin_leer=alertas_totales,
-                           usuario=usuario_info) # 🪪 INYECTAMOS EL PERFIL AQUÍ PARA LA TARJETA
+                           usuario=usuario_info,
+                           bandeja_entrada=bandeja_entrada) # 📥 INYECTAMOS LA BANDEJA AQUÍ
 
 # =====================================================================
 # 💸 MÓDULO FINANCIERO: PROCESAMIENTO DE RETIROS (INDEPENDIENTE)
