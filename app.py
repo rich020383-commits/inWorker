@@ -793,7 +793,7 @@ def home():
             
             # Extraer el último mensaje para el snippet
             ultimo_mensaje = db.session.query(Mensaje).filter(Mensaje.tarea_id == t.id).order_by(Mensaje.id.desc()).first()
-            snippet = ultimo_mensaje.texto if ultimo_mensaje else "Inicia la conversación..."
+            snippet = ultimo_mensaje.mensaje if ultimo_mensaje else "Inicia la conversación..."
             
             bandeja_entrada.append({
                 'id': t.id,
