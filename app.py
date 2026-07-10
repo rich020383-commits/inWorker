@@ -1255,7 +1255,7 @@ def ver_tareas():
                            notificaciones_sin_leer=mensajes_nuevos) # 🔔 LA VARIABLE INYECTADA AQUÍ
 
 # =====================================================================
-# 🛠️ PUBLICACIÓN Y ASIGNACIÓN DE ÓRDENES - OPTIMIZADO
+# 🛠️ PUBLICACIÓN Y ASIGNACIÓN DE ÓRDENES - OPTIMIZADO Y CORREGIDO
 # =====================================================================
 @app.route('/publicar_tarea', methods=['GET', 'POST'])
 @app.route('/tareas/crear', methods=['GET', 'POST'])
@@ -1269,8 +1269,12 @@ def publicar_tarea():
         zona = request.form.get('zona', 'Barranquilla (Norte)')
         pago_cop = request.form['pago']
         
-        tecnico_invitado = request.form.get('tecnico_invitado', '')
+        # Limpiamos el campo por si vienen espacios en blanco
+        tecnico_invitado = request.form.get('tecnico_invitado', '').strip()
         estado_inicial = 'Cotización Pendiente' if tecnico_invitado else 'Disponible'
+        
+        # Si la tarea es pública, lo dejamos como None para la BD
+        correo_asignado = tecnico_invitado if tecnico_invitado else None
         
         try: 
             creditos_calculados = round(float(pago_cop) / VALOR_CREDITO_COP, 2)
@@ -1278,7 +1282,7 @@ def publicar_tarea():
             creditos_calculados = 1.0
             
         try:
-            # ⚡ Creamos la nueva orden mapeando directamente el objeto del modelo
+            # ⚡ Creamos la nueva orden con la columna CORRECTA (trabajador_correo)
             nueva_tarea = Tarea(
                 titulo=request.form['titulo'],
                 descripcion=request.form['descripcion'],
@@ -1290,11 +1294,11 @@ def publicar_tarea():
                 latitud=lat,
                 longitud=lng,
                 zona=zona,
-                tecnico_correo=tecnico_invitado if tecnico_invitado else None
+                trabajador_correo=correo_asignado  # 🔧 SOLUCIÓN EXACTA AQUÍ
             )
             
             db.session.add(nueva_tarea)
-            db.session.commit() # Impacta atómicamente el archivo /data/inworker_prod.db
+            db.session.commit() # Impacta atómicamente la base de datos
             
             # Capturamos el ID autoincremental generado de inmediato
             id_tarea = nueva_tarea.id
