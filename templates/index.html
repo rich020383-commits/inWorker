@@ -486,14 +486,76 @@ function analizarConIA(tareaId) {
     </div>
 </div>
 
-                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+                {% if usuario and usuario.codigo_embajador %}
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-3xl shadow-sm p-6 relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 text-blue-500/10 text-7xl transform -rotate-12 pointer-events-none">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-blue-600 text-white p-2 rounded-xl text-xs shadow-md shadow-blue-500/20">
+                            <i class="fas fa-bullhorn"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-slate-900 text-sm tracking-tight">Programa de Embajadores</h3>
+                            <p class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">¡Gana por tus recomendados!</p>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">
+                        Comparte tu enlace. Ganarás comisiones sobre lo que recaude inWorker por cada servicio exitoso que ellos hagan durante sus primeros 6 meses.
+                    </p>
+
+                    <div class="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between shadow-inner mb-3">
+                        <div class="overflow-hidden mr-2">
+                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Mi Código Único</span>
+                            <span class="text-sm font-black text-slate-800 tracking-wider select-all uppercase" id="texto-codigo">{{ usuario.codigo_embajador }}</span>
+                        </div>
+                        
+                        <button onclick="copiarEnlaceReferido('{{ usuario.codigo_embajador }}')" id="btn-copiar-ref"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-wider py-2 px-3.5 rounded-lg transition-all shadow-md active:scale-95 flex items-center gap-1.5 focus:outline-none">
+                            <i class="fas fa-copy" id="icono-copiar"></i> <span id="texto-btn-copiar">Enlace</span>
+                        </button>
+                    </div>
+                </div>
+
+                <script>
+                function copiarEnlaceReferido(codigo) {
+                    // Compilamos la URL final del ecosistema inWorker
+                    const urlReferido = window.location.origin + '/login?ref=' + codigo;
+                    
+                    navigator.clipboard.writeText(urlReferido).then(() => {
+                        const btn = document.getElementById('btn-copiar-ref');
+                        const icono = document.getElementById('icono-copiar');
+                        const texto = document.getElementById('texto-btn-copiar');
+                        
+                        // Efecto visual de Éxito
+                        btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                        btn.classList.add('bg-emerald-500');
+                        icono.className = "fas fa-check";
+                        texto.innerText = "¡Copiado!";
+                        
+                        // Revertir el botón a su estado normal después de 2.5 segundos
+                        setTimeout(() => {
+                            btn.classList.remove('bg-emerald-500');
+                            btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                            icono.className = "fas fa-copy";
+                            texto.innerText = "Enlace";
+                        }, 2500);
+                    }).catch(err => {
+                        console.error('Error al copiar el enlace: ', err);
+                    });
+                }
+                </script>
+                {% endif %}
+
+                <div class="bg-white border border-slate-200 rounded-3xl shadow-sm p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-slate-800 text-sm">Red inWorker</h3>
                         <span class="flex items-center text-[9px] font-bold text-emerald-600 uppercase tracking-widest"><span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-1.5"></span> En vivo</span>
                     </div>
                     
-                    <div id="live-activity-feed" class="space-y-3 relative text-xs h-40 overflow-hidden">
-                        </div>
+                    <div id="live-activity-feed" class="space-y-3 relative text-xs h-40 overflow-hidden"></div>
                 </div>
             </div>
 
