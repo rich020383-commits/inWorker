@@ -487,6 +487,7 @@
             .then(data => {
                 if (data.success && data.mensajes.length > 0) {
                     document.getElementById('chat-vacio')?.remove();
+                    
                     data.mensajes.forEach(msg => {
                         if (msg.id > ultimoIdMensaje) ultimoIdMensaje = msg.id;
                         if (document.getElementById(`msg-${msg.id}`)) return;
@@ -496,11 +497,11 @@
                         const burbujaNormal = esPropio ? 'bg-blue-600 text-white rounded-tr-sm shadow-sm' : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm';
                         
                         let html = "";
+                        
+                        // 1. DIBUJAR COTIZACIONES
                         if (msg.tipo && msg.tipo.includes('cotizacion')) {
-                            // HTML para Cotización Dinámica (¡AHORA CON BOTONES EN VIVO!)
                             let bordeColor = msg.tipo === 'cotizacion_pendiente' ? 'border-purple-200' : (msg.tipo === 'cotizacion_aceptada' ? 'border-emerald-200' : 'border-slate-200');
                             
-                            // Extraemos el monto y el concepto de forma segura
                             let monto = 0;
                             let concepto = "";
                             if (msg.mensaje && msg.mensaje.includes('|')) {
@@ -511,9 +512,7 @@
                                 concepto = msg.cotizacion_concepto || msg.mensaje;
                             }
 
-                            // 🚀 MAGIA: Construimos los botones dependiendo de quién mira la pantalla
                             let botonesHTML = "";
-                            
                             if (msg.tipo === 'cotizacion_pendiente') {
                                 if (usuarioSesion === clienteCorreoTarea) {
                                     botonesHTML = `
@@ -538,11 +537,9 @@
                                     <i class="fas fa-lock mr-1.5"></i> Pago Asegurado en Garantía
                                 </div>`;
                             } else {
-                                botonesHTML = `
-                                <div class="bg-slate-50 text-slate-400 text-xs font-bold py-2 rounded-xl mt-4">Cotización Declinada</div>`;
+                                botonesHTML = `<div class="bg-slate-50 text-slate-400 text-xs font-bold py-2 rounded-xl mt-4">Cotización Declinada</div>`;
                             }
                             
-                            // Ensamblamos la tarjeta completa
                             html = `
                             <div id="msg-${msg.id}" class="flex flex-col items-center my-6 w-full">
                                 <div class="bg-white border shadow-sm rounded-2xl p-5 max-w-sm w-full text-center ${bordeColor}">
@@ -553,13 +550,42 @@
                                 </div>
                                 <span class="text-[9px] font-medium text-slate-400 mt-1.5">${msg.fecha_envio}</span>
                             </div>`;
+                        
+                        // 2. DIBUJAR AVISOS DEL SISTEMA (Ej: Pagos liberados)
+                        } else if (msg.tipo === 'sistema' || (msg.mensaje && msg.mensaje.startsWith('SISTEMA:'))) {
+                            let textoLimpio = msg.mensaje.replace('SISTEMA:', '').trim();
+                            html = `
+                            <div id="msg-${msg.id}" class="flex flex-col items-center my-4 w-full">
+                                <div class="bg-slate-900 text-white rounded-xl shadow-md border border-slate-700 text-center text-xs px-4 py-3 max-w-[90%] sm:max-w-[70%]">
+                                    <p class="leading-relaxed whitespace-pre-wrap font-bold"><i class="fas fa-robot text-blue-400 mr-1.5"></i> ${textoLimpio}</p>
+                                </div>
+                                <span class="text-[9px] font-medium text-slate-400 mt-1">${msg.fecha_envio}</span>
+                            </div>`;
+
+                        // 3. DIBUJAR MENSAJES NORMALES E IMÁGENES
+                        } else {
+                            let contenidoHtml = msg.tipo === 'imagen' 
+                                ? `<div class="rounded-lg overflow-hidden my-1"><img src="/static/uploads/${msg.mensaje}" class="max-w-full h-auto object-cover max-h-60 rounded cursor-zoom-in" onclick="window.open(this.src)"></div>` 
+                                : `<p class="leading-relaxed whitespace-pre-wrap">${msg.mensaje}</p>`;
+                                
+                            html = `
+                            <div id="msg-${msg.id}" class="flex flex-col ${alineacion} my-2 w-full">
+                                <div class="max-w-[85%] md:max-w-[70%] px-4 py-3 text-sm ${burbujaNormal}">
+                                    ${contenidoHtml}
+                                </div>
+                                <span class="text-[9px] font-medium text-slate-400 mt-1 mx-1">${msg.fecha_envio}</span>
+                            </div>`;
                         }
+                        
                         cajaMensajes.insertAdjacentHTML('beforeend', html);
                     });
+                    
                     irAlFinalChat();
                 }
             })
-            .finally(() => { if (!document.hidden) miPollingTimer = setTimeout(cargarMensajes, 4000); });
+            .finally(() => { 
+                if (!document.hidden) miPollingTimer = setTimeout(cargarMensajes, 4000); 
+            });
         }
 
         document.addEventListener("DOMContentLoaded", function() {

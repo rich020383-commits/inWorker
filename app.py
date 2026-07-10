@@ -2500,22 +2500,56 @@ def liberar_fondos(tarea_id):
             flash("❌ Error: No se encontró la cuenta del técnico.", "error")
             return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
             
-        # 💰 TRANSFERENCIA DE CRÉDITOS
+        # 💰 TRANSFERENCIA DE CRÉDITOS Y DIVISIÓN DE COMISIONES
         costo_servicio = tarea.costo_creditos or 0.0
+        
+        # 🧮 REGLA DE ORO INWORKER: El técnico recibe el 88% neto
+        creditos_tecnico = round(costo_servicio * 0.88, 2)
         saldo_tecnico_actual = trabajador.saldo_creditos or 0.0
+        trabajador.saldo_creditos = round(saldo_tecnico_actual + creditos_tecnico, 2)
         
-        # Le sumamos los créditos a la billetera del técnico
-        trabajador.saldo_creditos = round(saldo_tecnico_actual + costo_servicio, 2)
-        
+        # 🕵️‍♂️ MOTOR NINJA DE EMBAJADORES (DISPERSIÓN EN PILOTO AUTOMÁTICO)
+        if trabajador.referido_por:
+            padrino = Usuario.query.filter_by(codigo_embajador=trabajador.referido_por).first()
+            
+            if padrino:
+                from datetime import datetime
+                
+                # 1. Validar ventana de tiempo (6 meses = 180 días)
+                diferencia_tiempo = datetime.utcnow() - trabajador.fecha_registro
+                
+                if diferencia_tiempo.days <= 180:
+                    # 2. Calcular la retención de inWorker (12%)
+                    retencion_inworker = costo_servicio * 0.12
+                    
+                    # 3. Calcular el Rango del Padrino por volumen de reclutados
+                    referidos_count = Usuario.query.filter_by(referido_por=padrino.codigo_embajador).count()
+                    
+                    if referidos_count <= 10:
+                        porcentaje_padrino = 0.10  # Bronce
+                    elif referidos_count <= 25:
+                        porcentaje_padrino = 0.15  # Plata
+                    elif referidos_count <= 50:
+                        porcentaje_padrino = 0.20  # Oro
+                    else:
+                        porcentaje_padrino = 0.30  # Diamante
+                    
+                    # 4. Asignar Comisión en créditos al Embajador
+                    comision_padrino = round(retencion_inworker * porcentaje_padrino, 2)
+                    
+                    if comision_padrino > 0:
+                        padrino.saldo_creditos = round((padrino.saldo_creditos or 0.0) + comision_padrino, 2)
+                        print(f"🎁 Comisión de {comision_padrino} Cr asignada al Embajador {padrino.nombre} por el técnico {trabajador.nombre}")
+
         # Cambiamos el estado de la tarea a Finalizada
         tarea.estado = 'Finalizada'
         
-        # Inyectamos el mensaje final de victoria
+        # Inyectamos el mensaje final de victoria (Reflejando el pago NETO del 88%)
         mensaje_sistema = Mensaje(
             tarea_id=tarea_id,
             canal_trabajador=canal_sala,
             remitente_correo='sistema@inworker.co',
-            mensaje=f"🎉 ¡TRABAJO FINALIZADO! El cliente ha liberado los fondos exitosamente. Se han transferido {costo_servicio} Créditos a la billetera del técnico.",
+            mensaje=f"🎉 ¡TRABAJO FINALIZADO! El cliente ha liberado los fondos exitosamente. Se han transferido {creditos_tecnico} Créditos netos a la billetera del técnico.",
             tipo='sistema'
         )
         db.session.add(mensaje_sistema)
