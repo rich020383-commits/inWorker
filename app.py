@@ -214,6 +214,11 @@ class Usuario(db.Model):
     puntuacion_total = db.Column(db.Float, default=0.0)
     total_calificaciones = db.Column(db.Integer, default=0)
     descripcion = db.Column(db.Text, default='')
+    
+    # 🤝 SISTEMA DE EMBAJADORES Y REFERIDOS (NUEVO)
+    codigo_embajador = db.Column(db.String(50), unique=True, nullable=True) 
+    referido_por = db.Column(db.String(50), nullable=True) 
+    fecha_registro = db.Column(db.DateTime, default=db.func.current_timestamp())
 
 class Tarea(db.Model):
     __tablename__ = 'tareas'
