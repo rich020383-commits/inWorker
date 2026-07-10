@@ -4,6 +4,8 @@ import math
 import time
 import threading
 import hashlib
+import random  # 🥷 Inyectado para Sistema de Embajadores
+import string  # 🥷 Inyectado para Sistema de Embajadores
 from PIL import Image
 from google import genai
 from moderacion import es_mensaje_seguro
@@ -53,11 +55,19 @@ def archivo_permitido(filename):
            filename.rsplit('.', 1)[1].lower() in EXTENSIONES_PERMITIDAS
 
 # =====================================================================
+# 🤝 SISTEMA DE EMBAJADORES (LÓGICA CORE)
+# =====================================================================
+def generar_codigo_embajador():
+    """Genera un código alfanumérico único de 6 caracteres (Ej: A1B2C3)."""
+    letras = string.ascii_uppercase + string.digits
+    return ''.join(random.choice(letras) for i in range(6))
+
+# =====================================================================
 # 🛡️ IA DE MODERACIÓN VISUAL (GEMINI VISION)
 # =====================================================================
 def imagen_contiene_contactos(ruta_imagen):
     """
-    Usa Gemini Vision para leer el texto de la foto y detectar si intentan 
+    Uusa Gemini Vision para leer el texto de la foto y detectar si intentan 
     pasar un número de celular o correo para evadir la plataforma.
     """
     try:
@@ -532,6 +542,9 @@ def registrar():
         correo = request.form['correo']
         contrasena = request.form['contrasena']
         rol = request.form['rol']
+        
+        # 🤝 NUEVO: Capturamos el código de quién lo invitó (si existe)
+        referido_por = request.form.get('referido_por', '').strip().upper()
 
         # 1. VALIDAR SI EL CORREO YA EXISTE (Usando SQLAlchemy)
         correo_existe = Usuario.query.filter_by(correo=correo).first()
@@ -554,11 +567,13 @@ def registrar():
             rol=rol,
             telefono=telefono_form,
             verificado=0,
-            saldo_creditos=0.0
+            saldo_creditos=0.0,
+            codigo_embajador=generar_codigo_embajador(), # 🎁 Nace con su propio código
+            referido_por=referido_por if referido_por else None # 🕵️‍♂️ Registra quién lo trajo
         )
         
         db.session.add(nuevo_usuario)
-        db.session.commit() # Guarda físicamente en /data/inworker_prod.db
+        db.session.commit() # Guarda físicamente en PostgreSQL (Supabase)
         
         # Envío de correo en segundo plano (Mantenemos tu lógica intacta)
         try:
