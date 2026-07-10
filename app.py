@@ -165,15 +165,13 @@ def enviar_notificacion_asignacion(app_contexto, correo_destino, nombre_tecnico,
             print(f"❌ Error en el envío de alerta al técnico: {e}")
 
 # ========================================================
-# 📦 REDIRECCIÓN AL DISCO PERSISTENTE SEGURO DE RENDER
+# 📦 REDIRECCIÓN DE BASE DE DATOS (PRODUCCIÓN Y LOCAL)
 # ========================================================
-# Detecta si corre en Render para meter la BD en el disco externo /data. Si es local, usa la raíz.
-if os.environ.get("RENDER"):
-    uri = "sqlite:////data/inworker_prod.db"  # Ruta absoluta dentro de tu SSD asignado
-else:
-    uri = os.environ.get("DATABASE_URL", "sqlite:///inworker_prod.db")
+# Busca la variable de entorno DATABASE_URL (Supabase en Render). 
+# Si no la encuentra (como en tu PC local), usa SQLite por defecto.
+uri = os.environ.get("DATABASE_URL", "sqlite:///inworker_prod.db")
 
-# Ajuste por compatibilidad general de cadenas
+# Ajuste crítico de compatibilidad para PostgreSQL en SQLAlchemy
 if uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
 
