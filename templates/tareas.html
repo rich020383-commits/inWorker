@@ -238,9 +238,15 @@
                     <input type="text" name="titulo" required placeholder="Ej: Mantenimiento Preventivo de Aire Acondicionado" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner">
                 </div>
                 
-                <div>
+                <div class="relative group/ia">
                     <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">Detalles y Síntomas</label>
-                    <textarea name="descripcion" rows="3" required placeholder="Describe el problema, la marca del equipo o cualquier detalle relevante para los técnicos..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner resize-none"></textarea>
+                    <textarea id="descripcion_tarea" name="descripcion" rows="4" required placeholder="Describe el problema de forma sencilla... Ej: El aire acondicionado de mi local no enfría nada." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-inner resize-none"></textarea>
+                    
+                    <div class="absolute bottom-3 right-3">
+                        <button type="button" id="btn-upward-ai" onclick="mejorarConIA()" class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/30 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all active:scale-95">
+                            <i class="fas fa-magic"></i> <span id="texto-btn-ia">Mejorar con IA</span>
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -277,6 +283,63 @@
     </div>
 
     <script>
+        // 🪄 Función de Upward AI para mejorar la redacción
+        async function mejorarConIA() {
+            const textarea = document.getElementById('descripcion_tarea');
+            const btn = document.getElementById('btn-upward-ai');
+            const textoBtn = document.getElementById('texto-btn-ia');
+            const textoOriginal = textarea.value.trim();
+
+            if (!textoOriginal || textoOriginal.length < 10) {
+                alert("Escribe al menos un par de palabras para que la IA entienda el contexto.");
+                return;
+            }
+
+            // Estado de carga (Animación)
+            btn.classList.add('animate-pulse', 'opacity-80', 'cursor-not-allowed');
+            btn.disabled = true;
+            textoBtn.innerText = "Procesando...";
+            const iconoOriginal = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> <span class="text-[10px] font-black uppercase tracking-widest ml-1.5">Optimizando</span>';
+
+            try {
+                // Llamada a tu Backend
+                const response = await fetch('/api/ia/redactar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texto: textoOriginal })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Efecto máquina de escribir para mostrar el resultado
+                    textarea.value = "";
+                    let i = 0;
+                    const textoMejorado = data.texto_optimizado;
+                    
+                    const intervalo = setInterval(() => {
+                        textarea.value += textoMejorado.charAt(i);
+                        i++;
+                        if (i >= textoMejorado.length) clearInterval(intervalo);
+                    }, 10);
+                } else {
+                    alert("Hubo un error con Upward AI. Intenta de nuevo.");
+                }
+            } catch (error) {
+                console.error("Error de IA:", error);
+                alert("Error de conexión con la IA.");
+            } finally {
+                // Restaurar botón
+                btn.classList.remove('animate-pulse', 'opacity-80', 'cursor-not-allowed');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-magic"></i> <span class="text-[10px] font-black uppercase tracking-widest ml-1.5">IA Aplicada</span>';
+                btn.classList.replace('from-indigo-500', 'from-emerald-500');
+                btn.classList.replace('to-purple-600', 'to-teal-500');
+                btn.classList.replace('shadow-indigo-500/30', 'shadow-emerald-500/30');
+            }
+        }
+
         // Funciones para abrir y cerrar el Modal
         function abrirModal() {
             const modal = document.getElementById('modalPublicar');

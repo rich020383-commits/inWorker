@@ -362,6 +362,43 @@ def api_notificaciones_globales():
         'mensajes_sin_leer': mensajes_sin_leer,
         'alertas_estados': tareas_alertas
     })
+
+from flask import request, jsonify
+import time
+
+# =========================================================================
+# 🧠 ENDPOINT UPWARD AI: Auto-Redactor de Requerimientos
+# =========================================================================
+@app.route('/api/ia/redactar', methods=['POST'])
+def api_ia_redactar():
+    if 'usuario_correo' not in session:
+        return jsonify({'success': False, 'error': 'No autenticado'}), 401
+        
+    data = request.get_json()
+    texto_cliente = data.get('texto', '')
+    
+    if not texto_cliente:
+        return jsonify({'success': False, 'error': 'Texto vacío'}), 400
+
+    # ---------------------------------------------------------------------
+    # 🔌 AQUÍ VA LA CONEXIÓN REAL A LA API DE GEMINI / OPENAI EN EL FUTURO
+    # Por ahora simulamos la latencia del LLM (1.5 segundos) y un procesamiento
+    # ---------------------------------------------------------------------
+    time.sleep(1.5) 
+    
+    # Simulación de inteligencia artificial analizando el texto del cliente
+    texto_optimizado = (
+        f"Solicito servicio técnico profesional. "
+        f"Diagnóstico preliminar basado en la descripción del usuario: '{texto_cliente}'. "
+        f"Se requiere revisión exhaustiva, cotización de repuestos (si aplica) y ejecución "
+        f"del mantenimiento correctivo pertinente. Por favor detallar garantía del servicio en la oferta."
+    )
+
+    return jsonify({
+        'success': True,
+        'texto_optimizado': texto_optimizado
+    })
+
 # =====================================================================
 # 💬 SISTEMA DE ALERTAS EN TIEMPO REAL (Llamado cada 7 segundos) - ¡OPTIMIZADO!
 # =====================================================================
