@@ -1221,21 +1221,25 @@ def recargar_billetera():
     return render_template('recargar.html', saldo=saldo_vista)
 
 
-# --- CONTROL DEL TABLÓN DE ÓRDENES - OPTIMIZADO ---
+# --- CONTROL DEL TABLÓN DE ÓRDENES - OPTIMIZADO Y CON BUSCADOR ---
 @app.route('/tareas')
 def ver_tareas():
     if 'usuario_nombre' not in session: 
         return redirect(url_for('index'))
     
+    # 1. Capturamos los parámetros de la URL (Geolocalización + Búsqueda)
     user_lat = request.args.get('lat', type=float)
     user_lng = request.args.get('lng', type=float)
+    query_busqueda = request.args.get('q', '').strip()
+    categoria_filtro = request.args.get('categoria_filtro', '').strip()
+    
     correo_logueado = session['usuario_correo']
     
     # ⚡ Consulta de saldo real indexada en la BD con SQLAlchemy
     usuario_db = Usuario.query.filter_by(correo=correo_logueado).first()
     saldo_actual = round(usuario_db.saldo_creditos, 2) if usuario_db else 0.0
     
-    # 🔔 NUEVO: CONTEO DE NOTIFICACIONES (Mensajes sin leer) ARREGLADO
+    # 🔔 CONTEO DE NOTIFICACIONES (Mensajes sin leer)
     rol_logueado = session.get('usuario_rol')
     mensajes_nuevos = 0
 
@@ -1261,16 +1265,33 @@ def ver_tareas():
         print(f"Aviso: Error al contar notificaciones en tareas: {e}")
         mensajes_nuevos = 0
 
-    # Extraemos todas las tareas registradas
-    tareas_db = Tarea.query.all()
+    # 🔍 INICIO DEL MOTOR DE BÚSQUEDA Y FILTRADO
+    consulta = Tarea.query.filter(Tarea.estado != 'Finalizada')
+
+    # Filtro Semántico (Título o Descripción)
+    if query_busqueda:
+        termino_sql = f"%{query_busqueda}%"
+        consulta = consulta.filter(db.or_(
+            Tarea.titulo.ilike(termino_sql),
+            Tarea.descripcion.ilike(termino_sql)
+        ))
+
+    # Filtro de Categoría Exacta
+    if categoria_filtro:
+        consulta = consulta.filter(Tarea.categoria == categoria_filtro)
+
+    # Extraemos las tareas aplicando los filtros y ordenando por más recientes
+    tareas_db = consulta.order_by(Tarea.id.desc()).all()
+    # 🔍 FIN DEL MOTOR DE BÚSQUEDA
     
-    # Mapeamos los objetos de la BD a un formato de diccionario para no romper tu frontend
+    # Mapeamos los objetos de la BD a un formato de diccionario
     lista_tareas = [{
         'id': t.id,
         'titulo': t.titulo,
         'descripcion': t.descripcion,
         'estado': t.estado,
         'pago': t.pago,
+        'categoria': t.categoria, # <-- Añadido para que el HTML renderice el badge
         'costo_creditos': t.costo_creditos,
         'cliente_correo': t.cliente_correo,
         'trabajador_correo': t.trabajador_correo,
@@ -1290,6 +1311,7 @@ def ver_tareas():
             t_lng = t['longitud'] if t['longitud'] is not None else -74.7964
             t['distancia'] = round(calcular_distancia(user_lat, user_lng, t_lat, t_lng), 1)
             
+        # Ordenamos por distancia (los más cercanos primero)
         lista_tareas.sort(key=lambda x: x.get('distancia', 9999))
         
     # Sincronizamos los perfiles reales con la información financiera exacta de la BD
@@ -1305,7 +1327,7 @@ def ver_tareas():
                            user_lat=user_lat, 
                            user_lng=user_lng,
                            t_distancia=t_distancia,
-                           notificaciones_sin_leer=mensajes_nuevos) # 🔔 LA VARIABLE INYECTADA AQUÍ
+                           notificaciones_sin_leer=mensajes_nuevos)
 
 # =====================================================================
 # 🛠️ PUBLICACIÓN Y ASIGNACIÓN DE ÓRDENES - OPTIMIZADO Y CORREGIDO
