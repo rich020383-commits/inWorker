@@ -357,7 +357,7 @@
                         </div>
                     {% else %}
                         <div class="p-3 sm:p-4 bg-white border-t border-slate-200">
-                            <form id="formEnviarMensaje" action="" method="POST" enctype="multipart/form-data" class="flex flex-col">
+                            <form id="formEnviarMensaje" action="/chat/{{ tarea.id }}" method="POST" enctype="multipart/form-data" class="flex flex-col">
                                 <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
                                 
                                 <div class="flex items-end space-x-2">
@@ -448,7 +448,7 @@
             } catch (error) { console.error("Error mapa:", error); }
         }
 
-        // Lógica Envío de Mensaje AJAX
+        // Lógica Envío de Mensaje AJAX Optimizado
         const miFormulario = document.getElementById('formEnviarMensaje');
         if (miFormulario) {
             miFormulario.addEventListener('submit', function(e) {
@@ -456,15 +456,23 @@
                 const msgInput = document.getElementById('inputMensaje');
                 const fileC = document.getElementById('imagen_camara');
                 const fileG = document.getElementById('imagen_galeria');
+                
+                // Si no hay texto ni archivos, no enviamos nada
                 if ((!msgInput.value.trim()) && (!fileC.files.length && !fileG.files.length)) return;
 
                 const btn = this.querySelector('button[type="submit"]');
                 btn.innerHTML = `<i class="fas fa-spinner animate-spin"></i>`;
                 btn.disabled = true;
 
-                fetch(this.action, { method: 'POST', body: new FormData(this) })
+                fetch(this.action || window.location.pathname, { method: 'POST', body: new FormData(this) })
                 .then(res => {
-                    if (res.ok) { msgInput.value = ""; cancelarArchivo(); cargarMensajes(); }
+                    if (res.ok) { 
+                        msgInput.value = ""; 
+                        cancelarArchivo(); // 🧼 Limpia los inputs y oculta la previsualización verde
+                        cargarMensajes();  // 🔄 Fuerza la recarga visual inmediata
+                    }
+                }).catch(err => {
+                    console.error("Error al enviar el archivo:", err);
                 }).finally(() => {
                     btn.innerHTML = `<i class="fas fa-paper-plane"></i>`;
                     btn.disabled = false;

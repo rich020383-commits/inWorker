@@ -1663,14 +1663,17 @@ def ver_chat(tarea_id):
 
     if request.method == 'POST':
         mensaje_texto = request.form.get('mensaje')
-        archivo = request.files.get('imagen_adjunta')
+        
+        # 🛠️ LA CIRUGÍA NINJA: Extraemos la lista completa y filtramos el input vacío
+        archivos_enviados = request.files.getlist('imagen_adjunta')
+        archivo = next((f for f in archivos_enviados if f and f.filename.strip()), None)
         
         if canal_sala == "Ninguno":
             flash("❌ Sala de negociación no inicializada.", "error")
             return redirect(url_for('ver_chat', tarea_id=tarea_id))
 
         # 🛡️ FILTRO INTELIGENTE DE MODERACIÓN DE TEXTO
-        mensaje_final = mensaje_texto
+        mensaje_final = mensaje_texto or "" # Salvaguarda contra envíos sin texto
         es_seguro = True
         
         if tarea['estado'] not in ['En Garantia', 'Finalizada'] and mensaje_texto:
@@ -1682,12 +1685,18 @@ def ver_chat(tarea_id):
         tipo_mensaje = 'texto'
         
         try:
+            # Si el archivo real pasó el filtro, lo procesamos
             if archivo and archivo_permitido(archivo.filename):
+                from werkzeug.utils import secure_filename
+                import time
+                import os
+                
                 nombre_unico = f"chat_{tarea_id}_{int(time.time())}_{secure_filename(archivo.filename)}"
                 ruta_guardado = os.path.join(app.config['UPLOAD_FOLDER'], nombre_unico)
                 tipo_mensaje = 'imagen'
                 
                 try:
+                    from PIL import Image
                     img = Image.open(archivo)
                     if img.mode in ("RGBA", "P"):
                         img = img.convert("RGB")
@@ -1707,11 +1716,9 @@ def ver_chat(tarea_id):
                 # 🛡️ VALIDACIÓN IA: REVISAR SI LA FOTO TIENE CONTACTOS
                 # ==========================================================
                 if imagen_contiene_contactos(ruta_guardado):
-                    # 1. Borramos la foto maliciosa del servidor para ahorrar disco
                     if os.path.exists(ruta_guardado):
                         os.remove(ruta_guardado)
                     
-                    # 2. Rebotamos la petición enviando un error agresivo a la interfaz
                     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'multipart/form-data' in request.content_type:
                         return jsonify({
                             'success': False, 
@@ -1720,6 +1727,59 @@ def ver_chat(tarea_id):
                     else:
                         flash("🚨 Política de Seguridad: Se detectó un contacto en la imagen y fue bloqueada.", "error")
                         return redirect(url_for('ver_chat', tarea_id=tarea_id))
+                # ==========================================================
+                    
+                nuevo_msg = Mensaje(
+                    tarea_id=tarea_id,
+                    canal_trabajador=canal_sala,
+                    remitente_correo=correo_logueado,
+                    mensaje=nombre_unico,
+                    tipo='imagen',
+                    leido=0
+                )
+                db.session.add(nuevo_msg)
+                
+            elif mensaje_final.strip():
+                leido_status = 1 if not es_seguro else 0
+                
+                nuevo_msg = Mensaje(
+                    tarea_id=tarea_id,
+                    canal_trabajador=canal_sala,
+                    remitente_correo=correo_logueado,
+                    mensaje=mensaje_final.strip(),
+                    tipo='texto',
+                    leido=leido_status
+                )
+                db.session.add(nuevo_msg)
+                
+            db.session.commit() # Consolidación de escritura asíncrona
+            
+            # Sincronizamos la billetera en la sesión
+            usuario_actual = Usuario.query.filter_by(correo=correo_logueado).first()
+            if usuario_actual:
+                session['usuario_creditos'] = round(usuario_actual.saldo_creditos or 0.0, 2)
+                
+        except Exception as e:
+            db.session.rollback()
+            print(f"❌ Error guardando mensaje en BD: {e}")
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'error': 'Error interno de escritura.'}), 500
+
+        # Respuestas limpias para peticiones AJAX de JavaScript
+        if not es_seguro and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'error': mensaje_final}), 400
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'multipart/form-data' in request.content_type:
+            return jsonify({
+                'success': True, 
+                'remitente_correo': correo_logueado,
+                'remitente_nombre': session['usuario_nombre'],
+                # Aseguramos que si no hay texto, envíe cadena vacía y no un error
+                'mensaje': (mensaje_final.strip() if mensaje_final else "") if tipo_mensaje == 'texto' else nombre_unico,
+                'tipo': tipo_mensaje
+            })
+
+        return redirect(url_for('ver_chat', tarea_id=tarea_id))
                 # ==========================================================
                     
                 nuevo_msg = Mensaje(
