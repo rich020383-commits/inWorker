@@ -367,7 +367,7 @@ from flask import request, jsonify
 import time
 
 # =========================================================================
-# 🧠 ENDPOINT UPWARD AI: Auto-Redactor de Requerimientos
+# 🧠 ENDPOINT UPWARD AI: Auto-Redactor REAL con Gemini API
 # =========================================================================
 @app.route('/api/ia/redactar', methods=['POST'])
 def api_ia_redactar():
@@ -380,24 +380,46 @@ def api_ia_redactar():
     if not texto_cliente:
         return jsonify({'success': False, 'error': 'Texto vacío'}), 400
 
-    # ---------------------------------------------------------------------
-    # 🔌 AQUÍ VA LA CONEXIÓN REAL A LA API DE GEMINI / OPENAI EN EL FUTURO
-    # Por ahora simulamos la latencia del LLM (1.5 segundos) y un procesamiento
-    # ---------------------------------------------------------------------
-    time.sleep(1.5) 
-    
-    # Simulación de inteligencia artificial analizando el texto del cliente
-    texto_optimizado = (
-        f"Solicito servicio técnico profesional. "
-        f"Diagnóstico preliminar basado en la descripción del usuario: '{texto_cliente}'. "
-        f"Se requiere revisión exhaustiva, cotización de repuestos (si aplica) y ejecución "
-        f"del mantenimiento correctivo pertinente. Por favor detallar garantía del servicio en la oferta."
-    )
+    try:
+        # 1. El Prompt Maestro de Upward AI
+        prompt_maestro = f"""
+        Eres Upward AI, el asistente experto de inWorker (un marketplace de servicios técnicos).
+        Un cliente ha descrito su problema de forma muy básica o informal:
+        "{texto_cliente}"
+        
+        Tu tarea:
+        1. Reescribe este problema en un lenguaje profesional, claro y técnico (máximo 2 párrafos cortos), listo para ser publicado como una orden de trabajo.
+        2. Al final del texto, agrega un salto de línea y sugiere cuál de las siguientes categorías debe elegir el cliente en el formulario:
+        [Soporte Técnico, Línea Blanca, Electricidad, Plomería, Mantenimiento].
+        
+        Ejemplo de formato de salida:
+        "Se requiere revisión y diagnóstico de..."
+        
+        Sugerencia de categoría: Línea Blanca
+        """
+        
+        # 2. Llamada real a la API de Gemini (Usando tu import 'from google import genai')
+        client = genai.Client() # Asume que tu GEMINI_API_KEY está en las variables de entorno de Render
+        
+        response = client.models.generate_content(
+            model='gemini-2.5-flash', # Usamos el modelo más rápido y económico
+            contents=prompt_maestro,
+        )
+        
+        texto_optimizado = response.text
 
-    return jsonify({
-        'success': True,
-        'texto_optimizado': texto_optimizado
-    })
+        return jsonify({
+            'success': True,
+            'texto_optimizado': texto_optimizado
+        })
+        
+    except Exception as e:
+        print(f"❌ Error crítico en Upward AI (Gemini): {e}")
+        # Si la IA falla por red, devolvemos un mensaje seguro para no romper el frontend
+        return jsonify({
+            'success': False, 
+            'error': 'Nuestros servidores de IA están congestionados. Por favor, describe tu problema manualmente.'
+        }), 500
 
 # =====================================================================
 # 💬 SISTEMA DE ALERTAS EN TIEMPO REAL (Llamado cada 7 segundos) - ¡OPTIMIZADO!
