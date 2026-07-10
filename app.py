@@ -2067,6 +2067,7 @@ def confirmar_entrega(tarea_id):
         return redirect(url_for('index'))
         
     correo_logueado = session['usuario_correo']
+    VALOR_CREDITO_COP = 10000 # Regla de oro de inWorker
     
     try:
         # ⚡ Traemos la orden de servicio directamente usando el modelo
@@ -2088,41 +2089,80 @@ def confirmar_entrega(tarea_id):
             
         # 💳 DISPARADOR AUTOMÁTICO DE DESEMBOLSO FINANCIERO
         if tarea.confirmacion_cliente == 1 and tarea.confirmacion_trabajador == 1:
-            creditos_desembolso = tarea.costo_creditos or 0.0
+            creditos_totales = tarea.costo_creditos or 0.0
             tecnico_destino = tarea.trabajador_correo
             
-            # Buscamos al especialista asignado para fondear su billetera
+            # Buscamos al especialista asignado para fonear su billetera
             tecnico = Usuario.query.filter_by(correo=tecnico_destino).first()
             
             if tecnico:
+                # 🧮 REGLA DE ORO INWORKER: El técnico recibe el 88% neto
+                creditos_tecnico = round(creditos_totales * 0.88, 2)
                 saldo_actual_tecnico = tecnico.saldo_creditos or 0.0
-                tecnico.saldo_creditos = round(saldo_actual_tecnico + creditos_desembolso, 2)
+                tecnico.saldo_creditos = round(saldo_actual_tecnico + creditos_tecnico, 2)
                 
+                # 🕵️‍♂️ MOTOR NINJA DE EMBAJADORES (DISPERSIÓN EN PILOTO AUTOMÁTICO)
+                if tecnico.referido_por:
+                    padrino = Usuario.query.filter_by(codigo_embajador=tecnico.referido_por).first()
+                    
+                    if padrino:
+                        # 1. Validar ventana de tiempo (6 meses = 180 días)
+                        from datetime import datetime
+                        # Obtenemos la fecha actual en la base de datos o local
+                        fecha_actual = db.func.current_timestamp()
+                        
+                        # Para evitar líos de zonas horarias en la comparación de Python, usamos una consulta directa o restamos días de forma segura
+                        diferencia_tiempo = datetime.utcnow() - tecnico.fecha_registro
+                        
+                        if diferencia_tiempo.days <= 180:
+                            # 2. Calcular la retención de inWorker (12%)
+                            retencion_inworker = creditos_totales * 0.12
+                            
+                            # 3. Calcular el Rango del Padrino por volumen de reclutados
+                            referidos_count = Usuario.query.filter_by(referido_por=padrino.codigo_embajador).count()
+                            
+                            if referidos_count <= 10:
+                                porcentaje_padrino = 0.10  # Bronce
+                            elif referidos_count <= 25:
+                                porcentaje_padrino = 0.15  # Plata
+                            elif referidos_count <= 50:
+                                porcentaje_padrino = 0.20  # Oro
+                            else:
+                                porcentaje_padrino = 0.30  # Diamante (Gancho maestro)
+                            
+                            # 4. Asignar Comisión en créditos al Embajador
+                            comision_padrino = round(retencion_inworker * porcentaje_padrino, 2)
+                            
+                            if comision_padrino > 0:
+                                padrino.saldo_creditos = round((padrino.saldo_creditos or 0.0) + comision_padrino, 2)
+                                print(f"🎁 Comisión de {comision_padrino} Cr asignada al Embajador {padrino.nombre} por el técnico {tecnico.nombre}")
+            
             # Pasamos la orden al estado de cierre definitivo
             tarea.estado = 'Finalizada'
             
-            # Formateamos el monto en pesos de forma segura para el historial
+            # Formateamos el monto neto en pesos del Técnico para el historial
             try:
-                monto_pesos_formateado = f"${float(tarea.pago):,.0f}"
-            except (ValueError, TypeError):
-                monto_pesos_formateado = f"${creditos_desembolso * VALOR_CREDITO_COP:,.0f}"
+                monto_pesos_tecnico = f"${float(creditos_tecnico * VALOR_CREDITO_COP):,.0f}"
+            except Exception:
+                monto_pesos_tecnico = f"${creditos_tecnico * VALOR_CREDITO_COP:,.0f}"
                 
             # Generamos el aviso oficial del sistema dentro de la sala de negociación
             mensaje_sistema = (
-                f"SISTEMA: El pago de {creditos_desembolso} Cr ({monto_pesos_formateado} COP) "
-                f"ha sido liberado de la garantía y transferido al saldo de {tarea.trabajador_nombre}."
+                f"SISTEMA: El servicio ha sido cerrado. El pago neto de {creditos_tecnico} Cr ({monto_pesos_tecnico} COP) "
+                f"ha sido liberado de la garantía y transferido al saldo de {tarea.trabajador_nombre}. "
+                f"¡Gracias por usar inWorker!"
             )
             
             nuevo_aviso = Mensaje(
                 tarea_id=tarea_id,
                 canal_trabajador=tarea.trabajador_correo,
-                remitente_correo='baraka@inworker.com', # Correo institucional del sistema
+                remitente_correo='baraka@inworker.com',
                 mensaje=mensaje_sistema,
                 tipo='texto',
                 leido=0
             )
             db.session.add(nuevo_aviso)
-            flash("✨ ¡Garantía liberada con éxito! Los fondos ya están en la billetera del especialista.", "success")
+            flash("✨ ¡Garantía liberada con éxito! Los fondos netos ya están en la billetera del especialista.", "success")
             
         # ⚡ Un solo commit impacta y bloquea toda la transacción de forma segura
         db.session.commit()
