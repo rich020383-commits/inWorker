@@ -808,10 +808,15 @@ def home():
         'costo_creditos': d.costo_creditos
     } for d in disputas_query]
     
-    # 💸 CONSULTA DE RECARGAS NEQUI PENDIENTES (Ojo de Dios / Solo Admin)
-    # 💸 CONSULTA DE RETIROS DE TÉCNICOS (Solo Admin)
+    # 💸 INICIALIZAMOS LISTAS VACÍAS (ESTO EVITA EL ERROR 500)
+    recargas_pendientes = []
     retiros_pendientes = []
+    
+    # 💸 CONSULTAS EXCLUSIVAS DEL OJO DE DIOS (Solo Admin)
     if rol_usuario == 'Admin':
+        # Consultamos las recargas de saldo (Clientes)
+        recargas_pendientes = Recarga.query.filter_by(estado='Pendiente').order_by(Recarga.fecha.asc()).all()
+        # Consultamos los retiros de nómina (Técnicos)
         retiros_pendientes = BilleteraRetiro.query.filter(BilleteraRetiro.estado.in_(['Pendiente', 'Procesando'])).order_by(BilleteraRetiro.fecha_solicitud.asc()).all()
 
     # Armamos el diccionario dinámico para las plantillas
@@ -845,6 +850,7 @@ def home():
     except Exception as e:
         print(f"Error generando bandeja de entrada: {e}")
 
+    # 🚀 RETORNAMOS TODAS LAS VARIABLES INYECTADAS
     return render_template('index.html', 
                            nombre_usuario=session.get('usuario_nombre'),
                            total_workers=total_workers,
@@ -858,7 +864,8 @@ def home():
                            notificaciones_sin_leer=alertas_totales,
                            usuario=usuario_info,
                            bandeja_entrada=bandeja_entrada,
-                           recargas=recargas_pendientes) # 💸 INYECTAMOS LAS RECARGAS AQUÍ
+                           recargas=recargas_pendientes,             # 👈 Inyectado
+                           retiros_pendientes=retiros_pendientes)    # 👈 Inyectado
 
 # =====================================================================
 # 💸 ADMIN: GESTIÓN Y CONTROL DE RETIROS DE TÉCNICOS
