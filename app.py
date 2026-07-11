@@ -10,7 +10,6 @@ from PIL import Image
 from google import genai
 from moderacion import es_mensaje_seguro
 from disputas_ia import analizar_disputa_chat
-from modelos import Recarga
 
 # 🔧 CONFIGURACIÓN AVANZADA CON FLASK-SQLALCHEMY
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, current_app, send_from_directory
