@@ -91,10 +91,10 @@
                 </div>
 
                 <div class="bg-white p-2.5 rounded-2xl w-36 h-36 mx-auto my-3 shadow-md border border-purple-300/30 relative z-10 flex items-center justify-center group overflow-hidden">
-    <img src="/static/img/qr_nequi_negocios.jpg" 
-         alt="QR Nequi" 
-         class="w-full h-full object-cover rounded-xl transition-transform duration-300 group-hover:scale-105">
-</div>
+                    <img src="/static/img/qr_nequi_negocios.jpg" 
+                         alt="QR Nequi" 
+                         class="w-full h-full object-cover rounded-xl transition-transform duration-300 group-hover:scale-105">
+                </div>
 
                 <div class="text-[11px] text-purple-100 mb-6 mt-4 space-y-2 relative z-10">
                     <p class="font-bold text-white text-xs mb-2">Instrucciones de Recarga:</p>
@@ -103,9 +103,52 @@
                     <p><i class="fas fa-check-circle text-[#10b981] mr-1"></i> Toma pantallazo de "Transacción Exitosa" y súbelo aquí.</p>
                 </div>
 
-                <form action="/subir_comprobante" method="POST" enctype="multipart/form-data" class="mt-auto relative z-10">
-                    <input type="file" name="comprobante" id="fileComprobante" class="hidden" accept="image/*">
+                <form action="/reportar_pago_nequi" method="POST" enctype="multipart/form-data" class="mt-auto relative z-10 flex flex-col gap-3">
                     
-                    <button type="button" onclick="document.getElementById('fileComprobante').click()" class="w-full bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold py-4 rounded-xl text-xs uppercase tracking-wider transition flex items-center justify-center space-x-2">
-                        <i class="fas fa-camera mr-1"></i>
-                        <span id="btn-text-upload">Subir Comprob
+                    <div>
+                        <label class="block text-[10px] font-bold text-purple-200 uppercase tracking-wider mb-1 ml-1">Monto Transferido</label>
+                        <select name="monto_transferido" required class="w-full bg-white/10 border border-white/20 text-white text-xs font-bold rounded-xl p-3 focus:outline-none focus:border-[#10b981] transition appearance-none cursor-pointer">
+                            <option value="" disabled selected class="text-slate-800">Selecciona el valor...</option>
+                            <option value="10000" class="text-slate-800">1 Crédito ($10.000 COP)</option>
+                            <option value="20000" class="text-slate-800">2 Créditos ($20.000 COP)</option>
+                            <option value="30000" class="text-slate-800">3 Créditos ($30.000 COP)</option>
+                            <option value="50000" class="text-slate-800">5 Créditos ($50.000 COP)</option>
+                            <option value="100000" class="text-slate-800">10 Créditos ($100.000 COP)</option>
+                        </select>
+                    </div>
+
+                    <input type="file" name="comprobante_nequi" id="fileComprobante" class="hidden" accept="image/*" required 
+                           onchange="document.getElementById('btn-text-upload').innerHTML = '<i class=\'fas fa-check-circle mr-1\'></i> Foto Lista'; 
+                                     document.getElementById('btn-submit-nequi').classList.remove('hidden');">
+                    
+                    <button type="button" onclick="document.getElementById('fileComprobante').click()" class="w-full bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold py-3.5 rounded-xl text-[11px] uppercase tracking-wider transition flex items-center justify-center shadow-sm">
+                        <i class="fas fa-camera mr-2 text-[#10b981]"></i>
+                        <span id="btn-text-upload">Adjuntar Comprobante</span>
+                    </button>
+
+                    <button type="submit" id="btn-submit-nequi" class="hidden w-full bg-[#10b981] hover:bg-emerald-600 text-white font-black py-3.5 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center active:scale-95">
+                        Confirmar y Enviar 🚀
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        function seleccionarPaquete(elemento, creditos, monto) {
+            document.querySelectorAll('.paquete-card').forEach(card => {
+                card.classList.remove('border-2', 'border-blue-500', 'bg-blue-50');
+                card.classList.add('border', 'border-slate-200', 'bg-white');
+            });
+
+            elemento.classList.remove('border', 'border-slate-200', 'bg-white');
+            elemento.classList.add('border-2', 'border-blue-500', 'bg-blue-50');
+
+            document.getElementById('bold-creditos').value = creditos;
+            document.getElementById('bold-monto').value = monto;
+            document.getElementById('btn-text-bold').innerText = "Pagar $" + monto.toLocaleString('es-CO') + " con Bold";
+        }
+    </script>
+</body>
+</html>
