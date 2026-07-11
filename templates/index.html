@@ -590,8 +590,9 @@ function analizarConIA(tareaId) {
                     <div id="live-activity-feed" class="space-y-3 relative text-xs h-40 overflow-hidden"></div>
                 </div>
 
-            </div>
-            ```
+            </div> </div> </main>
+
+    <div id="modalRetiro" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4 transition-opacity">
         <!-- 🧠 LÓGICA CONDICIONAL: RETIRAR O RECARGAR -->
         {% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}
             <!-- Vista de Trabajador: Retirar -->
@@ -685,19 +686,26 @@ function analizarConIA(tareaId) {
                 </script>
                 {% endif %}
 
+                <!-- ========================================== -->
+                <!-- 🟢 RED INWORKER EN VIVO                    -->
+                <!-- ========================================== -->
                 <div class="bg-white border border-slate-200 rounded-3xl shadow-sm p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-slate-800 text-sm">Red inWorker</h3>
                         <span class="flex items-center text-[9px] font-bold text-emerald-600 uppercase tracking-widest"><span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-1.5"></span> En vivo</span>
                     </div>
-                    
                     <div id="live-activity-feed" class="space-y-3 relative text-xs h-40 overflow-hidden"></div>
                 </div>
-            </div>
 
+            </div>
+            <!-- /FIN COLUMNA DERECHA -->
         </div>
+        <!-- /FIN DEL GRID -->
     </main>
 
+    <!-- ========================================== -->
+    <!-- 💸 MODAL DE RETIRO DE FONDOS               -->
+    <!-- ========================================== -->
     <div id="modalRetiro" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4 transition-opacity">
         <div class="bg-white border border-slate-200 w-full max-w-md rounded-2xl shadow-2xl p-6 relative transform transition-all">
             <div class="flex justify-between items-start mb-6">
@@ -714,7 +722,6 @@ function analizarConIA(tareaId) {
             </div>
 
             <form action="/solicitar_retiro" method="POST" class="space-y-4">
-                
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Créditos a Retirar (1 Cr = $10.000 COP)</label>
                     <input type="number" name="creditos_retiro" min="0.1" step="0.1" required placeholder="Ej: 5.5" class="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition">
