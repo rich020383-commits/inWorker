@@ -887,7 +887,7 @@ def admin_procesar_retiro(retiro_id):
 
 @app.route('/admin/retiro/<int:retiro_id>/desembolsar', methods=['POST'])
 def admin_desembolsar_retiro(retiro_id):
-    """Recibe la foto de tu Nequi, liquida el retiro y guarda el soporte"""
+    """Recibe la foto de tu Nequi, liquida el retiro, guarda el soporte y AVISA AL TÉCNICO"""
     if session.get('usuario_rol') != 'Admin':
         flash("🚫 Acceso denegado.", "error")
         return redirect(url_for('home'))
@@ -901,17 +901,49 @@ def admin_desembolsar_retiro(retiro_id):
     file = request.files['comprobante_pago']
     
     if file and archivo_permitido(file.filename):
-        # Nombramos la foto de forma segura y única
+        # 1. Guardamos la imagen
         filename = secure_filename(f"desembolso_retiro_{retiro.id}_{int(time.time())}.{file.filename.rsplit('.', 1)[1].lower()}")
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         
-        # Marcamos como pagado y guardamos la foto
+        # 2. Actualizamos la BD
         retiro.comprobante_pago = filename
         retiro.estado = 'Desembolsado'
         db.session.commit()
         
-        flash(f"✅ ¡Nómina pagada! Comprobante de desembolso guardado para {retiro.usuario_correo}.", "success")
+        # 📧 3. DISPARAMOS EL CORREO AL TÉCNICO
+        try:
+            msg = Message(
+                '💰 ¡Tu dinero ha sido desembolsado! - inWorker',
+                recipients=[retiro.usuario_correo]
+            )
+            msg.html = f"""
+            <html>
+                <body style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 20px;">
+                    <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; padding: 30px; border: 1px solid #e2e8f0;">
+                        <h2 style="color: #10b981; text-align: center;">¡Transferencia Exitosa! 💸</h2>
+                        <p style="color: #475569; font-size: 16px;">Hola, te confirmamos que hemos procesado tu solicitud de retiro.</p>
+                        
+                        <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <p style="margin: 5px 0; color: #334155;"><strong>Monto:</strong> ${retiro.equivalente_pesos:,.0f} COP</p>
+                            <p style="margin: 5px 0; color: #334155;"><strong>Método:</strong> {retiro.metodo_pago}</p>
+                            <p style="margin: 5px 0; color: #334155;"><strong>Destino:</strong> {retiro.detalles_cuenta}</p>
+                        </div>
+                        
+                        <p style="color: #64748b; font-size: 14px;">El dinero ya debería estar reflejado en tu cuenta. Puedes verificar el soporte de pago ingresando a tu panel de inWorker.</p>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="https://inworker.co/dashboard" style="background-color: #10b981; color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold;">Ir a mi Billetera</a>
+                        </div>
+                    </div>
+                </body>
+            </html>
+            """
+            mail.send(msg)
+        except Exception as e:
+            print(f"⚠️ El desembolso se hizo, pero falló el envío de correo: {e}")
+        
+        flash(f"✅ ¡Nómina pagada! Soporte guardado y correo enviado a {retiro.usuario_correo}.", "success")
     else:
         flash("❌ Archivo no permitido o dañado. Usa JPG, PNG o PDF.", "error")
         
