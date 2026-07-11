@@ -275,6 +275,18 @@ class BilleteraRetiro(db.Model):
     estado = db.Column(db.String(50), default='Pendiente')
     fecha_solicitud = db.Column(db.DateTime, default=db.func.current_timestamp())
 
+class Recarga(db.Model):
+    __tablename__ = 'recargas'
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_correo = db.Column(db.String(120), nullable=False)
+    monto_cop = db.Column(db.Float, nullable=False)
+    creditos = db.Column(db.Float, nullable=False)
+    comprobante = db.Column(db.String(255), nullable=False)
+    metodo = db.Column(db.String(50), default='Nequi')
+    estado = db.Column(db.String(50), default='Pendiente') # Pendiente, Aprobada, Rechazada
+    # Usamos db.func.current_timestamp() para mantener la coherencia con tus otras tablas
+    fecha = db.Column(db.DateTime, default=db.func.current_timestamp())
+
 
 # ========================================================
 # 🚀 EJECUCIÓN DEL CONTEXTO Y SEEDING DE SEGURIDAD
