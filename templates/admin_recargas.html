@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Auditoría Nequi | inWorker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 min-h-screen pb-20 font-sans">
+
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-purple-600 p-2 rounded-lg">
+                    <i class="fas fa-shield-halved"></i>
+                </div>
+                <h1 class="font-black tracking-tight uppercase text-sm">
+                    inWorker <span class="text-purple-400">Admin</span>
+                </h1>
+            </div>
+            <span class="bg-slate-800 text-xs font-bold px-3 py-1 rounded-full border border-slate-700">
+                Ojo de Dios 👁️
+            </span>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div class="mb-8">
+            <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight">Recargas por Auditar</h2>
+            <p class="text-slate-500 text-sm mt-1">Revisa el comprobante, confirma en tu app Nequi y libera los créditos.</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-6 p-4 rounded-xl text-sm font-bold shadow-sm 
+                        {% if category == 'success' %} bg-green-100 text-green-800 border border-green-200 
+                        {% elif category == 'error' %} bg-red-100 text-red-800 border border-red-200 
+                        {% else %} bg-blue-100 text-blue-800 border border-blue-200 {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if recargas %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for r in recargas %}
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                    
+                    <div class="p-5 border-b border-slate-100 bg-slate-50">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Usuario</p>
+                                <p class="font-bold text-slate-800 text-sm truncate w-40" title="{{ r.usuario_correo }}">{{ r.usuario_correo }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Fecha</p>
+                                <p class="text-xs text-slate-600 font-medium">{{ r.fecha.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 bg-purple-50 p-3 rounded-xl border border-purple-100">
+                            <div class="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs">
+                                $
+                            </div>
+                            <div>
+                                <p class="text-sm font-black text-slate-800">{{ "{:,.0f}".format(r.monto_cop) }} COP</p>
+                                <p class="text-[10px] font-bold text-purple-600 uppercase tracking-wide">A inyectar: {{ r.creditos }} Créditos</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 flex-grow flex flex-col items-center justify-center bg-slate-100/50">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 self-start">Comprobante Adjunto</p>
+                        <a href="/static/uploads/{{ r.comprobante }}" target="_blank" class="block w-full h-48 rounded-xl overflow-hidden border border-slate-200 shadow-inner group relative cursor-pointer">
+                            <img src="/static/uploads/{{ r.comprobante }}" alt="Comprobante Nequi" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
+                                <i class="fas fa-expand text-white text-2xl"></i>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="p-4 grid grid-cols-2 gap-3">
+                        <form action="/admin/auditar_recarga/{{ r.id }}/rechazar" method="POST" onsubmit="return confirm('¿Seguro que deseas RECHAZAR este comprobante?');">
+                            <button type="submit" class="w-full bg-white border-2 border-red-500 text-red-500 hover:bg-red-50 font-black text-xs uppercase tracking-wider py-3 rounded-xl transition shadow-sm flex justify-center items-center gap-2">
+                                <i class="fas fa-times"></i> Fraude
+                            </button>
+                        </form>
+
+                        <form action="/admin/auditar_recarga/{{ r.id }}/aprobar" method="POST" onsubmit="return confirm('¿Confirmas que recibiste el dinero en Nequi?');">
+                            <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-black text-xs uppercase tracking-wider py-3 rounded-xl transition shadow-sm flex justify-center items-center gap-2 active:scale-95">
+                                <i class="fas fa-check"></i> Aprobar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center bg-white rounded-3xl py-16 px-4 border border-slate-200 shadow-sm mt-8">
+                <div class="w-20 h-20 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                    <i class="fas fa-mug-hot text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-black text-slate-700 uppercase tracking-tight mb-2">Todo al día, Jefe</h3>
+                <p class="text-slate-500 text-sm">No hay recargas pendientes de revisión. Tómate un café.</p>
+            </div>
+        {% endif %}
+    </main>
+
+</body>
+</html>
