@@ -1238,6 +1238,108 @@ def recargar_billetera():
     
     return render_template('recargar.html', saldo=saldo_vista)
 
+import os
+import time
+from werkzeug.utils import secure_filename
+from datetime import datetime
+
+# =====================================================================
+# 💸 MÓDULO FINANCIERO: RECEPCIÓN DE NEQUI (VERIFICACIÓN EN COLA)
+# =====================================================================
+@app.route('/reportar_pago_nequi', methods=['POST'])
+def reportar_pago_nequi():
+    if 'usuario_correo' not in session:
+        return redirect(url_for('index'))
+
+    correo_logueado = session['usuario_correo']
+    monto_transferido = request.form.get('monto_transferido', type=float)
+    comprobante = request.files.get('comprobante_nequi')
+
+    if not monto_transferido or not comprobante or comprobante.filename == '':
+        flash("❌ Debes ingresar el monto y adjuntar la captura de pantalla.", "error")
+        return redirect(url_for('recargar_billetera'))
+
+    try:
+        # 1. Guardamos la foto del comprobante
+        nombre_unico = f"nequi_{int(time.time())}_{secure_filename(comprobante.filename)}"
+        ruta_guardado = os.path.join(app.config['UPLOAD_FOLDER'], nombre_unico)
+        comprobante.save(ruta_guardado)
+
+        # 2. Matemática inWorker (10,000 COP = 1 Crédito)
+        VALOR_CREDITO_COP = 10000
+        creditos_comprados = round(monto_transferido / VALOR_CREDITO_COP, 2)
+
+        # 3. Creamos el registro en estado PENDIENTE (No inyectamos saldo aún)
+        nueva_recarga = Recarga(
+            usuario_correo=correo_logueado,
+            monto_cop=monto_transferido,
+            creditos=creditos_comprados,
+            comprobante=nombre_unico,
+            estado='Pendiente'
+        )
+        db.session.add(nueva_recarga)
+        db.session.commit()
+
+        # 🚨 ALERTA PARA TI
+        print(f"🚨 ACCIÓN REQUERIDA: Verificar Nequi de {monto_transferido} COP. Usuario: {correo_logueado}.")
+
+        # 4. Mensaje psicológico al cliente igualando la experiencia Bold
+        flash("⏳ Hemos recibido tu comprobante. Tu recarga está siendo procesada y se reflejará en tu billetera en aproximadamente 5 a 10 minutos.", "info")
+        return redirect(url_for('dashboard'))
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error procesando pago Nequi: {e}")
+        flash("❌ Ocurrió un error al enviar tu comprobante. Intenta de nuevo.", "error")
+        return redirect(url_for('recargar_billetera'))
+
+# =====================================================================
+# 🛡️ ADMIN: LIBERACIÓN DE CRÉDITOS NEQUI
+# =====================================================================
+@app.route('/admin/auditar_recarga/<int:recarga_id>/<accion>', methods=['POST'])
+def auditar_recarga(recarga_id, accion):
+    # Aquí irá tu protección para que solo tú (Admin) puedas entrar
+    
+    try:
+        recarga = Recarga.query.get_or_404(recarga_id)
+        usuario = Usuario.query.filter_by(correo=recarga.usuario_correo).first()
+
+        if recarga.estado != 'Pendiente':
+            flash("⚠️ Esta recarga ya fue procesada anteriormente.", "warning")
+            return redirect(url_for('panel_admin')) # Cambia esto por la ruta de tu panel admin
+
+        if accion == 'aprobar':
+            # ✅ VERIFICACIÓN EXITOSA: Inyectamos el dinero en la billetera
+            usuario.saldo_creditos = round((usuario.saldo_creditos or 0.0) + recarga.creditos, 2)
+            recarga.estado = 'Aprobada'
+            flash(f"✅ Recarga aprobada. Se inyectaron {recarga.creditos} créditos a {usuario.correo}.", "success")
+
+        elif accion == 'rechazar':
+            # 🚨 COMPROBANTE FALSO O PAGO NO RECIBIDO: Se rechaza sin tocar el saldo
+            recarga.estado = 'Rechazada'
+            flash(f"🚫 Recarga rechazada para {usuario.correo}. Comprobante inválido.", "error")
+
+        db.session.commit()
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error auditando recarga: {e}")
+        flash("Error interno procesando la auditoría.", "error")
+
+    return redirect(url_for('panel_admin')) # Cambia esto por la ruta de tu panel admin
+
+# =====================================================================
+# 👁️ VISTA ADMIN: PANEL DE CONTROL DE RECARGAS
+# =====================================================================
+@app.route('/admin/recargas')
+def panel_admin_recargas():
+    # 🔒 OJO: Aquí debes poner tu filtro de seguridad para que solo tú entres.
+    # if session.get('usuario_rol') != 'Admin': return redirect(url_for('dashboard'))
+
+    # Buscamos las recargas pendientes ordenadas de la más antigua a la más nueva
+    recargas_pendientes = Recarga.query.filter_by(estado='Pendiente').order_by(Recarga.fecha.asc()).all()
+    
+    return render_template('admin_recargas.html', recargas=recargas_pendientes)
 
 # --- CONTROL DEL TABLÓN DE ÓRDENES - OPTIMIZADO Y CON BUSCADOR ---
 @app.route('/tareas')
@@ -1346,6 +1448,90 @@ def ver_tareas():
                            user_lng=user_lng,
                            t_distancia=t_distancia,
                            notificaciones_sin_leer=mensajes_nuevos)
+
+# =====================================================================
+# 🚀 MÓDULO DE CRECIMIENTO: BÓVEDA DE EMBAJADOR Y GAMIFICACIÓN
+# =====================================================================
+@app.route('/embajador')
+def panel_embajador():
+    if 'usuario_correo' not in session:
+        return redirect(url_for('index'))
+
+    correo_logueado = session['usuario_correo']
+    usuario_actual = Usuario.query.filter_by(correo=correo_logueado).first()
+
+    # 🔍 MAREACIÓN EXACTA SUPABASE: Contamos cuántos usuarios fueron invitados por su código
+    total_referidos = 0
+    if usuario_actual.codigo_embajador:
+        total_referidos = Usuario.query.filter_by(referido_por=usuario_actual.codigo_embajador).count()
+
+    # Sistema Automático de Niveles (Gamificación inWorker)
+    nivel_actual = "Bronce 🥉"
+    siguiente_nivel = "Plata 🥈"
+    meta_siguiente = 5
+    
+    if total_referidos >= 50:
+        nivel_actual = "Diamante 💎"
+        siguiente_nivel = "Máximo Rango"
+        meta_siguiente = total_referidos
+        progreso = 100
+    elif total_referidos >= 20:
+        nivel_actual = "Oro 🥇"
+        siguiente_nivel = "Diamante 💎"
+        meta_siguiente = 50
+        progreso = int((total_referidos / 50) * 100)
+    elif total_referidos >= 5:
+        nivel_actual = "Plata 🥈"
+        siguiente_nivel = "Oro 🥇"
+        meta_siguiente = 20
+        progreso = int((total_referidos / 20) * 100)
+    else:
+        nivel_actual = "Bronce 🥉"
+        siguiente_nivel = "Plata 🥈"
+        meta_siguiente = 5
+        progreso = int((total_referidos / 5) * 100) if total_referidos > 0 else 0
+
+    return render_template('embajador.html',
+                           usuario=usuario_actual,
+                           total_referidos=total_referidos,
+                           nivel=nivel_actual,
+                           siguiente_nivel=siguiente_nivel,
+                           meta=meta_siguiente,
+                           progreso=progreso)
+
+# =====================================================================
+# 📄 MÓDULO LEGAL: CERTIFICADO DE INGRESOS INDEPENDIENTE
+# =====================================================================
+@app.route('/certificado_ingresos')
+def certificado_ingresos():
+    if 'usuario_correo' not in session:
+        return redirect(url_for('index'))
+
+    correo_logueado = session['usuario_correo']
+    usuario_actual = Usuario.query.filter_by(correo=correo_logueado).first()
+
+    VALOR_CREDITO_COP = 10000
+    # Multiplicamos el saldo de créditos actual por el valor comercial del crédito
+    ingresos_estimados_cop = round((usuario_actual.saldo_creditos or 0.0) * VALOR_CREDITO_COP, 0)
+    
+    from datetime import datetime
+    import locale
+    
+    # Intentamos ponerlo en español para la estética formal, si no, usa el fallback nativo
+    try:
+        locale.setlocale(locale.LC_TIME, 'es_CO.utf8')
+    except Exception:
+        try:
+            locale.setlocale(locale.LC_TIME, 'es_ES.utf8')
+        except Exception:
+            pass
+            
+    fecha_actual = datetime.now().strftime("%d de %B de %Y")
+
+    return render_template('certificado.html', 
+                           usuario=usuario_actual, 
+                           ingresos=ingresos_estimados_cop,
+                           fecha=fecha_actual)
 
 # =====================================================================
 # 🛠️ PUBLICACIÓN Y ASIGNACIÓN DE ÓRDENES - OPTIMIZADO Y CORREGIDO

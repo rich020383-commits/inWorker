@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bóveda de Embajador - inWorker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .progress-bar-fill { transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen pb-20 font-sans">
+    
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm px-4 py-3">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="/dashboard" class="w-9 h-9 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition border border-slate-200">
+                    <i class="fas fa-arrow-left text-xs"></i>
+                </a>
+                <h1 class="text-sm font-black tracking-tight text-slate-900 uppercase">Panel <span class="text-purple-600">Embajador</span></h1>
+            </div>
+            <div class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border border-purple-200">
+                Programa de Socios
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-6 w-full space-y-6">
+        
+        <div class="bg-gradient-to-br from-slate-900 via-[#1e1b4b] to-[#312e81] rounded-3xl p-7 shadow-2xl text-white relative overflow-hidden border border-indigo-500/30">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-purple-500 rounded-full blur-[100px] opacity-30 pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 w-40 h-40 bg-blue-500 rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
+
+            <div class="relative z-10 flex flex-col items-center text-center">
+                <h2 class="text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-2">Rango Actual</h2>
+                
+                <div class="w-20 h-20 bg-gradient-to-b from-slate-700 to-slate-900 rounded-2xl shadow-xl shadow-black/50 border border-slate-600 flex items-center justify-center mb-3 transform rotate-3">
+                    <span class="text-4xl filter drop-shadow-md">{{ nivel[-1] }}</span>
+                </div>
+                <h3 class="text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-indigo-200 mb-1">
+                    {{ nivel[:-2] }}
+                </h3>
+                
+                <p class="text-xs text-indigo-200 font-medium mb-6">Has invitado a <span class="font-black text-white">{{ total_referidos }}</span> personas a inWorker.</p>
+
+                <div class="w-full glass-card rounded-2xl p-4 border border-white/10">
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Progreso a {{ siguiente_nivel }}</span>
+                        <span class="text-xs font-black text-white">{{ progreso }}%</span>
+                    </div>
+                    <div class="w-full bg-slate-800/50 rounded-full h-3 mb-2 overflow-hidden border border-black/20 inset-shadow">
+                        <div class="bg-gradient-to-r from-purple-500 to-indigo-400 h-full rounded-full progress-bar-fill shadow-[0_0_10px_rgba(168,85,247,0.5)]" style="width: 0%" data-target="{{ progreso }}%"></div>
+                    </div>
+                    <p class="text-[10px] text-indigo-300 text-right">Faltan {{ meta - total_referidos }} para subir de rango</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+            <h3 class="text-sm font-black text-slate-800 uppercase tracking-wide mb-1">
+                <i class="fas fa-link text-purple-600 mr-2"></i>Tu Código de Socios
+            </h3>
+            <p class="text-[11px] text-slate-500 mb-4">Comparte este código con técnicos o clientes. Ganas comisión de por vida por sus servicios.</p>
+            
+            <div class="flex items-center gap-3">
+                <div class="flex-grow bg-slate-100 border border-slate-200 rounded-xl p-4 flex items-center justify-between">
+                    <span class="font-black text-xl text-slate-800 tracking-widest uppercase font-mono" id="codigoEmbajador">{{ usuario.codigo_embajador }}</span>
+                </div>
+                <button onclick="copiarCodigo()" id="btnCopiar" class="bg-purple-600 hover:bg-purple-700 text-white w-14 h-14 rounded-xl flex items-center justify-center transition shadow-md active:scale-95">
+                    <i class="fas fa-copy text-lg"></i>
+                </button>
+            </div>
+            
+            <a href="https://api.whatsapp.com/send?text=¡Únete%20a%20inWorker!%20Usa%20mi%20código%20invitación%20*{{ usuario.codigo_embajador }}*%20al%20registrarte.%20https://inworker.co" target="_blank" class="mt-4 w-full bg-[#25D366] hover:bg-[#20b958] text-white font-black py-3.5 rounded-xl text-xs uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-2">
+                <i class="fab fa-whatsapp text-base"></i> Compartir por WhatsApp
+            </a>
+        </div>
+
+        <div class="bg-slate-800 rounded-3xl p-6 shadow-md border border-slate-700 relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-slate-700 rounded-full blur-3xl opacity-50 -mr-10 -mt-10 transition duration-500 group-hover:bg-blue-600 group-hover:opacity-30"></div>
+            
+            <h3 class="text-sm font-black text-white uppercase tracking-wide mb-1 relative z-10">
+                <i class="fas fa-file-contract text-blue-400 mr-2"></i>Soporte Legal
+            </h3>
+            <p class="text-[11px] text-slate-400 mb-5 relative z-10">Documento oficial válido para demostrar solvencia económica o actividad comercial independiente ante entidades bancarias.</p>
+            
+            <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700 mb-5 relative z-10">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-shield-check text-green-400 text-lg"></i>
+                    <p class="text-xs font-bold text-white">Certificado de Actividad Comercial Independiente</p>
+                </div>
+                <p class="text-[10px] text-slate-400 leading-relaxed">
+                    Al generar este documento, inWorker certifica tus ingresos procesados a través de la plataforma en calidad de contratista independiente, sin que esto constituya vínculo laboral ni subordinación alguna.
+                </p>
+            </div>
+
+            <a href="/certificado_ingresos" target="_blank" class="w-full bg-white text-slate-900 font-black py-4 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 hover:bg-slate-100 active:scale-95 relative z-10">
+                <i class="fas fa-download text-blue-600"></i> Generar Certificado PDF
+            </a>
+        </div>
+
+    </main>
+
+    <script>
+        function copiarCodigo() {
+            var codigo = document.getElementById("codigoEmbajador").innerText;
+            navigator.clipboard.writeText(codigo).then(function() {
+                var btn = document.getElementById("btnCopiar");
+                var iconoOriginal = btn.innerHTML;
+                
+                btn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+                btn.classList.add('bg-green-500');
+                btn.innerHTML = '<i class="fas fa-check text-lg"></i>';
+                
+                setTimeout(function() {
+                    btn.classList.remove('bg-green-500');
+                    btn.classList.add('bg-purple-600', 'hover:bg-purple-700');
+                    btn.innerHTML = iconoOriginal;
+                }, 2000);
+            });
+        }
+
+        // Animación suave de la barra de progreso al cargar
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(function() {
+                var bars = document.querySelectorAll('.progress-bar-fill');
+                bars.forEach(function(bar) {
+                    bar.style.width = bar.getAttribute('data-target');
+                });
+            }, 300);
+        });
+    </script>
+</body>
+</html>
