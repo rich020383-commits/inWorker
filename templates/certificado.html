@@ -47,56 +47,69 @@
             <i class="fas fa-shield-halved text-[30rem]"></i>
         </div>
 
-        <div class="relative z-10">
-            <!-- Membrete -->
-            <div class="flex justify-between items-start border-b-2 border-slate-900 pb-6 mb-10">
-                <div>
-                    <h1 class="text-3xl font-black tracking-tight uppercase font-sans text-slate-900">
-                        inWorker
-                    </h1>
-                    <p class="text-xs text-slate-500 font-sans uppercase tracking-widest mt-1">Plataforma Tecnológica de Intermediación</p>
+        <div class="relative z-10 flex flex-col h-full">
+            <div>
+                <!-- Membrete -->
+                <div class="flex justify-between items-start border-b-2 border-slate-900 pb-6 mb-10">
+                    <div>
+                        <h1 class="text-3xl font-black tracking-tight uppercase font-sans text-slate-900">
+                            inWorker
+                        </h1>
+                        <p class="text-xs text-slate-500 font-sans uppercase tracking-widest mt-1">Plataforma Tecnológica de Intermediación</p>
+                    </div>
+                    <div class="text-right text-sm text-slate-600">
+                        <p class="font-bold text-slate-900">BARAKAH TECH HUB S.A.S.</p>
+                        <p>NIT: 902080128-8</p>
+                        <p>www.inworker.co</p>
+                        <p>Colombia</p>
+                    </div>
                 </div>
-                <div class="text-right text-sm text-slate-600">
-                    <p>NIT: (Tu NIT aquí si lo deseas)</p>
-                    <p>www.inworker.co</p>
-                    <p>Colombia</p>
+
+                <!-- Título del Documento -->
+                <h2 class="text-center text-xl font-bold uppercase tracking-widest mb-10 text-slate-900 underline underline-offset-4">
+                    Certificado de Actividad Comercial Independiente
+                </h2>
+
+                <p class="mb-8 text-justify leading-relaxed">
+                    A QUIEN PUEDA INTERESAR:
+                </p>
+
+                <!-- Cuerpo del texto -->
+                <p class="mb-6 text-justify leading-relaxed text-lg">
+                    Por medio del presente documento, <strong>inWorker</strong>, marca registrada operada por <strong>Barakah Tech Hub S.A.S. (NIT 902080128-8)</strong>, certifica que el/la señor(a) <strong>{{ usuario.nombre | upper }}</strong>, identificado(a) en nuestra plataforma con el correo electrónico <strong>{{ usuario.correo }}</strong>, se encuentra registrado(a) y activo(a) en nuestra base de datos.
+                </p>
+
+                <p class="mb-6 text-justify leading-relaxed text-lg">
+                    Durante el uso de sus credenciales tecnológicas, el usuario ha registrado un volumen histórico de transacciones comerciales y comisiones por intermediación tecnológica equivalente a <strong>{{ "{:,.0f}".format(ingresos) }} COP</strong>.
+                </p>
+
+                <!-- CLÁUSULA LEGAL DE PROTECCIÓN (El Escudo) -->
+                <div class="bg-slate-50 border-l-4 border-slate-400 p-5 mb-8">
+                    <p class="text-sm text-justify leading-relaxed font-sans text-slate-600 italic">
+                        <strong>Nota Legal Aclaratoria:</strong> Se expide la presente constancia para los fines comerciales, financieros o personales que el interesado considere pertinentes. Se aclara de manera expresa que <strong>Barakah Tech Hub S.A.S.</strong> actúa de manera exclusiva como un portal de contacto tecnológico a través de su plataforma inWorker. <strong>El presente documento NO constituye un contrato laboral</strong>, prestación de servicios continuada, ni demuestra relación de subordinación, cumplimiento de horarios o exclusividad alguna con nuestra compañía, actuando el usuario en todo momento bajo la figura de Contratista Independiente.
+                    </p>
                 </div>
-            </div>
 
-            <!-- Título del Documento -->
-            <h2 class="text-center text-xl font-bold uppercase tracking-widest mb-10 text-slate-900 underline underline-offset-4">
-                Certificado de Actividad Comercial Independiente
-            </h2>
-
-            <p class="mb-8 text-justify leading-relaxed">
-                A QUIEN PUEDA INTERESAR:
-            </p>
-
-            <!-- Cuerpo del texto -->
-            <p class="mb-6 text-justify leading-relaxed text-lg">
-                Por medio del presente documento, <strong>inWorker</strong> certifica que el/la señor(a) <strong>{{ usuario.nombre | upper }}</strong>, identificado(a) en nuestra plataforma con el correo electrónico <strong>{{ usuario.correo }}</strong>, se encuentra registrado(a) y activo(a) en nuestra base de datos.
-            </p>
-
-            <p class="mb-6 text-justify leading-relaxed text-lg">
-                Durante el uso de sus credenciales tecnológicas, el usuario ha registrado un volumen histórico de transacciones comerciales y comisiones por intermediación tecnológica equivalente a <strong>{{ "{:,.0f}".format(ingresos) }} COP</strong>.
-            </p>
-
-            <!-- CLÁUSULA LEGAL DE PROTECCIÓN (El Escudo) -->
-            <div class="bg-slate-50 border-l-4 border-slate-400 p-5 mb-8">
-                <p class="text-sm text-justify leading-relaxed font-sans text-slate-600 italic">
-                    <strong>Nota Legal Aclaratoria:</strong> Se expide la presente constancia para los fines comerciales, financieros o personales que el interesado considere pertinentes. Se aclara de manera expresa que inWorker actúa de manera exclusiva como un portal de contacto tecnológico. <strong>El presente documento NO constituye un contrato laboral</strong>, prestación de servicios continuada, ni demuestra relación de subordinación, cumplimiento de horarios o exclusividad alguna con nuestra compañía, actuando el usuario en todo momento bajo la figura de Contratista Independiente.
+                <p class="mb-16 text-justify leading-relaxed text-lg">
+                    Dado a los <strong>{{ fecha }}</strong>, mediante generación electrónica en la plataforma.
                 </p>
             </div>
 
-            <p class="mb-16 text-justify leading-relaxed text-lg">
-                Dado a los <strong>{{ fecha }}</strong>, mediante generación electrónica en la plataforma.
-            </p>
-
             <!-- Firmas -->
-            <div class="mt-20 border-t border-slate-400 w-64 pt-4">
-                <p class="font-bold text-slate-900 uppercase">Mario</p>
-                <p class="text-sm text-slate-600 font-sans">Gerencia General</p>
-                <p class="text-xs text-slate-500 font-sans mt-1">inWorker App</p>
+            <div class="mt-auto pt-10">
+                <div class="border-t-2 border-slate-900 w-64 pt-4 mb-16">
+                    <h3 class="font-black text-slate-900 uppercase">BARAKAH TECH HUB S.A.S.</h3>
+                    <p class="text-sm text-slate-700 font-sans font-bold">NIT 902080128-8</p>
+                    <p class="text-xs text-slate-500 font-sans mt-1">Dirección General inWorker</p>
+                </div>
+                
+                <!-- Footer / Pie de página legal -->
+                <div class="pt-4 border-t border-slate-200 text-center">
+                    <p class="text-[10px] text-slate-500 font-sans leading-relaxed">
+                        inWorker es una marca registrada y operada por <strong>Barakah Tech Hub S.A.S. (NIT 902080128-8)</strong>.<br>
+                        Este documento se expide a solicitud del interesado para fines de demostración de actividad comercial independiente.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
