@@ -274,6 +274,69 @@
                 {% endif %}
             </div>
         </div>
+<!-- ========================================== -->
+        <!-- 💸 CONTROL DE NÓMINA A TÉCNICOS (SOLO ADMIN) -->
+        <!-- ========================================== -->
+        <div class="mt-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h3 class="text-lg font-black text-slate-800 mb-4 flex items-center">
+                <i class="fas fa-hand-holding-usd text-emerald-600 mr-2"></i> Nómina y Desembolsos
+            </h3>
+            
+            <div class="space-y-4">
+                {% if retiros_pendientes %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for ret in retiros_pendientes %}
+                        <div class="border rounded-xl p-4 flex flex-col gap-3 transition-colors {% if ret.estado == 'Procesando' %} border-amber-200 bg-amber-50/40 {% else %} border-slate-200 bg-slate-50/50 {% endif %}">
+                            <div class="flex justify-between items-start">
+                                <div class="overflow-hidden">
+                                    <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider {% if ret.estado == 'Procesando' %} bg-amber-100 text-amber-800 {% else %} bg-slate-200 text-slate-700 {% endif %}">
+                                        {{ ret.estado }}
+                                    </span>
+                                    <p class="font-bold text-slate-800 text-xs mt-1.5 truncate" title="{{ ret.usuario_correo }}">{{ ret.usuario_correo }}</p>
+                                    <p class="text-[10px] text-slate-500 font-medium">Método: <strong class="text-slate-700">{{ ret.metodo_pago }}</strong></p>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">A transferir</p>
+                                    <p class="font-black text-emerald-600 text-sm">${{ "{:,.0f}".format(ret.equivalente_pesos) }}</p>
+                                    <p class="text-[9px] text-slate-400 font-bold">({{ ret.monto_creditos }} Cr)</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-slate-200 rounded-lg p-2 text-[9px] text-slate-600 font-mono break-words shadow-inner">
+                                <strong>Detalles:</strong> {{ ret.detalles_cuenta }}
+                            </div>
+                            
+                            <div class="pt-2 border-t border-slate-200 mt-auto">
+                                {% if ret.estado == 'Pendiente' %}
+                                    <form action="/admin/retiro/{{ ret.id }}/procesar" method="POST">
+                                        <button type="submit" onclick="return confirm('¿Avisar al técnico que el pago está en proceso?');" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider py-2 rounded-lg transition shadow-sm">
+                                            <i class="fas fa-spinner mr-1"></i> Iniciar Proceso
+                                        </button>
+                                    </form>
+                                {% elif ret.estado == 'Procesando' %}
+                                    <form action="/admin/retiro/{{ ret.id }}/desembolsar" method="POST" enctype="multipart/form-data" class="space-y-2">
+                                        <div class="relative w-full">
+                                            <!-- Input de foto invisible encima del botón -->
+                                            <input type="file" name="comprobante_pago" required accept="image/*,application/pdf" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20" onchange="this.nextElementSibling.innerHTML = '<i class=\'fas fa-check text-emerald-500\'></i> Soporte Cargado'">
+                                            <!-- Botón visual -->
+                                            <div class="w-full bg-white border-2 border-dashed border-slate-300 rounded-lg py-2 px-3 flex items-center justify-center gap-2 text-[10px] font-bold text-slate-500 hover:border-emerald-400 transition">
+                                                <i class="fas fa-upload text-slate-400"></i> Adjuntar Soporte
+                                            </div>
+                                        </div>
+                                        <button type="submit" onclick="return confirm('¿Confirmas que enviaste el dinero y adjuntaste el soporte?');" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider py-2 rounded-lg transition shadow-sm relative z-30">
+                                            <i class="fas fa-check-double mr-1"></i> Confirmar Desembolso
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-sm text-slate-500 italic">No hay nómina pendiente por pagar. Todo al día. 🥂</p>
+                {% endif %}
+            </div>
+        </div>
         {% endif %}
 
         {% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}
@@ -567,14 +630,29 @@
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Créditos a Retirar (1 Cr = $10.000 COP)</label>
                     <input type="number" name="creditos_retiro" min="0.1" step="0.1" required placeholder="Ej: 5.5" class="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition">
                 </div>
+                <!-- Selector de Banco Mejorado -->
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Billetera / Banco</label>
-                    <select name="metodo_pago" class="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition">
-                        <option value="Nequi">Nequi</option>
-                        <option value="Daviplata">Daviplata</option>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Método de Desembolso</label>
+                    <select name="metodo_pago" class="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition font-medium">
+                        <optgroup label="⚡ Sin Costo (Transferencia Directa)">
+                            <option value="Nequi">Nequi (Recomendado)</option>
+                            <option value="Bancolombia">Bancolombia</option>
+                        </optgroup>
+                        <optgroup label="🏦 Otros Bancos (Aplica tarifa interbancaria)">
+                            <option value="Daviplata">Daviplata</option>
+                            <option value="Davivienda">Davivienda</option>
+                            <option value="Banco de Bogota">Banco de Bogotá</option>
+                            <option value="Otro Banco">Otro Banco...</option>
+                        </optgroup>
                     </select>
+                    <!-- NOTA DE COSTOS FINANCIEROS -->
+                    <div class="mt-2 bg-blue-50 border border-blue-100 rounded-lg p-2.5 flex items-start gap-2">
+                        <i class="fas fa-info-circle text-blue-500 text-xs mt-0.5"></i>
+                        <p class="text-[9px] text-blue-700 leading-tight font-medium">
+                            <strong>Transparencia inWorker:</strong> Los retiros a Nequi y Bancolombia no tienen costo. Las transferencias a otros bancos pueden tardar hasta 1 día hábil y se descontará la tarifa de red ACH ($3.500 COP).
+                        </p>
+                    </div>
                 </div>
-                <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Número de Cuenta</label>
                     <textarea name="detalles_cuenta" required rows="2" placeholder="Ingresa el número de tu celular asociado..." class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs focus:outline-none focus:border-blue-500 transition resize-none"></textarea>
                 </div>

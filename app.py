@@ -274,6 +274,7 @@ class BilleteraRetiro(db.Model):
     detalles_cuenta = db.Column(db.Text, nullable=False)
     estado = db.Column(db.String(50), default='Pendiente')
     fecha_solicitud = db.Column(db.DateTime, default=db.func.current_timestamp())
+    comprobante_pago = db.Column(db.String(255), nullable=True)
 
 class Recarga(db.Model):
     __tablename__ = 'recargas'
@@ -808,10 +809,11 @@ def home():
     } for d in disputas_query]
     
     # 💸 CONSULTA DE RECARGAS NEQUI PENDIENTES (Ojo de Dios / Solo Admin)
-    recargas_pendientes = []
+    # 💸 CONSULTA DE RETIROS DE TÉCNICOS (Solo Admin)
+    retiros_pendientes = []
     if rol_usuario == 'Admin':
-        recargas_pendientes = Recarga.query.filter_by(estado='Pendiente').order_by(Recarga.fecha.asc()).all()
-    
+        retiros_pendientes = BilleteraRetiro.query.filter(BilleteraRetiro.estado.in_(['Pendiente', 'Procesando'])).order_by(BilleteraRetiro.fecha_solicitud.asc()).all()
+
     # Armamos el diccionario dinámico para las plantillas
     perfil_real = {'saldo_creditos': saldo_real, 'saldo': saldo_real}
 
@@ -857,6 +859,56 @@ def home():
                            usuario=usuario_info,
                            bandeja_entrada=bandeja_entrada,
                            recargas=recargas_pendientes) # 💸 INYECTAMOS LAS RECARGAS AQUÍ
+
+# =====================================================================
+# 💸 ADMIN: GESTIÓN Y CONTROL DE RETIROS DE TÉCNICOS
+# =====================================================================
+
+@app.route('/admin/retiro/<int:retiro_id>/procesar', methods=['POST'])
+def admin_procesar_retiro(retiro_id):
+    """Cambia el estado a Procesando (Avisa al técnico que el dinero va en camino)"""
+    if session.get('usuario_rol') != 'Admin':
+        flash("🚫 Acceso denegado.", "error")
+        return redirect(url_for('home'))
+        
+    retiro = BilleteraRetiro.query.get_or_404(retiro_id)
+    if retiro.estado == 'Pendiente':
+        retiro.estado = 'Procesando'
+        db.session.commit()
+        flash(f"⏳ Retiro en proceso. El técnico {retiro.usuario_correo} verá que su pago está en camino.", "info")
+    return redirect(url_for('home'))
+
+@app.route('/admin/retiro/<int:retiro_id>/desembolsar', methods=['POST'])
+def admin_desembolsar_retiro(retiro_id):
+    """Recibe la foto de tu Nequi, liquida el retiro y guarda el soporte"""
+    if session.get('usuario_rol') != 'Admin':
+        flash("🚫 Acceso denegado.", "error")
+        return redirect(url_for('home'))
+        
+    retiro = BilleteraRetiro.query.get_or_404(retiro_id)
+    
+    if 'comprobante_pago' not in request.files:
+        flash("⚠️ Debes adjuntar la captura de pantalla de la transferencia.", "error")
+        return redirect(url_for('home'))
+        
+    file = request.files['comprobante_pago']
+    
+    if file and archivo_permitido(file.filename):
+        # Nombramos la foto de forma segura y única
+        filename = secure_filename(f"desembolso_retiro_{retiro.id}_{int(time.time())}.{file.filename.rsplit('.', 1)[1].lower()}")
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        # Marcamos como pagado y guardamos la foto
+        retiro.comprobante_pago = filename
+        retiro.estado = 'Desembolsado'
+        db.session.commit()
+        
+        flash(f"✅ ¡Nómina pagada! Comprobante de desembolso guardado para {retiro.usuario_correo}.", "success")
+    else:
+        flash("❌ Archivo no permitido o dañado. Usa JPG, PNG o PDF.", "error")
+        
+    return redirect(url_for('home'))
 
 # =====================================================================
 # 💸 MÓDULO FINANCIERO: PROCESAMIENTO DE RETIROS (INDEPENDIENTE)
