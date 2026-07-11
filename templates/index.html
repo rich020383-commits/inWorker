@@ -264,6 +264,55 @@ function analizarConIA(tareaId) {
 </script>
 {% endif %}
 
+{% if session['usuario_rol'] == 'Admin' %}
+<div class="mt-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+    <h3 class="text-lg font-black text-slate-800 mb-4 flex items-center">
+        <i class="fas fa-search-dollar text-purple-600 mr-2"></i> Auditoría de Recargas Nequi
+    </h3>
+    
+    <div class="space-y-4">
+        {% if recargas %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for r in recargas %}
+                <div class="border border-purple-100 bg-purple-50/50 rounded-xl p-4 flex flex-col gap-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Usuario</p>
+                            <p class="font-bold text-slate-800 text-xs truncate w-32" title="{{ r.usuario_correo }}">{{ r.usuario_correo }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Monto a inyectar</p>
+                            <p class="font-black text-purple-600 text-sm">${{ "{:,.0f}".format(r.monto_cop) }}</p>
+                            <p class="text-[9px] text-purple-400 font-bold">({{ r.creditos }} Créditos)</p>
+                        </div>
+                    </div>
+                    
+                    <a href="/static/uploads/{{ r.comprobante }}" target="_blank" class="w-full bg-white border border-slate-200 hover:border-purple-300 rounded-lg p-2 flex items-center justify-center gap-2 text-xs font-bold text-slate-600 transition group">
+                        <i class="fas fa-image text-slate-400 group-hover:text-purple-500"></i> Ver Comprobante
+                    </a>
+                    
+                    <div class="grid grid-cols-2 gap-2 mt-auto pt-2 border-t border-purple-100">
+                        <form action="/admin/auditar_recarga/{{ r.id }}/rechazar" method="POST" onsubmit="return confirm('¿Seguro que deseas rechazar esta recarga?');">
+                            <button type="submit" class="w-full bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-wider py-2 rounded-lg transition shadow-sm">
+                                <i class="fas fa-times"></i> Fraude
+                            </button>
+                        </form>
+                        <form action="/admin/auditar_recarga/{{ r.id }}/aprobar" method="POST" onsubmit="return confirm('¿Confirmas que el dinero está en Nequi?');">
+                            <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider py-2 rounded-lg transition shadow-sm">
+                                <i class="fas fa-check"></i> Aprobar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-sm text-slate-500 italic">No hay recargas pendientes de verificación en este momento. ☕</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
 <!-- ========================================== -->
         <!-- 🪪 TARJETA DE PRESENTACIÓN (VISTA PREVIA DEL TÉCNICO) -->
         <!-- ========================================== -->

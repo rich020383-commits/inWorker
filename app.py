@@ -10,6 +10,7 @@ from PIL import Image
 from google import genai
 from moderacion import es_mensaje_seguro
 from disputas_ia import analizar_disputa_chat
+from modelos import Recarga
 
 # 🔧 CONFIGURACIÓN AVANZADA CON FLASK-SQLALCHEMY
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, current_app, send_from_directory
@@ -795,6 +796,11 @@ def home():
         'costo_creditos': d.costo_creditos
     } for d in disputas_query]
     
+    # 💸 CONSULTA DE RECARGAS NEQUI PENDIENTES (Ojo de Dios / Solo Admin)
+    recargas_pendientes = []
+    if rol_usuario == 'Admin':
+        recargas_pendientes = Recarga.query.filter_by(estado='Pendiente').order_by(Recarga.fecha.asc()).all()
+    
     # Armamos el diccionario dinámico para las plantillas
     perfil_real = {'saldo_creditos': saldo_real, 'saldo': saldo_real}
 
@@ -838,7 +844,8 @@ def home():
                            lista_disputas=lista_disputas,
                            notificaciones_sin_leer=alertas_totales,
                            usuario=usuario_info,
-                           bandeja_entrada=bandeja_entrada) # 📥 INYECTAMOS LA BANDEJA AQUÍ
+                           bandeja_entrada=bandeja_entrada,
+                           recargas=recargas_pendientes) # 💸 INYECTAMOS LAS RECARGAS AQUÍ
 
 # =====================================================================
 # 💸 MÓDULO FINANCIERO: PROCESAMIENTO DE RETIROS (INDEPENDIENTE)
@@ -1294,11 +1301,14 @@ def reportar_pago_nequi():
         return redirect(url_for('recargar_billetera'))
 
 # =====================================================================
-# 🛡️ ADMIN: LIBERACIÓN DE CRÉDITOS NEQUI
+# 🛡️ ADMIN: LIBERACIÓN DE CRÉDITOS NEQUI (LOS BOTONES)
 # =====================================================================
 @app.route('/admin/auditar_recarga/<int:recarga_id>/<accion>', methods=['POST'])
 def auditar_recarga(recarga_id, accion):
-    # Aquí irá tu protección para que solo tú (Admin) puedas entrar
+    # 🔒 Filtro de seguridad: Solo tú puedes presionar estos botones
+    if session.get('usuario_rol') != 'Admin':
+        flash("🚫 Acceso denegado. Solo administradores.", "error")
+        return redirect(url_for('home'))
     
     try:
         recarga = Recarga.query.get_or_404(recarga_id)
@@ -1306,7 +1316,7 @@ def auditar_recarga(recarga_id, accion):
 
         if recarga.estado != 'Pendiente':
             flash("⚠️ Esta recarga ya fue procesada anteriormente.", "warning")
-            return redirect(url_for('panel_admin')) # Cambia esto por la ruta de tu panel admin
+            return redirect(url_for('home')) # 🎯 Te devuelve al Dashboard
 
         if accion == 'aprobar':
             # ✅ VERIFICACIÓN EXITOSA: Inyectamos el dinero en la billetera
@@ -1315,7 +1325,7 @@ def auditar_recarga(recarga_id, accion):
             flash(f"✅ Recarga aprobada. Se inyectaron {recarga.creditos} créditos a {usuario.correo}.", "success")
 
         elif accion == 'rechazar':
-            # 🚨 COMPROBANTE FALSO O PAGO NO RECIBIDO: Se rechaza sin tocar el saldo
+            # 🚨 FRAUDE: Se rechaza sin tocar el saldo
             recarga.estado = 'Rechazada'
             flash(f"🚫 Recarga rechazada para {usuario.correo}. Comprobante inválido.", "error")
 
@@ -1326,20 +1336,7 @@ def auditar_recarga(recarga_id, accion):
         print(f"❌ Error auditando recarga: {e}")
         flash("Error interno procesando la auditoría.", "error")
 
-    return redirect(url_for('panel_admin')) # Cambia esto por la ruta de tu panel admin
-
-# =====================================================================
-# 👁️ VISTA ADMIN: PANEL DE CONTROL DE RECARGAS
-# =====================================================================
-@app.route('/admin/recargas')
-def panel_admin_recargas():
-    # 🔒 OJO: Aquí debes poner tu filtro de seguridad para que solo tú entres.
-    # if session.get('usuario_rol') != 'Admin': return redirect(url_for('dashboard'))
-
-    # Buscamos las recargas pendientes ordenadas de la más antigua a la más nueva
-    recargas_pendientes = Recarga.query.filter_by(estado='Pendiente').order_by(Recarga.fecha.asc()).all()
-    
-    return render_template('admin_recargas.html', recargas=recargas_pendientes)
+    return redirect(url_for('home')) # 🎯 Te devuelve al Dashboard central
 
 # --- CONTROL DEL TABLÓN DE ÓRDENES - OPTIMIZADO Y CON BUSCADOR ---
 @app.route('/tareas')
