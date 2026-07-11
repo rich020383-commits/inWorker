@@ -18,9 +18,7 @@
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-8 w-full flex-grow">
-        
-        <div class="bg-slate-900 rounded-3xl p-6 shadow-xl mb-8 relative overflow-hidden max-w-md mx-auto">
+    <main class="max-w-4xl mx-auto px-4 py-8 w-full flex-grow mt-4"> <div class="bg-slate-900 rounded-3xl p-6 shadow-xl mb-8 relative overflow-hidden max-w-md mx-auto">
             <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full blur-3xl opacity-20 -mr-10 -mt-10"></div>
             <h2 class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Saldo Disponible</h2>
             <div class="flex items-end gap-2">
@@ -75,58 +73,58 @@
                 </form>
             </div>
 
-            <div class="bg-[#3f1e54] rounded-2xl p-6 shadow-md text-white flex flex-col relative overflow-hidden">
-                <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-[#ea4c89] rounded-full blur-3xl opacity-20"></div>
+            <div class="bg-gradient-to-br from-[#4a1c6a] to-[#2d1142] rounded-3xl p-7 shadow-2xl text-white flex flex-col relative overflow-hidden border border-[#5d2785]">
+                <div class="absolute -top-20 -right-20 w-64 h-64 bg-[#ea4c89] rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
                 
-                <div class="flex justify-between items-start mb-4 relative z-10">
+                <div class="flex justify-between items-start mb-6 relative z-10">
                     <div>
-                        <h3 class="text-sm font-black text-white uppercase tracking-wide mb-1">
-                            <i class="fas fa-mobile-screen mr-2"></i>Nequi Directo
+                        <h3 class="text-base font-black text-white uppercase tracking-wide flex items-center">
+                            <i class="fas fa-bolt text-[#10b981] mr-2"></i>Nequi Directo
                         </h3>
-                        <p class="text-[11px] text-purple-200">Aprobación mediante Inteligencia Artificial.</p>
+                        <p class="text-[10px] text-purple-200 mt-1 font-medium">Aprobación asíncrona segura.</p>
                     </div>
-                    <span class="bg-[#10b981] text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                    <span class="bg-[#10b981]/20 border border-[#10b981]/50 text-[#10b981] text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
                         0% Comisión
                     </span>
                 </div>
 
-                <div class="bg-white p-2.5 rounded-2xl w-36 h-36 mx-auto my-3 shadow-md border border-purple-300/30 relative z-10 flex items-center justify-center group overflow-hidden">
+                <div class="mx-auto my-2 relative z-10 group">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-purple-500 to-[#10b981] rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
                     <img src="/static/img/qr_nequi_negocios.jpg" 
                          alt="QR Nequi" 
-                         class="w-full h-full object-cover rounded-xl transition-transform duration-300 group-hover:scale-105">
+                         class="relative w-40 h-40 object-cover rounded-xl shadow-lg border-2 border-white/10 transition-transform duration-300 group-hover:scale-105">
                 </div>
 
-                <div class="text-[11px] text-purple-100 mb-6 mt-4 space-y-2 relative z-10">
-                    <p class="font-bold text-white text-xs mb-2">Instrucciones de Recarga:</p>
-                    <p><i class="fas fa-check-circle text-[#10b981] mr-1"></i> Escanea el QR desde tu app Nequi.</p>
-                    <p><i class="fas fa-check-circle text-[#10b981] mr-1"></i> Transfiere múltiplos de 10.000 ($10.000 = 1 Crédito, $20.000 = 2 Créditos).</p>
-                    <p><i class="fas fa-check-circle text-[#10b981] mr-1"></i> Toma pantallazo de "Transacción Exitosa" y súbelo aquí.</p>
+                <div class="bg-black/20 rounded-xl p-4 my-5 relative z-10 border border-white/5">
+                    <p class="font-black text-white text-[10px] uppercase tracking-widest mb-3 text-center">Instrucciones</p>
+                    <ul class="text-[11px] text-purple-100 space-y-2">
+                        <li class="flex items-start"><i class="fas fa-check text-[#10b981] mt-0.5 mr-2"></i> Transfiere desde tu app múltiplos de $10.000.</li>
+                        <li class="flex items-start"><i class="fas fa-check text-[#10b981] mt-0.5 mr-2"></i> Guarda la captura de "Transacción Exitosa".</li>
+                    </ul>
                 </div>
 
                 <form action="/reportar_pago_nequi" method="POST" enctype="multipart/form-data" class="mt-auto relative z-10 flex flex-col gap-3">
-                    
-                    <div>
-                        <label class="block text-[10px] font-bold text-purple-200 uppercase tracking-wider mb-1 ml-1">Monto Transferido</label>
-                        <select name="monto_transferido" required class="w-full bg-white/10 border border-white/20 text-white text-xs font-bold rounded-xl p-3 focus:outline-none focus:border-[#10b981] transition appearance-none cursor-pointer">
-                            <option value="" disabled selected class="text-slate-800">Selecciona el valor...</option>
+                    <div class="relative">
+                        <select name="monto_transferido" required class="w-full bg-black/30 border border-purple-400/30 text-white text-xs font-bold rounded-xl p-3.5 pl-10 focus:outline-none focus:border-[#10b981] transition appearance-none cursor-pointer">
+                            <option value="" disabled selected class="text-slate-800">Selecciona el monto enviado...</option>
                             <option value="10000" class="text-slate-800">1 Crédito ($10.000 COP)</option>
                             <option value="20000" class="text-slate-800">2 Créditos ($20.000 COP)</option>
                             <option value="30000" class="text-slate-800">3 Créditos ($30.000 COP)</option>
                             <option value="50000" class="text-slate-800">5 Créditos ($50.000 COP)</option>
                             <option value="100000" class="text-slate-800">10 Créditos ($100.000 COP)</option>
                         </select>
+                        <i class="fas fa-coins absolute left-4 top-4 text-purple-300 text-sm"></i>
                     </div>
 
                     <input type="file" name="comprobante_nequi" id="fileComprobante" class="hidden" accept="image/*" required 
-                           onchange="document.getElementById('btn-text-upload').innerHTML = '<i class=\'fas fa-check-circle mr-1\'></i> Foto Lista'; 
-                                     document.getElementById('btn-submit-nequi').classList.remove('hidden');">
+                           onchange="document.getElementById('btn-text-upload').innerHTML = '¡Comprobante Adjuntado!'; document.getElementById('btn-text-upload').classList.add('text-[#10b981]'); document.getElementById('btn-submit-nequi').classList.remove('hidden');">
                     
-                    <button type="button" onclick="document.getElementById('fileComprobante').click()" class="w-full bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold py-3.5 rounded-xl text-[11px] uppercase tracking-wider transition flex items-center justify-center shadow-sm">
-                        <i class="fas fa-camera mr-2 text-[#10b981]"></i>
-                        <span id="btn-text-upload">Adjuntar Comprobante</span>
+                    <button type="button" onclick="document.getElementById('fileComprobante').click()" class="w-full bg-white/5 hover:bg-white/10 border border-dashed border-purple-300/40 text-purple-200 font-bold py-3.5 rounded-xl text-[11px] uppercase tracking-wider transition flex items-center justify-center shadow-sm">
+                        <i class="fas fa-upload mr-2"></i>
+                        <span id="btn-text-upload">Subir Captura de Pantalla</span>
                     </button>
 
-                    <button type="submit" id="btn-submit-nequi" class="hidden w-full bg-[#10b981] hover:bg-emerald-600 text-white font-black py-3.5 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center active:scale-95">
+                    <button type="submit" id="btn-submit-nequi" class="hidden w-full bg-gradient-to-r from-[#10b981] to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-black py-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-500/30 flex items-center justify-center active:scale-95">
                         Confirmar y Enviar 🚀
                     </button>
                 </form>
