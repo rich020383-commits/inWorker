@@ -214,8 +214,6 @@ class Usuario(db.Model):
     puntuacion_total = db.Column(db.Float, default=0.0)
     total_calificaciones = db.Column(db.Integer, default=0)
     descripcion = db.Column(db.Text, default='')
-    foto_kyc_cedula = db.Column(db.String(255), nullable=True)
-    foto_kyc_selfie = db.Column(db.String(255), nullable=True)
     
     # 🤝 SISTEMA DE EMBAJADORES Y REFERIDOS (NUEVO)
     codigo_embajador = db.Column(db.String(50), unique=True, nullable=True) 
@@ -826,8 +824,8 @@ def home():
         tecnicos_pendientes_kyc = Usuario.query.filter(
             Usuario.rol.in_(['Trabajador', 'Worker']),
             Usuario.verificado == 0,
-            Usuario.foto_kyc_cedula != None,
-            Usuario.foto_kyc_cedula != ''
+            Usuario.kyc_cedula != None,
+            Usuario.kyc_cedula != ''
         ).all()
 
     # Armamos el diccionario dinámico para las plantillas
@@ -906,8 +904,8 @@ def rechazar_kyc(id):
     tecnico = Usuario.query.get_or_404(id)
     
     # Le borramos las fotos fallidas para que el sistema le pida subirlas de nuevo
-    tecnico.foto_kyc_cedula = None
-    tecnico.foto_kyc_selfie = None
+    tecnico.kyc_cedula = None
+    tecnico.kyc_selfie = None
     tecnico.verificado = 0
     db.session.commit()
     
