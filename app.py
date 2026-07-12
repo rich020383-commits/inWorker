@@ -811,6 +811,7 @@ def home():
     # 💸 INICIALIZAMOS LISTAS VACÍAS (ESTO EVITA EL ERROR 500)
     recargas_pendientes = []
     retiros_pendientes = []
+    tecnicos_pendientes_kyc = [] # 👈 AÑADIDO PARA KYC
     
     # 💸 CONSULTAS EXCLUSIVAS DEL OJO DE DIOS (Solo Admin)
     if rol_usuario == 'Admin':
@@ -818,6 +819,14 @@ def home():
         recargas_pendientes = Recarga.query.filter_by(estado='Pendiente').order_by(Recarga.fecha.asc()).all()
         # Consultamos los retiros de nómina (Técnicos)
         retiros_pendientes = BilleteraRetiro.query.filter(BilleteraRetiro.estado.in_(['Pendiente', 'Procesando'])).order_by(BilleteraRetiro.fecha_solicitud.asc()).all()
+        
+        # Buscamos a los técnicos pendientes de KYC (Fotos subidas pero sin verificar) 👈 AÑADIDO PARA KYC
+        tecnicos_pendientes_kyc = Usuario.query.filter(
+            Usuario.rol.in_(['Trabajador', 'Worker']),
+            Usuario.verificado == 0,
+            Usuario.foto_kyc_cedula != None,
+            Usuario.foto_kyc_cedula != ''
+        ).all()
 
     # Armamos el diccionario dinámico para las plantillas
     perfil_real = {'saldo_creditos': saldo_real, 'saldo': saldo_real}
@@ -864,8 +873,44 @@ def home():
                            notificaciones_sin_leer=alertas_totales,
                            usuario=usuario_info,
                            bandeja_entrada=bandeja_entrada,
-                           recargas=recargas_pendientes,             # 👈 Inyectado
-                           retiros_pendientes=retiros_pendientes)    # 👈 Inyectado
+                           recargas=recargas_pendientes,
+                           retiros_pendientes=retiros_pendientes,
+                           tecnicos_pendientes_kyc=tecnicos_pendientes_kyc) # 👈 AÑADIDO PARA KYC
+
+# =====================================================================
+# 🛡️ MÓDULO ADMIN: AUDITORÍA DE IDENTIDAD (KYC)
+# =====================================================================
+
+@app.route('/admin/kyc/<int:id>/aprobar', methods=['POST'])
+def aprobar_kyc(id):
+    if session.get('usuario_rol') != 'Admin':
+        flash("Acceso denegado.", "error")
+        return redirect(url_for('home'))
+        
+    tecnico = Usuario.query.get_or_404(id)
+    tecnico.verificado = 1
+    db.session.commit()
+    
+    flash(f"✅ Identidad de {tecnico.nombre} aprobada con éxito. Ahora es Nivel Pro.", "success")
+    return redirect(request.referrer or url_for('home'))
+
+
+@app.route('/admin/kyc/<int:id>/rechazar', methods=['POST'])
+def rechazar_kyc(id):
+    if session.get('usuario_rol') != 'Admin':
+        flash("Acceso denegado.", "error")
+        return redirect(url_for('home'))
+        
+    tecnico = Usuario.query.get_or_404(id)
+    
+    # Le borramos las fotos fallidas para que el sistema le pida subirlas de nuevo
+    tecnico.foto_kyc_cedula = None
+    tecnico.foto_kyc_selfie = None
+    tecnico.verificado = 0
+    db.session.commit()
+    
+    flash(f"❌ Documentos de {tecnico.nombre} rechazados. Deberá subirlos nuevamente.", "error")
+    return redirect(request.referrer or url_for('home'))
 
 # =====================================================================
 # 💸 ADMIN: GESTIÓN Y CONTROL DE RETIROS DE TÉCNICOS

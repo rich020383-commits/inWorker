@@ -105,6 +105,7 @@
                         <input type="tel" name="telefono" value="{{ usuario['telefono'] if usuario['telefono'] else '' }}" placeholder="Ej: 3001234567" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
                     </div>
 
+                    {% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}
                     <div class="md:col-span-2 mt-4">
                         {% if usuario['verificado'] == 1 %}
                             <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex items-center justify-between shadow-sm">
@@ -184,6 +185,7 @@
                             </div>
                         {% endif %}
                     </div>
+                    {% endif %}
 
                     {% if session['usuario_rol'] == 'Trabajador' %}
                     
