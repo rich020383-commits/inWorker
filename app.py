@@ -214,6 +214,8 @@ class Usuario(db.Model):
     puntuacion_total = db.Column(db.Float, default=0.0)
     total_calificaciones = db.Column(db.Integer, default=0)
     descripcion = db.Column(db.Text, default='')
+    foto_kyc_cedula = db.Column(db.String(255), nullable=True)
+    foto_kyc_selfie = db.Column(db.String(255), nullable=True)
     
     # 🤝 SISTEMA DE EMBAJADORES Y REFERIDOS (NUEVO)
     codigo_embajador = db.Column(db.String(50), unique=True, nullable=True) 
