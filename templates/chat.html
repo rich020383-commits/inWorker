@@ -216,7 +216,11 @@
                             <textarea name="concepto" rows="2" placeholder="Ej: Revisión e instalación..." required
                                 class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-purple-500 transition resize-none"></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm">
+                        
+                        <!-- 🛡️ BOTÓN ANTI-CLONES INYECTADO AQUÍ -->
+                        <button type="submit" 
+                                onclick="this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin mr-2\'></i>Enviando...'; this.form.submit();" 
+                                class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center">
                             Enviar Propuesta Oficial
                         </button>
                     </form>
