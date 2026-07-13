@@ -6,6 +6,7 @@
     <title>inWorker - Mi Perfil Seguro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         input:disabled, textarea:disabled, select:disabled {
             background-color: #f1f5f9 !important; 
@@ -513,29 +514,82 @@
             });
         }
 
-        // 🛑 FUNCIÓN NINJA PARA ELIMINACIÓN SEGURA DE CUENTA
+        // 🛑 FUNCIÓN NINJA PARA ELIMINACIÓN SEGURA (VERSIÓN PREMIUM)
         function confirmarEliminarCuentaNinja() {
-            const confirmar = confirm("⚠️ ¿ESTÁS SEGURO?\n\nEsta acción dará de baja tu cuenta en inWorker de inmediato. No podrás iniciar sesión y tus datos sensibles serán removidos según la Ley de Habeas Data.\n\n¿Deseas continuar?");
-            
-            if (confirmar) {
-                fetch('/api/usuario/eliminar_cuenta', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert("🔒 " + data.message);
-                        window.location.href = '/'; 
-                    } else {
-                        alert("❌ ERROR OPERATIVO:\n\n" + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error al procesar la baja:", error);
-                    alert("Hubo un error de conexión con el servidor. Inténtalo de nuevo más tarde.");
-                });
-            }
+            Swal.fire({
+                title: '⚠️ ¿Estás seguro?',
+                html: '<p class="text-sm text-slate-600">Esta acción dará de baja tu cuenta en <strong>inWorker</strong> de inmediato. No podrás iniciar sesión y tus datos sensibles serán removidos según la Ley de Habeas Data.</p>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e11d48',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fas fa-trash-alt mr-1"></i> Sí, eliminar cuenta',
+                cancelButtonText: 'Cancelar',
+                background: '#ffffff',
+                color: '#0f172a',
+                customClass: {
+                    popup: 'rounded-2xl border border-slate-200 shadow-2xl',
+                    confirmButton: 'font-black uppercase tracking-wider text-xs rounded-xl px-5 py-3',
+                    cancelButton: 'font-black uppercase tracking-wider text-xs rounded-xl px-5 py-3'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    
+                    Swal.fire({
+                        title: 'Auditando cuenta...',
+                        html: '<span class="text-xs text-slate-500">Verificando saldos y servicios en garantía</span>',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    fetch('/api/usuario/eliminar_cuenta', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Cuenta Eliminada',
+                                text: data.message,
+                                icon: 'success',
+                                confirmButtonColor: '#2563eb',
+                                confirmButtonText: 'Entendido',
+                                customClass: {
+                                    popup: 'rounded-2xl',
+                                    confirmButton: 'font-black uppercase tracking-wider text-xs rounded-xl px-5 py-3'
+                                }
+                            }).then(() => {
+                                window.location.href = '/'; 
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Operación Denegada',
+                                text: data.error,
+                                icon: 'error',
+                                confirmButtonColor: '#2563eb',
+                                confirmButtonText: 'Entendido',
+                                footer: '<span class="text-[10px] text-slate-400 font-bold uppercase"><i class="fas fa-shield-alt text-emerald-500 mr-1"></i> Protocolo de seguridad inWorker activo</span>',
+                                customClass: {
+                                    popup: 'rounded-2xl border-t-4 border-t-rose-500',
+                                    confirmButton: 'font-black uppercase tracking-wider text-xs rounded-xl px-5 py-3'
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error al procesar la baja:", error);
+                        Swal.fire({
+                            title: 'Error de conexión',
+                            text: 'No pudimos conectar con el servidor. Inténtalo de nuevo.',
+                            icon: 'error',
+                            confirmButtonColor: '#2563eb'
+                        });
+                    });
+                }
+            });
         }
 
         document.addEventListener("DOMContentLoaded", function() {
