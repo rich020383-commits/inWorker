@@ -2838,6 +2838,9 @@ def liberar_fondos(tarea_id):
             flash("❌ Error: No se encontró la cuenta del técnico.", "error")
             return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
             
+        # Buscamos al cliente para validar el Bono de Doble Punta
+        cliente = Usuario.query.filter_by(correo=tarea.cliente_correo).first()
+            
         # 💰 TRANSFERENCIA DE CRÉDITOS Y DIVISIÓN DE COMISIONES
         costo_servicio = tarea.costo_creditos or 0.0
         
@@ -2846,38 +2849,56 @@ def liberar_fondos(tarea_id):
         saldo_tecnico_actual = trabajador.saldo_creditos or 0.0
         trabajador.saldo_creditos = round(saldo_tecnico_actual + creditos_tecnico, 2)
         
-        # 🕵️‍♂️ MOTOR NINJA DE EMBAJADORES (DISPERSIÓN EN PILOTO AUTOMÁTICO)
+        # 🕵️‍♂️ NUEVO MOTOR DE EMBAJADORES (PROGRAMA DE CRECIMIENTO EN PILOTO AUTOMÁTICO)
         if trabajador.referido_por:
             padrino = Usuario.query.filter_by(codigo_embajador=trabajador.referido_por).first()
             
             if padrino:
-                from datetime import datetime
+                # 1. Calcular la retención total de inWorker (12%)
+                retencion_inworker = costo_servicio * 0.12
                 
-                # 1. Validar ventana de tiempo (6 meses = 180 días)
-                diferencia_tiempo = datetime.utcnow() - trabajador.fecha_registro
+                # 2. Inicializar lógica de comisiones y bonos según el nivel del Padrino
+                nivel = padrino.nivel_embajador or 1
+                porcentaje_base = 0.18
+                porcentaje_bono = 0.03
                 
-                if diferencia_tiempo.days <= 180:
-                    # 2. Calcular la retención de inWorker (12%)
-                    retencion_inworker = costo_servicio * 0.12
-                    
-                    # 3. Calcular el Rango del Padrino por volumen de reclutados
-                    referidos_count = Usuario.query.filter_by(referido_por=padrino.codigo_embajador).count()
-                    
-                    if referidos_count <= 10:
-                        porcentaje_padrino = 0.10  # Bronce
-                    elif referidos_count <= 25:
-                        porcentaje_padrino = 0.15  # Plata
-                    elif referidos_count <= 50:
-                        porcentaje_padrino = 0.20  # Oro
-                    else:
-                        porcentaje_padrino = 0.30  # Diamante
-                    
-                    # 4. Asignar Comisión en créditos al Embajador
-                    comision_padrino = round(retencion_inworker * porcentaje_padrino, 2)
-                    
-                    if comision_padrino > 0:
-                        padrino.saldo_creditos = round((padrino.saldo_creditos or 0.0) + comision_padrino, 2)
-                        print(f"🎁 Comisión de {comision_padrino} Cr asignada al Embajador {padrino.nombre} por el técnico {trabajador.nombre}")
+                if nivel == 2:    # Líder
+                    porcentaje_base = 0.22
+                    porcentaje_bono = 0.04
+                elif nivel == 3:  # Director Regional
+                    porcentaje_base = 0.25
+                    porcentaje_bono = 0.05
+                
+                # 3. ¿El cliente que pagó también fue referido por este mismo Padrino? (Bono de Doble Punta)
+                cliente_es_referido_propio = cliente and cliente.referido_por == padrino.codigo_embajador
+                
+                if cliente_es_referido_propio:
+                    porcentaje_final = porcentaje_base + porcentaje_bono
+                    print(f"🔥 ¡Bono de Doble Punta activado! {padrino.nombre} se lleva el {porcentaje_final * 100}%")
+                else:
+                    porcentaje_final = porcentaje_base
+                    print(f"💼 Comisión base asignada: {porcentaje_final * 100}%")
+                
+                # 4. Asignar Comisión en créditos al Embajador
+                comision_padrino = round(retencion_inworker * porcentaje_final, 2)
+                
+                if comision_padrino > 0:
+                    padrino.saldo_creditos = round((padrino.saldo_creditos or 0.0) + comision_padrino, 2)
+                    print(f"🎁 Comisión de {comision_padrino} Cr asignada al Embajador {padrino.nombre}")
+                
+                # 5. Sumar +1 servicio completado a la red de este Embajador
+                padrino.servicios_red = (padrino.servicios_red or 0) + 1
+                
+                # 6. Lógica de ascensos automáticos por mérito (Servicios Efectivos)
+                nuevo_nivel = padrino.nivel_embajador
+                if padrino.servicios_red >= 1000 and padrino.nivel_embajador < 3:
+                    nuevo_nivel = 3  # Asciende a Director Regional
+                elif padrino.servicios_red >= 100 and padrino.nivel_embajador < 2:
+                    nuevo_nivel = 2  # Asciende a Líder
+                
+                if nuevo_nivel != padrino.nivel_embajador:
+                    padrino.nivel_embajador = nuevo_nivel
+                    print(f"🏆 ¡EL EMBAJADOR {padrino.nombre} HA ASCENDIDO AL NIVEL {nuevo_nivel}! Servicios red: {padrino.servicios_red}")
 
         # Cambiamos el estado de la tarea a Finalizada
         tarea.estado = 'Finalizada'
