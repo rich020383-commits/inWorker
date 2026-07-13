@@ -215,10 +215,12 @@ class Usuario(db.Model):
     total_calificaciones = db.Column(db.Integer, default=0)
     descripcion = db.Column(db.Text, default='')
     
-    # 🤝 SISTEMA DE EMBAJADORES Y REFERIDOS (NUEVO)
+    # 🤝 SISTEMA DE EMBAJADORES Y REFERIDOS (PROGRAMA DE CRECIMIENTO)
     codigo_embajador = db.Column(db.String(50), unique=True, nullable=True) 
     referido_por = db.Column(db.String(50), nullable=True) 
     fecha_registro = db.Column(db.DateTime, default=db.func.current_timestamp())
+    servicios_red = db.Column(db.Integer, default=0)
+    nivel_embajador = db.Column(db.Integer, default=1)
 
 class Tarea(db.Model):
     __tablename__ = 'tareas'
