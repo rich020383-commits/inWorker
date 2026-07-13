@@ -191,20 +191,77 @@
                     
                     <div class="md:col-span-2 pt-2">
                         <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Profesión u Oficio Destacado</label>
+                        
                         <select id="field-profesion" name="profesion" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition cursor-pointer">
                             <option value="">-- Selecciona tu especialidad principal --</option>
-                            <option value="Plomería" {% if usuario['profesion'] == 'Plomería' %}selected{% endif %}>Servicios de Plomería</option>
-                            <option value="Electricidad" {% if usuario['profesion'] == 'Electricidad' %}selected{% endif %}>Electricista Certificado</option>
-                            <option value="Línea Blanca" {% if usuario['profesion'] == 'Línea Blanca' %}selected{% endif %}>Reparación Línea Blanca</option>
-                            <option value="Mantenimiento" {% if usuario['profesion'] == 'Mantenimiento' %}selected{% endif %}>Mantenimiento Técnico General</option>
-                            <option value="Soporte Técnico" {% if usuario['profesion'] == 'Soporte Técnico' %}selected{% endif %}>Soporte Técnico en Sistemas</option>
-                            <option value="Desarrollo Web" {% if usuario['profesion'] == 'Desarrollo Web' %}selected{% endif %}>Desarrollo Web y Programación</option>
-                            <option value="Conductor Designado" {% if usuario['profesion'] == 'Conductor Designado' %}selected{% endif %}>Conductor Designado / Diligencias</option>
-                            <option value="Operación de Maquinaria Pesada" {% if usuario['profesion'] == 'Operación de Maquinaria Pesada' %}selected{% endif %}>Operación de Maquinaria Pesada</option>
-                            <option value="Niñera / Cuidado Infantil" {% if usuario['profesion'] == 'Niñera / Cuidado Infantil' %}selected{% endif %}>Niñera / Cuidado Infantil</option>
-                            <option value="Asistencia a Personas Mayores" {% if usuario['profesion'] == 'Asistencia a Personas Mayores' %}selected{% endif %}>Asistencia a Personas Mayores</option>
-                            <option value="Paseador y Cuidador de Perros" {% if usuario['profesion'] == 'Paseador y Cuidador de Perros' %}selected{% endif %}>Paseador y Cuidador de Perros</option>
                             
+                            <optgroup label="🏠 Hogar y Construcción">
+                                <option value="Plomería" {% if usuario['profesion'] == 'Plomería' %}selected{% endif %}>Plomería</option>
+                                <option value="Electricidad" {% if usuario['profesion'] == 'Electricidad' %}selected{% endif %}>Electricidad</option>
+                                <option value="Construcción" {% if usuario['profesion'] == 'Construcción' %}selected{% endif %}>Construcción</option>
+                                <option value="Maestro de obras" {% if usuario['profesion'] == 'Maestro de obras' %}selected{% endif %}>Maestro de obras</option>
+                                <option value="Pintura" {% if usuario['profesion'] == 'Pintura' %}selected{% endif %}>Pintura</option>
+                                <option value="Carpintería" {% if usuario['profesion'] == 'Carpintería' %}selected{% endif %}>Carpintería</option>
+                                <option value="Ebanistería" {% if usuario['profesion'] == 'Ebanistería' %}selected{% endif %}>Ebanistería</option>
+                                <option value="Remodelación" {% if usuario['profesion'] == 'Remodelación' %}selected{% endif %}>Remodelación</option>
+                                <option value="Techos y cubiertas" {% if usuario['profesion'] == 'Techos y cubiertas' %}selected{% endif %}>Techos y cubiertas</option>
+                                <option value="Pisos y revestimientos" {% if usuario['profesion'] == 'Pisos y revestimientos' %}selected{% endif %}>Pisos y revestimientos</option>
+                                <option value="Impermeabilización" {% if usuario['profesion'] == 'Impermeabilización' %}selected{% endif %}>Impermeabilización</option>
+                                <option value="Fumigación" {% if usuario['profesion'] == 'Fumigación' %}selected{% endif %}>Fumigación</option>
+                                <option value="Cerrajería" {% if usuario['profesion'] == 'Cerrajería' %}selected{% endif %}>Cerrajería</option>
+                                <option value="Aire acondicionado" {% if usuario['profesion'] == 'Aire acondicionado' %}selected{% endif %}>Aire acondicionado</option>
+                                <option value="Calentadores de agua" {% if usuario['profesion'] == 'Calentadores de agua' %}selected{% endif %}>Calentadores de agua</option>
+                                <option value="Bombas de agua" {% if usuario['profesion'] == 'Bombas de agua' %}selected{% endif %}>Bombas de agua</option>
+                                <option value="Ventanas y puertas" {% if usuario['profesion'] == 'Ventanas y puertas' %}selected{% endif %}>Ventanas y puertas</option>
+                                <option value="Vidriería" {% if usuario['profesion'] == 'Vidriería' %}selected{% endif %}>Vidriería</option>
+                                <option value="Soldadura" {% if usuario['profesion'] == 'Soldadura' %}selected{% endif %}>Soldadura</option>
+                                <option value="Herrería" {% if usuario['profesion'] == 'Herrería' %}selected{% endif %}>Herrería</option>
+                                <option value="Gypsum / Drywall" {% if usuario['profesion'] == 'Gypsum / Drywall' %}selected{% endif %}>Gypsum / Drywall</option>
+                                <option value="Servicio de gas" {% if usuario['profesion'] == 'Servicio de gas' %}selected{% endif %}>Servicio de gas</option>
+                                <option value="Reparación de electrodomésticos" {% if usuario['profesion'] == 'Reparación de electrodomésticos' %}selected{% endif %}>Reparación de electrodomésticos</option>
+                                <option value="Ingeniería civil" {% if usuario['profesion'] == 'Ingeniería civil' %}selected{% endif %}>Ingeniería civil</option>
+                                <option value="Ingeniería eléctrica" {% if usuario['profesion'] == 'Ingeniería eléctrica' %}selected{% endif %}>Ingeniería eléctrica</option>
+                                <option value="Ingeniería mecánica" {% if usuario['profesion'] == 'Ingeniería mecánica' %}selected{% endif %}>Ingeniería mecánica</option>
+                                <option value="Arquitectura" {% if usuario['profesion'] == 'Arquitectura' %}selected{% endif %}>Arquitectura</option>
+                                <option value="Topografía" {% if usuario['profesion'] == 'Topografía' %}selected{% endif %}>Topografía</option>
+                                <option value="Control de plagas" {% if usuario['profesion'] == 'Control de plagas' %}selected{% endif %}>Control de plagas</option>
+                                <option value="Captación y reúso de agua" {% if usuario['profesion'] == 'Captación y reúso de agua' %}selected{% endif %}>Captación y reúso de agua</option>
+                                <option value="Muralismo" {% if usuario['profesion'] == 'Muralismo' %}selected{% endif %}>Muralismo</option>
+                            </optgroup>
+
+                            <optgroup label="💻 Tecnología y Sistemas">
+                                <option value="Soporte Técnico" {% if usuario['profesion'] == 'Soporte Técnico' %}selected{% endif %}>Soporte Técnico en Sistemas</option>
+                                <option value="Instalación de Cámaras (CCTV)" {% if usuario['profesion'] == 'Instalación de Cámaras (CCTV)' %}selected{% endif %}>Instalación de Cámaras (CCTV)</option>
+                                <option value="Redes y Telecomunicaciones" {% if usuario['profesion'] == 'Redes y Telecomunicaciones' %}selected{% endif %}>Redes y Telecomunicaciones</option>
+                                <option value="Desarrollo Web" {% if usuario['profesion'] == 'Desarrollo Web' %}selected{% endif %}>Desarrollo Web y Programación</option>
+                            </optgroup>
+
+                            <optgroup label="🤝 Cuidado y Asistencia">
+                                <option value="Niñera / Cuidado Infantil" {% if usuario['profesion'] == 'Niñera / Cuidado Infantil' %}selected{% endif %}>Niñera / Cuidado Infantil</option>
+                                <option value="Asistencia a Personas Mayores" {% if usuario['profesion'] == 'Asistencia a Personas Mayores' %}selected{% endif %}>Asistencia a Personas Mayores</option>
+                                <option value="Paseador y Cuidador de Perros" {% if usuario['profesion'] == 'Paseador y Cuidador de Perros' %}selected{% endif %}>Paseador y Cuidador de Perros</option>
+                                <option value="Enfermería a Domicilio" {% if usuario['profesion'] == 'Enfermería a Domicilio' %}selected{% endif %}>Enfermería a Domicilio</option>
+                            </optgroup>
+
+                            <optgroup label="🚜 Transporte y Maquinaria">
+                                <option value="Conductor Designado" {% if usuario['profesion'] == 'Conductor Designado' %}selected{% endif %}>Conductor Designado / Diligencias</option>
+                                <option value="Trasteos y Mudanzas" {% if usuario['profesion'] == 'Trasteos y Mudanzas' %}selected{% endif %}>Trasteos y Mudanzas</option>
+                                <option value="Intermediación de Alquiler de Equipos" {% if usuario['profesion'] == 'Intermediación de Alquiler de Equipos' %}selected{% endif %}>Intermediación de Alquiler de Equipos</option>
+                                <option value="Operación de Excavadoras" {% if usuario['profesion'] == 'Operación de Excavadoras' %}selected{% endif %}>Operación de Excavadoras</option>
+                                <option value="Operación de Bulldozers" {% if usuario['profesion'] == 'Operación de Bulldozers' %}selected{% endif %}>Operación de Bulldozers</option>
+                            </optgroup>
+
+                            <optgroup label="🚗 Automotriz">
+                                <option value="Mecánica a Domicilio" {% if usuario['profesion'] == 'Mecánica a Domicilio' %}selected{% endif %}>Mecánica a Domicilio</option>
+                                <option value="Electricidad Automotriz" {% if usuario['profesion'] == 'Electricidad Automotriz' %}selected{% endif %}>Electricidad Automotriz</option>
+                                <option value="Cerrajería Automotriz" {% if usuario['profesion'] == 'Cerrajería Automotriz' %}selected{% endif %}>Cerrajería Automotriz</option>
+                            </optgroup>
+
+                            <optgroup label="✨ Otros Servicios">
+                                <option value="Limpieza y Aseo General" {% if usuario['profesion'] == 'Limpieza y Aseo General' %}selected{% endif %}>Limpieza y Aseo General</option>
+                                <option value="Jardinería" {% if usuario['profesion'] == 'Jardinería' %}selected{% endif %}>Jardinería</option>
+                            </optgroup>
+
                             <option value="Otra" {% if usuario['profesion'] and 'Otra' in usuario['profesion'] %}selected{% endif %}>Otra (Sugerir nueva especialidad)</option>
                         </select>
 
@@ -299,15 +356,12 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    // 1. Cargamos la imagen en el elemento img oculto y lo revelamos
                     const previewImg = document.getElementById(`preview-${campo}`);
                     previewImg.src = e.target.result;
                     previewImg.classList.remove('hidden');
                     
-                    // 2. Ocultamos el bloque de textos iniciales
                     document.getElementById(`placeholder-${campo}`).classList.add('opacity-0', 'pointer-events-none');
                     
-                    // 3. Transformamos estéticamente los bordes a verde Fintech y activamos el check de éxito
                     const labelContainer = document.getElementById(`label-${campo}`);
                     labelContainer.classList.remove('border-indigo-200', 'border-dashed');
                     labelContainer.classList.add('border-emerald-500', 'border-solid');
@@ -318,14 +372,21 @@
             }
         }
 
-        // 🔒 DICCIONARIO DE ADVERTENCIAS DE SEGURIDAD Y CUMPLIMIENTO LEGAL
+        // 🚀 EL DICCIONARIO LEGAL EXTENDIDO ESTÁ AQUÍ
         const ADVERTENCIAS_CATEGORIAS = {
             "Electricidad": "<strong>Requisito Legal:</strong> Este oficio requiere certificación oficial vigente (CONTE, CONALTEL o equivalente) en Colombia. Al aceptar trabajos, declaras bajo gravedad de juramento contar con tu matrícula profesional activa.",
-            "Niñera / Cuidado Infantil": "<strong>Política de Protección Infantil:</strong> inWorker mantiene una política de cero tolerancia. Esta categoría requiere una auditoría estricta de antecedentes penales, judiciales y del sistema de registro de agresores sexuales antes de habilitar tu cuenta.",
-            "Asistencia a Personas Mayores": "<strong>Validación de Confianza:</strong> El cuidado de adultos mayores exige un historial judicial impecable. Se realizarán consultas automáticas en bases de datos de la Policía y Procuraduría de manera periódica.",
-            "Conductor Designado": "<strong>Seguridad Vial:</strong> Es obligatorio contar con licencia de conducción vigente (Categoría B1/C1 o superior) sin comparendos graves pendientes en el SIMIT. inWorker vigila de cerca la política de cero alcohol al volante.",
-            "Operación de Maquinaria Pesada": "<strong>Certificación Industrial:</strong> Debes contar con la licencia de conducción industrial y la certificación de competencias laborales vigente para el manejo de equipos como retroexcavadoras o bulldozers.",
-            "Plomería": "<strong>Responsabilidad Civil:</strong> Los daños estructurales por inundación o rotura de tuberías principales son responsabilidad directa del técnico contratado. Procura trabajar bajo protocolos seguros."
+            "Niñera / Cuidado Infantil": "<strong>Política de Protección Infantil:</strong> inWorker mantiene una política de cero tolerancia. Esta categoría requiere una auditoría estricta de antecedentes penales, judiciales y del sistema de registro de agresores sexuales.",
+            "Asistencia a Personas Mayores": "<strong>Validación de Confianza:</strong> El cuidado de adultos mayores exige un historial judicial impecable. Se realizarán consultas automáticas en bases de datos de la Policía y Procuraduría.",
+            "Conductor Designado": "<strong>Seguridad Vial:</strong> Es obligatorio contar con licencia de conducción vigente (Categoría B1/C1 o superior) sin comparendos graves pendientes en el SIMIT. Tolerancia cero al alcohol.",
+            "Operación de Excavadoras": "<strong>Certificación Industrial:</strong> Debes contar con la licencia de conducción industrial y la certificación de competencias laborales vigente para maquinaria pesada.",
+            "Operación de Bulldozers": "<strong>Certificación Industrial:</strong> Debes contar con la licencia de conducción industrial y la certificación de competencias laborales vigente para maquinaria pesada.",
+            "Plomería": "<strong>Responsabilidad Civil:</strong> Los daños por inundación o rotura de tuberías principales son responsabilidad directa del técnico contratado. Procura trabajar bajo protocolos seguros.",
+            "Enfermería a Domicilio": "<strong>Requisito de Salud Pública:</strong> Debes estar inscrito en el RETHUS y contar con tu tarjeta profesional vigente. Eres responsable legal y penal de los procedimientos médicos realizados.",
+            "Servicio de gas": "<strong>Riesgo Crítico:</strong> Solo personal certificado por entidades competentes (SENA u organismos acreditados) puede manipular redes de gas. Una mala instalación conlleva responsabilidades penales graves.",
+            "Fumigación": "<strong>Manejo de Químicos:</strong> El uso de pesticidas exige cumplir con normativas de salud. Debes usar equipo de protección adecuado y dar indicaciones estrictas de bioseguridad al cliente.",
+            "Ingeniería civil": "<strong>Matrícula Profesional:</strong> Debes contar con matrícula expedida por el COPNIA. Cualquier aval estructural o daño en la obra es de tu entera responsabilidad civil y legal.",
+            "Arquitectura": "<strong>Matrícula Profesional:</strong> Debes contar con matrícula expedida por el CPNAA. Eres responsable de asegurar que el proyecto cumpla con las normativas de curaduría urbana.",
+            "Techos y cubiertas": "<strong>Trabajo en Alturas:</strong> Por normativa nacional (MinTrabajo), toda labor a más de 1.5 metros exige certificado vigente de Trabajo en Alturas y uso estricto de arnés y línea de vida."
         };
 
         function evaluarAdvertenciaSeguridad() {
@@ -333,7 +394,6 @@
             const contenedorAlerta = document.getElementById('alerta-seguridad');
             const textoAlerta = document.getElementById('alerta-texto-seguridad');
             
-            // Variables para el módulo de sugerencias
             const contenedorSugerencia = document.getElementById('contenedor-sugerencia');
             const inputSugerencia = document.getElementById('field-sugerencia');
             
@@ -341,25 +401,20 @@
 
             const profesionSeleccionada = selectProf.value;
 
-            // 1. Motor de Advertencias Legales
             if (contenedorAlerta && textoAlerta) {
                 if (ADVERTENCIAS_CATEGORIAS[profesionSeleccionada]) {
                     textoAlerta.innerHTML = ADVERTENCIAS_CATEGORIAS[profesionSeleccionada];
-                    contenedorAlerta.classList.remove('hidden'); // Mostramos la alerta
+                    contenedorAlerta.classList.remove('hidden');
                 } else {
-                    contenedorAlerta.classList.add('hidden'); // Ocultamos si es segura o general
+                    contenedorAlerta.classList.add('hidden');
                 }
             }
 
-            // 2. Motor de Sugerencias de Nuevos Servicios
             if (contenedorSugerencia && inputSugerencia) {
-                // Comprobamos si el usuario seleccionó explícitamente 'Otra'
                 if (profesionSeleccionada === 'Otra' || profesionSeleccionada.startsWith('Otra')) {
-                    // Muestra el input de sugerencia y lo vuelve obligatorio para enviar el formulario
                     contenedorSugerencia.classList.remove('hidden');
                     inputSugerencia.setAttribute('required', 'true');
                 } else {
-                    // Oculta el input, le quita lo obligatorio y lo limpia por si se arrepintió
                     contenedorSugerencia.classList.add('hidden');
                     inputSugerencia.removeAttribute('required');
                     inputSugerencia.value = '';
@@ -367,12 +422,11 @@
             }
         }
 
-        // Escuchar el cambio en el selector y ejecutar la evaluación al cargar la página
         document.addEventListener("DOMContentLoaded", function() {
             const selectProf = document.getElementById('field-profesion');
             if (selectProf) {
                 selectProf.addEventListener('change', evaluarAdvertenciaSeguridad);
-                evaluarAdvertenciaSeguridad(); // Ejecución inicial por si ya tiene una guardada
+                evaluarAdvertenciaSeguridad(); 
             }
         });
 
