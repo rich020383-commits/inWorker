@@ -3053,7 +3053,7 @@ def optimizar_perfil():
         return jsonify({"error": "Error interno al procesar la optimización con IA."}), 500
 
 # =========================================================================
-# 🔒 ENDPOINT: ELIMINACIÓN SEGURA DE CUENTA (CON CANDADOS LEGALES)
+# 🔒 ENDPOINT: ELIMINACIÓN SEGURA DE CUENTA (VERSIÓN SUPABASE CORREGIDA)
 # =========================================================================
 @app.route('/api/usuario/eliminar_cuenta', methods=['POST'])
 def api_eliminar_cuenta():
@@ -3063,49 +3063,44 @@ def api_eliminar_cuenta():
     correo_usuario = session['usuario_correo']
     
     try:
-        # 1. Traer los datos actualizados del usuario desde la base de datos
-        # (Asumiendo tu modelo 'Usuario' de SQLAlchemy conectado a Supabase)
-        usuario = Usuario.query.filter_by(correo=correo_usuario).first()
+        # 1. Traer los datos del usuario desde Supabase
+        respuesta_usr = supabase.table('usuarios').select('*').eq('correo', correo_usuario).execute()
         
-        if not usuario:
+        if not respuesta_usr.data:
             return jsonify({'success': False, 'error': 'Usuario no encontrado'}), 404
 
-        # 🛑 CANDADO 1: Validar que no tenga saldo pendiente en su billetera
-        if usuario.saldo and float(usuario.saldo) > 0:
+        usuario = respuesta_usr.data[0]
+
+        # 🛑 CANDADO 1: Validar que no tenga saldo (USANDO 'saldo_creditos')
+        saldo_actual = usuario.get('saldo_creditos', 0)
+        if saldo_actual and float(saldo_actual) > 0:
             return jsonify({
                 'success': False, 
-                'error': 'No puedes eliminar tu cuenta si aún tienes saldo disponible en tu billetera. Por favor, solicita un retiro primero.'
+                'error': f'No puedes eliminar tu cuenta si aún tienes saldo disponible ({saldo_actual} créditos). Por favor, solicita un retiro primero.'
             }), 400
 
-        # 🛑 CANDADO 2: Validar que no tenga servicios activos en Escrow o Cotización
-        # Buscamos en tu tabla de Tareas/Servicios si este usuario es dueño o trabajador de algo activo
-        from app import Tarea  # Ajusta el import según tu estructura
-        tareas_activas = Tarea.query.filter(
-            ((Tarea.cliente_correo == correo_usuario) | (Tarea.trabajador_correo == correo_usuario)),
-            Tarea.estado.in_(['En Garantia', 'Cotización Pendiente', 'En Progreso'])
-        ).count()
+        # 🛑 CANDADO 2: Validar que no tenga servicios en Escrow
+        # Buscamos tareas donde él sea el cliente o el trabajador y estén activas
+        respuesta_tareas = supabase.table('tareas').select('id, estado, cliente_correo, trabajador_correo').in_('estado', ['En Garantia', 'Cotización Pendiente', 'En Progreso']).execute()
         
-        if tareas_activas > 0:
+        # Filtramos en Python las que le pertenecen
+        tareas_activas = [t for t in respuesta_tareas.data if t.get('cliente_correo') == correo_usuario or t.get('trabajador_correo') == correo_usuario]
+        
+        if len(tareas_activas) > 0:
             return jsonify({
                 'success': False, 
                 'error': 'No puedes eliminar tu cuenta. Tienes servicios o contratos en ejecución con fondos en garantía (Escrow).'
             }), 400
 
-        # 🛑 CANDADO 3: Validar que no tenga auditorías o disputas abiertas
-        # (Si manejas una tabla de disputas o un estado especial en la cuenta)
-        # Nota: Si tu app maneja disputas, se puede cruzar aquí. Por ahora lo dejamos mapeado.
-
-        # 🥷 BORRADO SEGURO (Soft Delete): Ofuscamos datos y congelamos el perfil
-        usuario.estado_cuenta = 'Inactivo'  # Bloquea el inicio de sesión
-        usuario.telefono = 'ELIMINADO'      # Protegemos el Habeas Data
-        usuario.habilidades = 'Cuenta eliminada por el usuario de forma voluntaria.'
-        usuario.password_hash = 'N/A'       # Rompemos las credenciales para que nadie pueda entrar
-        usuario.verificado = 0              # Le quitamos el estatus verificado
+        # 🥷 BORRADO SEGURO (Soft Delete en Supabase)
+        supabase.table('usuarios').update({
+            'estado_cuenta': 'Inactivo',
+            'telefono': 'ELIMINADO',
+            'habilidades': 'Cuenta eliminada voluntariamente.',
+            'verificado': 0
+        }).eq('correo', correo_usuario).execute()
         
-        # Guardamos los cambios en Supabase
-        db.session.commit()
-        
-        # 🧼 Limpiamos la sesión del navegador para sacarlo de la app de inmediato
+        # 🧼 Limpiamos la sesión
         session.clear()
         
         return jsonify({
@@ -3114,9 +3109,9 @@ def api_eliminar_cuenta():
         })
 
     except Exception as e:
-        db.session.rollback()
         print(f"❌ Error crítico al eliminar cuenta de {correo_usuario}: {e}")
-        return jsonify({'success': False, 'error': 'Error interno en el servidor al procesar la baja.'}), 500
+        # En vez de fallar en silencio, le enviamos el error real al navegador para depurar
+        return jsonify({'success': False, 'error': f'Error interno: {str(e)}'}), 500
 
 # =====================================================================
 # 🏁 BLOQUE FINAL DE ARRANQUE E INICIALIZACIÓN AUTOMÁTICA
