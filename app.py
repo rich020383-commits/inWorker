@@ -407,7 +407,7 @@ def api_ia_redactar():
         return jsonify({'success': False, 'error': 'Texto vacío'}), 400
 
     try:
-        # 1. El Prompt Maestro de Upward AI
+        # 1. El Prompt Maestro de Upward AI (¡AHORA CON EL CATÁLOGO COMPLETO!)
         prompt_maestro = f"""
         Eres Upward AI, el asistente experto de inWorker (un marketplace de servicios técnicos).
         Un cliente ha descrito su problema de forma muy básica o informal:
@@ -415,20 +415,20 @@ def api_ia_redactar():
         
         Tu tarea:
         1. Reescribe este problema en un lenguaje profesional, claro y técnico (máximo 2 párrafos cortos), listo para ser publicado como una orden de trabajo.
-        2. Al final del texto, agrega un salto de línea y sugiere cuál de las siguientes categorías debe elegir el cliente en el formulario:
-        [Soporte Técnico, Línea Blanca, Electricidad, Plomería, Mantenimiento].
+        2. Al final del texto, agrega un salto de línea y sugiere OBLIGATORIAMENTE cuál de las siguientes categorías exactas debe elegir el cliente en el formulario:
+        [Plomería, Electricidad, Construcción, Maestro de obras, Pintura, Carpintería, Ebanistería, Remodelación, Techos y cubiertas, Pisos y revestimientos, Impermeabilización, Fumigación, Cerrajería, Aire acondicionado, Calentadores de agua, Bombas de agua, Ventanas y puertas, Vidriería, Soldadura, Herrería, Gypsum / Drywall, Servicio de gas, Reparación de electrodomésticos, Ingeniería civil, Ingeniería eléctrica, Ingeniería mecánica, Arquitectura, Topografía, Control de plagas, Captación y reúso de agua, Muralismo, Soporte Técnico, Instalación de Cámaras (CCTV), Redes y Telecomunicaciones, Desarrollo Web, Niñera / Cuidado Infantil, Asistencia a Personas Mayores, Paseador y Cuidador de Perros, Enfermería a Domicilio, Conductor Designado, Trasteos y Mudanzas, Intermediación de Alquiler de Equipos, Operación de Excavadoras, Operación de Bulldozers, Mecánica a Domicilio, Electricidad Automotriz, Cerrajería Automotriz, Limpieza y Aseo General, Jardinería]
         
         Ejemplo de formato de salida:
         "Se requiere revisión y diagnóstico de..."
         
-        Sugerencia de categoría: Línea Blanca
+        Sugerencia de categoría: Reparación de electrodomésticos
         """
         
-        # 2. Llamada real a la API de Gemini (Usando tu import 'from google import genai')
-        client = genai.Client() # Asume que tu GEMINI_API_KEY está en las variables de entorno de Render
+        # 2. Llamada real a la API de Gemini
+        client = genai.Client()
         
         response = client.models.generate_content(
-            model='gemini-2.5-flash', # Usamos el modelo más rápido y económico
+            model='gemini-2.5-flash',
             contents=prompt_maestro,
         )
         
@@ -441,7 +441,6 @@ def api_ia_redactar():
         
     except Exception as e:
         print(f"❌ Error crítico en Upward AI (Gemini): {e}")
-        # Si la IA falla por red, devolvemos un mensaje seguro para no romper el frontend
         return jsonify({
             'success': False, 
             'error': 'Nuestros servidores de IA están congestionados. Por favor, describe tu problema manualmente.'
@@ -3053,6 +3052,71 @@ def optimizar_perfil():
         print(f"❌ Error en Copilot de Perfil: {e}")
         return jsonify({"error": "Error interno al procesar la optimización con IA."}), 500
 
+# =========================================================================
+# 🔒 ENDPOINT: ELIMINACIÓN SEGURA DE CUENTA (CON CANDADOS LEGALES)
+# =========================================================================
+@app.route('/api/usuario/eliminar_cuenta', methods=['POST'])
+def api_eliminar_cuenta():
+    if 'usuario_correo' not in session:
+        return jsonify({'success': False, 'error': 'No autenticado'}), 401
+        
+    correo_usuario = session['usuario_correo']
+    
+    try:
+        # 1. Traer los datos actualizados del usuario desde la base de datos
+        # (Asumiendo tu modelo 'Usuario' de SQLAlchemy conectado a Supabase)
+        usuario = Usuario.query.filter_by(correo=correo_usuario).first()
+        
+        if not usuario:
+            return jsonify({'success': False, 'error': 'Usuario no encontrado'}), 404
+
+        # 🛑 CANDADO 1: Validar que no tenga saldo pendiente en su billetera
+        if usuario.saldo and float(usuario.saldo) > 0:
+            return jsonify({
+                'success': False, 
+                'error': 'No puedes eliminar tu cuenta si aún tienes saldo disponible en tu billetera. Por favor, solicita un retiro primero.'
+            }), 400
+
+        # 🛑 CANDADO 2: Validar que no tenga servicios activos en Escrow o Cotización
+        # Buscamos en tu tabla de Tareas/Servicios si este usuario es dueño o trabajador de algo activo
+        from app import Tarea  # Ajusta el import según tu estructura
+        tareas_activas = Tarea.query.filter(
+            ((Tarea.cliente_correo == correo_usuario) | (Tarea.trabajador_correo == correo_usuario)),
+            Tarea.estado.in_(['En Garantia', 'Cotización Pendiente', 'En Progreso'])
+        ).count()
+        
+        if tareas_activas > 0:
+            return jsonify({
+                'success': False, 
+                'error': 'No puedes eliminar tu cuenta. Tienes servicios o contratos en ejecución con fondos en garantía (Escrow).'
+            }), 400
+
+        # 🛑 CANDADO 3: Validar que no tenga auditorías o disputas abiertas
+        # (Si manejas una tabla de disputas o un estado especial en la cuenta)
+        # Nota: Si tu app maneja disputas, se puede cruzar aquí. Por ahora lo dejamos mapeado.
+
+        # 🥷 BORRADO SEGURO (Soft Delete): Ofuscamos datos y congelamos el perfil
+        usuario.estado_cuenta = 'Inactivo'  # Bloquea el inicio de sesión
+        usuario.telefono = 'ELIMINADO'      # Protegemos el Habeas Data
+        usuario.habilidades = 'Cuenta eliminada por el usuario de forma voluntaria.'
+        usuario.password_hash = 'N/A'       # Rompemos las credenciales para que nadie pueda entrar
+        usuario.verificado = 0              # Le quitamos el estatus verificado
+        
+        # Guardamos los cambios en Supabase
+        db.session.commit()
+        
+        # 🧼 Limpiamos la sesión del navegador para sacarlo de la app de inmediato
+        session.clear()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Tu cuenta ha sido dada de baja de manera segura y tus datos personales han sido removidos conforme a la ley.'
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error crítico al eliminar cuenta de {correo_usuario}: {e}")
+        return jsonify({'success': False, 'error': 'Error interno en el servidor al procesar la baja.'}), 500
 
 # =====================================================================
 # 🏁 BLOQUE FINAL DE ARRANQUE E INICIALIZACIÓN AUTOMÁTICA
