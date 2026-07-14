@@ -62,6 +62,38 @@
             </div>
         </div>
     </header>
+</header>
+
+    <!-- ========================================== -->
+    <!-- 🚀 HERO BANNER DEL DASHBOARD -->
+    <!-- ========================================== -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-6">
+        
+        <!-- Tarjeta de Bienvenida con la imagen Premium -->
+        <div class="relative w-full h-48 md:h-64 rounded-2xl overflow-hidden shadow-lg mb-8 group">
+            
+            <!-- Imagen horizontal (Ecosistema Tech) -->
+            <img src="{{ url_for('static', filename='img/bg-dashboard.webp') }}" 
+                 alt="Ecosistema inWorker" 
+                 class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105">
+            
+            <!-- Degradado oscuro de izquierda a derecha (para que el texto blanco se lea perfecto) -->
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/40 to-transparent"></div>
+            
+            <!-- Texto del Banner -->
+            <div class="relative h-full flex flex-col justify-center px-6 md:px-12">
+                <span class="text-blue-400 text-xs md:text-sm font-bold tracking-widest uppercase mb-1 drop-shadow-md">
+                    <i class="fas fa-rocket mr-1"></i> Panel de Control
+                </span>
+                <h1 class="text-2xl md:text-4xl font-black text-white mb-2 drop-shadow-lg leading-tight">
+                    Tu Ecosistema <br class="md:hidden"> de Trabajo
+                </h1>
+                <p class="text-xs md:text-sm text-slate-200 font-medium max-w-md drop-shadow">
+                    Gestiona tus servicios, conecta con el mejor talento y supervisa tus proyectos con total seguridad.
+                </p>
+            </div>
+            
+        </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
