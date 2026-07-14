@@ -108,84 +108,44 @@
                 {% endif %}
             </div>
 
-            <form action="/tareas" method="GET" class="mt-8 pt-8 border-t border-slate-100 flex flex-col sm:flex-row gap-3 relative z-10">
-                <div class="relative flex-1 group">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-search text-slate-400 group-focus-within:text-blue-500 transition-colors"></i></div>
-                    <input type="text" name="q" placeholder="Buscar por palabra clave..." value="{{ request.args.get('q', '') }}" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl pl-12 pr-4 py-4 text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner">
+            <!-- Búsqueda con Píldoras de Filtro Rápido -->
+            <form action="/tareas" method="GET" class="mt-8 pt-8 border-t border-slate-100 flex flex-col relative z-10">
+                <div class="flex flex-col sm:flex-row gap-3 w-full">
+                    <div class="relative flex-1 group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-search text-slate-400 group-focus-within:text-blue-500 transition-colors"></i></div>
+                        <input type="text" name="q" placeholder="Buscar por palabra clave..." value="{{ request.args.get('q', '') }}" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl pl-12 pr-4 py-4 text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner">
+                    </div>
+                    <div class="flex gap-2">
+                        <select name="categoria_filtro" class="bg-white border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-slate-600 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm hover:bg-slate-50 transition w-full sm:w-auto">
+                            <option value="">Todas las categorías</option>
+                            <option value="Soporte Técnico" {% if request.args.get('categoria_filtro') == 'Soporte Técnico' %}selected{% endif %}>Soporte Técnico</option>
+                            <option value="Plomería" {% if request.args.get('categoria_filtro') == 'Plomería' %}selected{% endif %}>Plomería</option>
+                            <option value="Electricidad" {% if request.args.get('categoria_filtro') == 'Electricidad' %}selected{% endif %}>Electricidad</option>
+                            <option value="Limpieza y Aseo General" {% if request.args.get('categoria_filtro') == 'Limpieza y Aseo General' %}selected{% endif %}>Aseo General</option>
+                        </select>
+                        <button type="submit" class="bg-blue-600 border border-blue-600 rounded-2xl px-5 py-4 text-white hover:bg-blue-700 transition shadow-sm flex items-center justify-center gap-2 font-bold text-sm">
+                            <i class="fas fa-search"></i> <span class="hidden sm:inline">Buscar</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="flex gap-2">
-                    <select name="categoria_filtro" class="bg-white border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-slate-600 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm hover:bg-slate-50 transition">
-    <option value="">Todas las categorías</option>
-    
-    <optgroup label="🏠 Hogar y Construcción">
-        <option value="Plomería" {% if request.args.get('categoria_filtro') == 'Plomería' %}selected{% endif %}>Plomería</option>
-        <option value="Electricidad" {% if request.args.get('categoria_filtro') == 'Electricidad' %}selected{% endif %}>Electricidad</option>
-        <option value="Construcción" {% if request.args.get('categoria_filtro') == 'Construcción' %}selected{% endif %}>Construcción</option>
-        <option value="Maestro de obras" {% if request.args.get('categoria_filtro') == 'Maestro de obras' %}selected{% endif %}>Maestro de obras</option>
-        <option value="Pintura" {% if request.args.get('categoria_filtro') == 'Pintura' %}selected{% endif %}>Pintura</option>
-        <option value="Carpintería" {% if request.args.get('categoria_filtro') == 'Carpintería' %}selected{% endif %}>Carpintería</option>
-        <option value="Ebanistería" {% if request.args.get('categoria_filtro') == 'Ebanistería' %}selected{% endif %}>Ebanistería</option>
-        <option value="Remodelación" {% if request.args.get('categoria_filtro') == 'Remodelación' %}selected{% endif %}>Remodelación</option>
-        <option value="Techos y cubiertas" {% if request.args.get('categoria_filtro') == 'Techos y cubiertas' %}selected{% endif %}>Techos y cubiertas</option>
-        <option value="Pisos y revestimientos" {% if request.args.get('categoria_filtro') == 'Pisos y revestimientos' %}selected{% endif %}>Pisos y revestimientos</option>
-        <option value="Impermeabilización" {% if request.args.get('categoria_filtro') == 'Impermeabilización' %}selected{% endif %}>Impermeabilización</option>
-        <option value="Fumigación" {% if request.args.get('categoria_filtro') == 'Fumigación' %}selected{% endif %}>Fumigación</option>
-        <option value="Cerrajería" {% if request.args.get('categoria_filtro') == 'Cerrajería' %}selected{% endif %}>Cerrajería</option>
-        <option value="Aire acondicionado" {% if request.args.get('categoria_filtro') == 'Aire acondicionado' %}selected{% endif %}>Aire acondicionado</option>
-        <option value="Calentadores de agua" {% if request.args.get('categoria_filtro') == 'Calentadores de agua' %}selected{% endif %}>Calentadores de agua</option>
-        <option value="Bombas de agua" {% if request.args.get('categoria_filtro') == 'Bombas de agua' %}selected{% endif %}>Bombas de agua</option>
-        <option value="Ventanas y puertas" {% if request.args.get('categoria_filtro') == 'Ventanas y puertas' %}selected{% endif %}>Ventanas y puertas</option>
-        <option value="Vidriería" {% if request.args.get('categoria_filtro') == 'Vidriería' %}selected{% endif %}>Vidriería</option>
-        <option value="Soldadura" {% if request.args.get('categoria_filtro') == 'Soldadura' %}selected{% endif %}>Soldadura</option>
-        <option value="Herrería" {% if request.args.get('categoria_filtro') == 'Herrería' %}selected{% endif %}>Herrería</option>
-        <option value="Gypsum / Drywall" {% if request.args.get('categoria_filtro') == 'Gypsum / Drywall' %}selected{% endif %}>Gypsum / Drywall</option>
-        <option value="Servicio de gas" {% if request.args.get('categoria_filtro') == 'Servicio de gas' %}selected{% endif %}>Servicio de gas</option>
-        <option value="Reparación de electrodomésticos" {% if request.args.get('categoria_filtro') == 'Reparación de electrodomésticos' %}selected{% endif %}>Reparación de electrodomésticos</option>
-        <option value="Ingeniería civil" {% if request.args.get('categoria_filtro') == 'Ingeniería civil' %}selected{% endif %}>Ingeniería civil</option>
-        <option value="Ingeniería eléctrica" {% if request.args.get('categoria_filtro') == 'Ingeniería eléctrica' %}selected{% endif %}>Ingeniería eléctrica</option>
-        <option value="Ingeniería mecánica" {% if request.args.get('categoria_filtro') == 'Ingeniería mecánica' %}selected{% endif %}>Ingeniería mecánica</option>
-        <option value="Arquitectura" {% if request.args.get('categoria_filtro') == 'Arquitectura' %}selected{% endif %}>Arquitectura</option>
-        <option value="Topografía" {% if request.args.get('categoria_filtro') == 'Topografía' %}selected{% endif %}>Topografía</option>
-        <option value="Control de plagas" {% if request.args.get('categoria_filtro') == 'Control de plagas' %}selected{% endif %}>Control de plagas</option>
-        <option value="Captación y reúso de agua" {% if request.args.get('categoria_filtro') == 'Captación y reúso de agua' %}selected{% endif %}>Captación y reúso de agua</option>
-        <option value="Muralismo" {% if request.args.get('categoria_filtro') == 'Muralismo' %}selected{% endif %}>Muralismo</option>
-    </optgroup>
 
-    <optgroup label="💻 Tecnología y Sistemas">
-        <option value="Soporte Técnico" {% if request.args.get('categoria_filtro') == 'Soporte Técnico' %}selected{% endif %}>Soporte Técnico en Sistemas</option>
-        <option value="Instalación de Cámaras (CCTV)" {% if request.args.get('categoria_filtro') == 'Instalación de Cámaras (CCTV)' %}selected{% endif %}>Instalación de Cámaras (CCTV)</option>
-        <option value="Redes y Telecomunicaciones" {% if request.args.get('categoria_filtro') == 'Redes y Telecomunicaciones' %}selected{% endif %}>Redes y Telecomunicaciones</option>
-        <option value="Desarrollo Web" {% if request.args.get('categoria_filtro') == 'Desarrollo Web' %}selected{% endif %}>Desarrollo Web y Programación</option>
-    </optgroup>
+                <div class="mt-5 flex flex-wrap items-center gap-2">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2"><i class="fas fa-filter mr-1"></i> Filtros:</span>
+                    
+                    <button type="submit" name="estado_filtro" value="" class="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all {% if not request.args.get('estado_filtro') %}bg-slate-800 text-white shadow-md{% else %}bg-white text-slate-500 border border-slate-200 hover:bg-slate-50{% endif %}">
+                        Todos
+                    </button>
+                    
+                    <button type="submit" name="estado_filtro" value="Disponible" class="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 {% if request.args.get('estado_filtro') == 'Disponible' %}bg-blue-600 text-white shadow-md shadow-blue-600/30{% else %}bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100{% endif %}">
+                        <i class="fas fa-circle text-[8px] animate-pulse"></i> Disponibles
+                    </button>
 
-    <optgroup label="🤝 Cuidado y Asistencia">
-        <option value="Niñera / Cuidado Infantil" {% if request.args.get('categoria_filtro') == 'Niñera / Cuidado Infantil' %}selected{% endif %}>Niñera / Cuidado Infantil</option>
-        <option value="Asistencia a Personas Mayores" {% if request.args.get('categoria_filtro') == 'Asistencia a Personas Mayores' %}selected{% endif %}>Asistencia a Personas Mayores</option>
-        <option value="Paseador y Cuidador de Perros" {% if request.args.get('categoria_filtro') == 'Paseador y Cuidador de Perros' %}selected{% endif %}>Paseador y Cuidador de Perros</option>
-        <option value="Enfermería a Domicilio" {% if request.args.get('categoria_filtro') == 'Enfermería a Domicilio' %}selected{% endif %}>Enfermería a Domicilio</option>
-    </optgroup>
+                    <button type="submit" name="estado_filtro" value="Cotización Pendiente" class="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 {% if request.args.get('estado_filtro') == 'Cotización Pendiente' %}bg-purple-600 text-white shadow-md shadow-purple-600/30{% else %}bg-purple-50 text-purple-600 border border-purple-100 hover:bg-purple-100{% endif %}">
+                        <i class="fas fa-clock text-[9px]"></i> En Cotización
+                    </button>
 
-    <optgroup label="🚜 Transporte y Maquinaria">
-        <option value="Conductor Designado" {% if request.args.get('categoria_filtro') == 'Conductor Designado' %}selected{% endif %}>Conductor Designado / Diligencias</option>
-        <option value="Trasteos y Mudanzas" {% if request.args.get('categoria_filtro') == 'Trasteos y Mudanzas' %}selected{% endif %}>Trasteos y Mudanzas</option>
-        <option value="Intermediación de Alquiler de Equipos" {% if request.args.get('categoria_filtro') == 'Intermediación de Alquiler de Equipos' %}selected{% endif %}>Intermediación de Alquiler de Equipos</option>
-        <option value="Operación de Excavadoras" {% if request.args.get('categoria_filtro') == 'Operación de Excavadoras' %}selected{% endif %}>Operación de Excavadoras</option>
-        <option value="Operación de Bulldozers" {% if request.args.get('categoria_filtro') == 'Operación de Bulldozers' %}selected{% endif %}>Operación de Bulldozers</option>
-    </optgroup>
-
-    <optgroup label="🚗 Automotriz">
-        <option value="Mecánica a Domicilio" {% if request.args.get('categoria_filtro') == 'Mecánica a Domicilio' %}selected{% endif %}>Mecánica a Domicilio</option>
-        <option value="Electricidad Automotriz" {% if request.args.get('categoria_filtro') == 'Electricidad Automotriz' %}selected{% endif %}>Electricidad Automotriz</option>
-        <option value="Cerrajería Automotriz" {% if request.args.get('categoria_filtro') == 'Cerrajería Automotriz' %}selected{% endif %}>Cerrajería Automotriz</option>
-    </optgroup>
-
-    <optgroup label="✨ Otros Servicios">
-        <option value="Limpieza y Aseo General" {% if request.args.get('categoria_filtro') == 'Limpieza y Aseo General' %}selected{% endif %}>Limpieza y Aseo General</option>
-        <option value="Jardinería" {% if request.args.get('categoria_filtro') == 'Jardinería' %}selected{% endif %}>Jardinería</option>
-    </optgroup>
-</select>
-                    <button type="submit" class="bg-blue-600 border border-blue-600 rounded-2xl px-5 py-4 text-white hover:bg-blue-700 transition shadow-sm flex items-center justify-center gap-2 font-bold text-sm">
-                        <i class="fas fa-search"></i> <span class="hidden sm:inline">Buscar</span>
+                    <button type="submit" name="estado_filtro" value="Urgente" class="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 {% if request.args.get('estado_filtro') == 'Urgente' %}bg-rose-600 text-white shadow-md shadow-rose-600/30{% else %}bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100{% endif %}">
+                        <i class="fas fa-fire text-[10px]"></i> Urgentes
                     </button>
                 </div>
             </form>
@@ -199,8 +159,9 @@
 
                 <div class="mb-4 relative z-10">
                     <div class="flex justify-between items-start gap-2 mb-5">
-                        <span class="text-[9px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm">
-                            {{ tarea.categoria }}
+                        
+                        <span class="text-[9px] font-black uppercase tracking-widest bg-slate-800 text-white px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5">
+                            <i class="fas fa-tag text-slate-400"></i> {{ tarea.categoria }}
                         </span>
                         
                         <span class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm
@@ -244,12 +205,24 @@
                     {% endif %}
 
                     <div class="pt-2">
-                        <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mb-3 ml-1">
-                            {% if t_distancia and tarea.distancia is defined %}
-                                <i class="fas fa-map-marker-alt text-rose-400"></i> A {{ "%.1f"|format(tarea.distancia|float) }} km de ti
-                            {% else %}
-                                <i class="fas fa-clock text-slate-300"></i> Publicado recientemente
-                            {% endif %}
+                        <div class="flex flex-wrap items-center gap-3 text-[10px] font-bold text-slate-500 mb-4 ml-1">
+                            <div class="flex items-center gap-1.5">
+                                {% if t_distancia and tarea.distancia is defined %}
+                                    <i class="fas fa-map-marker-alt text-rose-500"></i> A {{ "%.1f"|format(tarea.distancia|float) }} km
+                                {% else %}
+                                    <i class="fas fa-globe-americas text-blue-400"></i> Colombia
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center gap-1.5 border-l border-slate-200 pl-3">
+                                <i class="fas fa-clock text-amber-500"></i> Publicado Hoy
+                            </div>
+                            <div class="flex items-center gap-1.5 border-l border-slate-200 pl-3 {% if tarea.estado == 'Disponible' %}text-emerald-600{% else %}text-purple-500{% endif %}">
+                                {% if tarea.estado == 'Disponible' %}
+                                    <i class="fas fa-bolt"></i> ¡Sé el primero en aplicar!
+                                {% else %}
+                                    <i class="fas fa-users"></i> Recibiendo ofertas
+                                {% endif %}
+                            </div>
                         </div>
                         
                         <button type="button" onclick="abrirModalDetalles(this)" 
