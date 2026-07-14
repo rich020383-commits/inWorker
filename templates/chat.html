@@ -23,7 +23,7 @@
             height: 500px;
             overflow-y: auto;
             scroll-behavior: smooth;
-            background-color: #f8fafc; /* Fondo de chat súper sutil */
+            background-color: #f8fafc;
             background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
             background-size: 20px 20px;
         }
@@ -108,32 +108,32 @@
                                     </form>
                                 {% elif session['usuario_correo'] == tarea.trabajador_correo and tarea.confirmacion_trabajador == 0 %}
     
-    <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 shadow-sm mt-2">
-        <h4 class="text-[10px] font-black text-indigo-700 uppercase tracking-widest mb-2 flex items-center">
-            <i class="fas fa-camera-retro mr-1.5"></i> Protocolo de Evidencia
-        </h4>
-        <p class="text-[10px] text-indigo-600 mb-3 leading-tight">Sube una foto del daño inicial y otra del trabajo terminado para garantizar tu pago.</p>
-        
-        <form action="/confirmar_entrega/{{ tarea.id }}" method="POST" enctype="multipart/form-data" class="space-y-2">
-            <div class="grid grid-cols-2 gap-2">
-                <label class="border-2 border-dashed border-indigo-300 bg-white rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-100 transition group">
-                    <i class="fas fa-image text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-[9px] font-bold text-indigo-700">Foto "Antes"</span>
-                    <input type="file" name="foto_antes" required class="hidden" accept="image/*" capture="environment">
-                </label>
-                <label class="border-2 border-dashed border-indigo-300 bg-white rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-100 transition group">
-                    <i class="fas fa-check-double text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-[9px] font-bold text-indigo-700">Foto "Después"</span>
-                    <input type="file" name="foto_despues" required class="hidden" accept="image/*" capture="environment">
-                </label>
-            </div>
-            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg transition shadow font-bold text-xs uppercase tracking-wide mt-2">
-                Enviar Evidencia y Cobrar <i class="fas fa-flag-checkered ml-1"></i>
-            </button>
-        </form>
-    </div>
+                                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 shadow-sm mt-2">
+                                        <h4 class="text-[10px] font-black text-indigo-700 uppercase tracking-widest mb-2 flex items-center">
+                                            <i class="fas fa-camera-retro mr-1.5"></i> Protocolo de Evidencia
+                                        </h4>
+                                        <p class="text-[10px] text-indigo-600 mb-3 leading-tight">Sube una foto del daño inicial y otra del trabajo terminado para garantizar tu pago.</p>
+                                        
+                                        <form action="/confirmar_entrega/{{ tarea.id }}" method="POST" enctype="multipart/form-data" class="space-y-2">
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <label class="border-2 border-dashed border-indigo-300 bg-white rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-100 transition group">
+                                                    <i class="fas fa-image text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
+                                                    <span class="text-[9px] font-bold text-indigo-700">Foto "Antes"</span>
+                                                    <input type="file" name="foto_antes" required class="hidden" accept="image/*" capture="environment">
+                                                </label>
+                                                <label class="border-2 border-dashed border-indigo-300 bg-white rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-100 transition group">
+                                                    <i class="fas fa-check-double text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
+                                                    <span class="text-[9px] font-bold text-indigo-700">Foto "Después"</span>
+                                                    <input type="file" name="foto_despues" required class="hidden" accept="image/*" capture="environment">
+                                                </label>
+                                            </div>
+                                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg transition shadow font-bold text-xs uppercase tracking-wide mt-2">
+                                                Enviar Evidencia y Cobrar <i class="fas fa-flag-checkered ml-1"></i>
+                                            </button>
+                                        </form>
+                                    </div>
 
-{% else %}
+                                {% else %}
                                     <div class="bg-slate-50 text-slate-500 p-2 rounded-lg border border-slate-200 text-center">
                                         <i class="fas fa-hourglass-half animate-spin mr-1"></i> Esperando confirmación de la otra parte
                                     </div>
@@ -171,13 +171,13 @@
                             <div>
                                 <p class="text-[10px] font-bold text-slate-400 uppercase flex items-center">Especialista <span class="ml-2 text-amber-500"><i class="fas fa-star text-[10px]"></i> {{ trabajador_perfil.promedio_estrellas }}</span></p>
                                 <p class="text-sm font-bold text-slate-800 flex items-center">
-    {{ trabajador_perfil.nombre }}
-    {% if trabajador_perfil.verificado == 1 %}
-        <span class="ml-1.5 text-blue-500 bg-blue-50 rounded-full w-4 h-4 flex items-center justify-center border border-blue-100" title="Identidad Verificada por inWorker">
-            <i class="fas fa-check text-[9px]"></i>
-        </span>
-    {% endif %}
-</p>
+                                {{ trabajador_perfil.nombre }}
+                                {% if trabajador_perfil.verificado == 1 %}
+                                    <span class="ml-1.5 text-blue-500 bg-blue-50 rounded-full w-4 h-4 flex items-center justify-center border border-blue-100" title="Identidad Verificada por inWorker">
+                                        <i class="fas fa-check text-[9px]"></i>
+                                    </span>
+                                {% endif %}
+                                </p>
                             </div>
                         {% else %}
                             <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 border border-slate-200 border-dashed">
@@ -217,7 +217,6 @@
                                 class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-purple-500 transition resize-none"></textarea>
                         </div>
                         
-                        <!-- 🛡️ BOTÓN ANTI-CLONES INYECTADO AQUÍ -->
                         <button type="submit" 
                                 onclick="this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin mr-2\'></i>Enviando...'; this.form.submit();" 
                                 class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center">
@@ -316,27 +315,48 @@
                                         <div class="bg-slate-50 text-slate-400 text-xs font-bold py-2 rounded-xl">Cotización Declinada</div>
                                     {% endif %}
                                 </div>
-                                <span class="text-[9px] font-medium text-slate-400 mt-1.5">{{ msg.fecha_envio }}</span>
+                                <!-- FORMATO DE HORA CORTO -->
+                                <span class="text-[9px] font-medium text-slate-400 mt-1.5">
+                                    {{ msg.fecha_envio[17:22] if msg.fecha_envio and msg.fecha_envio|length > 20 else msg.fecha_envio }}
+                                </span>
                             </div>
 
                             {% else %}
-                            <div class="flex flex-col {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} items-end {% else %} items-start {% endif %}">
-                                <div class="max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 text-sm
-                                    {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} 
-                                        bg-blue-600 text-white rounded-tr-sm shadow-sm
-                                    {% else %} 
-                                        bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm 
-                                    {% endif %}">
+                            
+                            <!-- MEJORA UX: Burbujas de chat nativas -->
+                            <div class="flex flex-col w-full {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} items-end {% else %} items-start {% endif %} my-1">
+                                <div class="flex items-end max-w-[85%] md:max-w-[70%] gap-2">
                                     
-                                    {% if msg.tipo == 'imagen' %}
-                                        <div class="rounded-lg overflow-hidden my-1">
-                                            <img src="/static/uploads/{{ msg.mensaje }}" alt="Foto" class="max-w-full h-auto object-cover max-h-60 rounded cursor-zoom-in" onclick="window.open(this.src)">
+                                    <!-- Avatar del otro usuario (solo si el mensaje es recibido) -->
+                                    {% if not (msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario) %}
+                                        <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold border border-slate-300 flex-shrink-0">
+                                            {{ msg.remitente[0]|upper if msg.remitente else '?' }}
                                         </div>
-                                    {% else %}
-                                        <p class="leading-relaxed whitespace-pre-wrap">{{ msg.mensaje }}</p>
                                     {% endif %}
+
+                                    <!-- Burbuja de Mensaje -->
+                                    <div class="relative px-4 py-2.5 text-sm shadow-sm
+                                        {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} 
+                                            bg-blue-600 text-white rounded-2xl rounded-br-none
+                                        {% else %} 
+                                            bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-bl-none 
+                                        {% endif %}">
+                                        
+                                        {% if msg.tipo == 'imagen' %}
+                                            <div class="rounded-lg overflow-hidden my-1">
+                                                <img src="/static/uploads/{{ msg.mensaje }}" alt="Foto" class="max-w-full h-auto object-cover max-h-60 rounded cursor-zoom-in" onclick="window.open(this.src)">
+                                            </div>
+                                        {% else %}
+                                            <p class="leading-relaxed whitespace-pre-wrap pr-8">{{ msg.mensaje }}</p>
+                                        {% endif %}
+                                        
+                                        <!-- Hora dentro de la burbuja -->
+                                        <span class="absolute bottom-1 right-2 text-[9px] font-medium 
+                                            {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} text-blue-200 {% else %} text-slate-400 {% endif %}">
+                                            {{ msg.fecha_envio[17:22] if msg.fecha_envio and msg.fecha_envio|length > 20 else msg.fecha_envio }}
+                                        </span>
+                                    </div>
                                 </div>
-                                <span class="text-[9px] font-medium text-slate-400 mt-1 mx-1">{{ msg.fecha_envio }}</span>
                             </div>
                             {% endif %}
 
@@ -413,7 +433,6 @@
             if (cajaMensajes) cajaMensajes.scrollTop = cajaMensajes.scrollHeight;
         }
 
-        // Lógica de carga de archivos (Camara/Galeria)
         function mostrarPrevisualizacion(e) {
             const inputCamara = document.getElementById('imagen_camara');
             const inputGaleria = document.getElementById('imagen_galeria');
@@ -437,7 +456,6 @@
             document.getElementById('preview-filename').classList.add('hidden');
         }
 
-        // JS del Mapa de Leaflet
         const latitudInicial = parseFloat("{{ tarea.latitud if tarea.latitud else 10.9639 }}");  
         const longitudInicial = parseFloat("{{ tarea.longitud if tarea.longitud else -74.7964 }}"); 
         let mapaServicio = null; 
@@ -452,7 +470,6 @@
             } catch (error) { console.error("Error mapa:", error); }
         }
 
-        // Lógica Envío de Mensaje AJAX Optimizado
         const miFormulario = document.getElementById('formEnviarMensaje');
         if (miFormulario) {
             miFormulario.addEventListener('submit', function(e) {
@@ -461,7 +478,6 @@
                 const fileC = document.getElementById('imagen_camara');
                 const fileG = document.getElementById('imagen_galeria');
                 
-                // Si no hay texto ni archivos, no enviamos nada
                 if ((!msgInput.value.trim()) && (!fileC.files.length && !fileG.files.length)) return;
 
                 const btn = this.querySelector('button[type="submit"]');
@@ -472,8 +488,8 @@
                 .then(res => {
                     if (res.ok) { 
                         msgInput.value = ""; 
-                        cancelarArchivo(); // 🧼 Limpia los inputs y oculta la previsualización verde
-                        cargarMensajes();  // 🔄 Fuerza la recarga visual inmediata
+                        cancelarArchivo();
+                        cargarMensajes();
                     }
                 }).catch(err => {
                     console.error("Error al enviar el archivo:", err);
@@ -484,7 +500,6 @@
             });
         }
 
-        // POLLING: Carga dinámica de mensajes (Adaptado al nuevo CSS claro)
         const URL_API_MENSAGES = `/api/chat/{{ tarea.id if tarea.id else tarea['id'] }}/{{ canal_actual }}`;
         const usuarioSesion = "{{ session['usuario_correo'] }}";
         const nombreUsuarioActual = "{{ nombre_usuario }}";
@@ -506,11 +521,18 @@
 
                         const esPropio = (msg.remitente_correo === usuarioSesion || msg.remitente === nombreUsuarioActual);
                         const alineacion = esPropio ? 'items-end' : 'items-start';
-                        const burbujaNormal = esPropio ? 'bg-blue-600 text-white rounded-tr-sm shadow-sm' : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm';
+                        const burbujaNormal = esPropio ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none';
+                        const colorHora = esPropio ? 'text-blue-200' : 'text-slate-400';
+                        const avatarInfo = esPropio ? '' : `<div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold border border-slate-300 flex-shrink-0">${msg.remitente ? msg.remitente.charAt(0).toUpperCase() : '?'}</div>`;
                         
+                        let horaCorta = msg.fecha_envio;
+                        if (msg.fecha_envio && msg.fecha_envio.length > 20) {
+                            horaCorta = msg.fecha_envio.substring(17, 22);
+                        }
+
                         let html = "";
                         
-                        // 1. DIBUJAR COTIZACIONES
+                        // 1. DIBUJAR COTIZACIONES (Sin cambios en lógica)
                         if (msg.tipo && msg.tipo.includes('cotizacion')) {
                             let bordeColor = msg.tipo === 'cotizacion_pendiente' ? 'border-purple-200' : (msg.tipo === 'cotizacion_aceptada' ? 'border-emerald-200' : 'border-slate-200');
                             
@@ -560,10 +582,10 @@
                                     <p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">${concepto}</p>
                                     ${botonesHTML}
                                 </div>
-                                <span class="text-[9px] font-medium text-slate-400 mt-1.5">${msg.fecha_envio}</span>
+                                <span class="text-[9px] font-medium text-slate-400 mt-1.5">${horaCorta}</span>
                             </div>`;
                         
-                        // 2. DIBUJAR AVISOS DEL SISTEMA (Ej: Pagos liberados)
+                        // 2. DIBUJAR AVISOS DEL SISTEMA
                         } else if (msg.tipo === 'sistema' || (msg.mensaje && msg.mensaje.startsWith('SISTEMA:'))) {
                             let textoLimpio = msg.mensaje.replace('SISTEMA:', '').trim();
                             html = `
@@ -571,21 +593,24 @@
                                 <div class="bg-slate-900 text-white rounded-xl shadow-md border border-slate-700 text-center text-xs px-4 py-3 max-w-[90%] sm:max-w-[70%]">
                                     <p class="leading-relaxed whitespace-pre-wrap font-bold"><i class="fas fa-robot text-blue-400 mr-1.5"></i> ${textoLimpio}</p>
                                 </div>
-                                <span class="text-[9px] font-medium text-slate-400 mt-1">${msg.fecha_envio}</span>
+                                <span class="text-[9px] font-medium text-slate-400 mt-1">${horaCorta}</span>
                             </div>`;
 
-                        // 3. DIBUJAR MENSAJES NORMALES E IMÁGENES
+                        // 3. DIBUJAR MENSAJES NORMALES E IMÁGENES (CON EL NUEVO DISEÑO)
                         } else {
                             let contenidoHtml = msg.tipo === 'imagen' 
                                 ? `<div class="rounded-lg overflow-hidden my-1"><img src="/static/uploads/${msg.mensaje}" class="max-w-full h-auto object-cover max-h-60 rounded cursor-zoom-in" onclick="window.open(this.src)"></div>` 
-                                : `<p class="leading-relaxed whitespace-pre-wrap">${msg.mensaje}</p>`;
+                                : `<p class="leading-relaxed whitespace-pre-wrap pr-8">${msg.mensaje}</p>`;
                                 
                             html = `
-                            <div id="msg-${msg.id}" class="flex flex-col ${alineacion} my-2 w-full">
-                                <div class="max-w-[85%] md:max-w-[70%] px-4 py-3 text-sm ${burbujaNormal}">
-                                    ${contenidoHtml}
+                            <div id="msg-${msg.id}" class="flex flex-col w-full ${alineacion} my-1">
+                                <div class="flex items-end max-w-[85%] md:max-w-[70%] gap-2">
+                                    ${avatarInfo}
+                                    <div class="relative px-4 py-2.5 text-sm shadow-sm rounded-2xl ${burbujaNormal}">
+                                        ${contenidoHtml}
+                                        <span class="absolute bottom-1 right-2 text-[9px] font-medium ${colorHora}">${horaCorta}</span>
+                                    </div>
                                 </div>
-                                <span class="text-[9px] font-medium text-slate-400 mt-1 mx-1">${msg.fecha_envio}</span>
                             </div>`;
                         }
                         
