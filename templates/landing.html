@@ -12,23 +12,28 @@
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col overflow-x-hidden">
 
+    <!-- ========================================== -->
+    <!-- 🚀 SPLASH SCREEN MINIMALISTA TOTAL -->
+    <!-- ========================================== -->
     <div id="splash-screen" class="fixed inset-0 z-[99999] flex flex-col items-center justify-center text-white transition-opacity duration-1000 bg-slate-900 overflow-hidden">
         
-        <img src="{{ url_for('static', filename='img/bg-baraka.webp') }}" class="absolute inset-0 w-full h-full object-cover" alt="inWorker Ecosistema">
-        
-        <div class="relative z-10 w-full text-center px-4 transform -translate-y-4">
+        <!-- Foto de fondo sin obstrucciones -->
+        <img src="{{ url_for('static', filename='img/bg-baraka.webp') }}" 
+             class="absolute inset-0 w-full h-full object-cover object-[80%_center]" 
+             alt="inWorker Ecosistema">
+
+        <!-- Contenedor inferior: Carga y Texto (Limpio) -->
+        <div class="relative z-10 w-full px-4 flex flex-col items-center mt-auto mb-16">
             
-            <div class="bg-white/10 backdrop-blur-sm rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-4 mx-auto w-52 h-20 flex items-center justify-center border border-white/20">
-                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="inWorker" class="max-w-full max-h-full object-contain drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
+            <!-- Barra de carga minimalista -->
+            <div class="w-48 h-[4px] bg-black/20 rounded-full overflow-hidden border border-white/10 shadow-lg mb-6">
+                <div class="h-full bg-blue-500 w-full animate-[loading_2s_ease-in-out] origin-left shadow-[0_0_15px_rgba(59,130,246,0.8)]"></div>
             </div>
             
-            <p class="text-[10px] md:text-xs font-black text-white uppercase tracking-[0.3em] mt-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            <!-- Texto informativo con sombra para legibilidad -->
+            <p class="text-[10px] md:text-xs font-black text-white uppercase tracking-[0.3em] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 <i class="fas fa-microchip mr-1"></i> Ecosistema Tech • Confianza
             </p>
-            
-            <div class="w-40 h-[4px] bg-black/30 rounded-full mx-auto mt-6 overflow-hidden relative border border-white/20">
-                <div class="absolute top-0 left-0 h-full bg-blue-500 w-full animate-[loading_2s_ease-in-out] origin-left shadow-[0_0_15px_rgba(59,130,246,0.8)]"></div>
-            </div>
         </div>
     </div>
 
