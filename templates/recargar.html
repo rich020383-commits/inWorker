@@ -18,7 +18,6 @@
         </div>
     </header>
 
-    <!-- MEJORA 1: Margen superior ampliado (mt-8) para que la tarjeta no choque con el header -->
     <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-grow mt-8"> 
         
         <div class="bg-slate-900 rounded-3xl p-6 shadow-xl mb-8 relative overflow-hidden max-w-md mx-auto">
@@ -42,7 +41,6 @@
                     <input type="hidden" name="creditos" id="bold-creditos" value="3">
                     <input type="hidden" name="monto_cobrar" id="bold-monto" value="32500">
                     
-                    <!-- MEJORA 4: Efecto de elevación y sombra en hover para las tarjetas -->
                     <div class="paquete-card border border-slate-200 rounded-xl p-4 cursor-pointer transition-all duration-300 hover:border-blue-500 hover:-translate-y-1 hover:shadow-lg bg-white" onclick="seleccionarPaquete(this, 1, 11500)">
                         <div class="flex justify-between items-center mb-1">
                             <h4 class="font-bold text-slate-800">1 Crédito</h4>
@@ -68,6 +66,15 @@
                             <span class="font-black text-blue-600 text-lg">$53.500</span>
                         </div>
                         <p class="text-[10px] text-slate-500">Saldo: $50.000 | Pasarela Bold: $3.500</p>
+                    </div>
+
+                    <!-- NUEVO PAQUETE DE 10 CRÉDITOS PARA BOLD -->
+                    <div class="paquete-card border border-slate-200 rounded-xl p-4 cursor-pointer transition-all duration-300 hover:border-blue-500 hover:-translate-y-1 hover:shadow-lg bg-white" onclick="seleccionarPaquete(this, 10, 106000)">
+                        <div class="flex justify-between items-center mb-1">
+                            <h4 class="font-bold text-slate-800">10 Créditos</h4>
+                            <span class="font-black text-blue-600 text-lg">$106.000</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500">Saldo: $100.000 | Pasarela Bold: $6.000</p>
                     </div>
 
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center space-x-2 mt-auto active:scale-95">
@@ -109,7 +116,6 @@
 
                 <form action="/reportar_pago_nequi" method="POST" enctype="multipart/form-data" class="mt-auto relative z-10 flex flex-col gap-3">
                     
-                    <!-- MEJORA 3: Selector más claro con fondo morado translúcido y flecha indicativa -->
                     <div class="relative">
                         <select name="monto_transferido" required class="w-full bg-[#5d2785]/40 border border-purple-300/50 text-white text-xs font-bold rounded-xl p-3.5 pl-10 pr-10 focus:outline-none focus:border-[#10b981] focus:bg-[#5d2785]/60 transition appearance-none cursor-pointer shadow-inner">
                             <option value="" disabled selected class="text-slate-800">Selecciona el monto enviado...</option>
@@ -126,7 +132,6 @@
                     <input type="file" name="comprobante_nequi" id="fileComprobante" class="hidden" accept="image/*" required 
                            onchange="document.getElementById('btn-text-upload').innerHTML = '¡Comprobante Adjuntado!'; document.getElementById('btn-text-upload').classList.remove('text-[#ea4c89]'); document.getElementById('btn-text-upload').classList.add('text-[#10b981]'); document.getElementById('btn-submit-nequi').classList.remove('hidden');">
                     
-                    <!-- MEJORA 2: Botón de Subir Captura vibrante y llamativo -->
                     <button type="button" onclick="document.getElementById('fileComprobante').click()" class="w-full bg-[#ea4c89]/10 hover:bg-[#ea4c89]/20 border-2 border-dashed border-[#ea4c89]/70 hover:border-[#ea4c89] text-[#ea4c89] font-black py-3.5 rounded-xl text-[11px] uppercase tracking-wider transition-all duration-300 flex items-center justify-center shadow-sm">
                         <i class="fas fa-upload mr-2 text-lg"></i>
                         <span id="btn-text-upload">Subir Captura de Pantalla</span>
