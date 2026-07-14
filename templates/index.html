@@ -28,18 +28,26 @@
     </script>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col">
-    <div id="splash-screen" class="fixed inset-0 z-[99999] flex flex-col items-center justify-center text-white transition-opacity duration-1000 bg-slate-900">
-        <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=1000&auto=format&fit=crop" class="absolute inset-0 w-full h-screen object-cover opacity-50" alt="Especialistas inWorker">
-        <div class="absolute inset-0 bg-slate-950/40"></div>
+    <div id="splash-screen" class="fixed inset-0 z-[99999] flex flex-col items-center justify-center text-white transition-opacity duration-1000 bg-slate-900 overflow-hidden">
+        
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black"></div>
+        
+        <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#3b82f6 1px, transparent 1px); background-size: 30px 30px;"></div>
+        
+        <div class="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-blue-600/20 to-transparent"></div>
+
         <div class="relative z-10 w-full text-center px-4 transform -translate-y-4">
-            <div class="bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.6)] p-3 mx-auto w-52 h-20 flex items-center justify-center border border-white/10">
-                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="inWorker" class="max-w-full max-h-full object-contain">
+            
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.6)] p-3 mx-auto w-52 h-20 flex items-center justify-center border border-white/20 transition-transform hover:scale-105">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="inWorker" class="max-w-full max-h-full object-contain drop-shadow-lg">
             </div>
-            <p class="text-[10px] md:text-xs font-bold text-slate-200 uppercase tracking-[0.3em] mt-8 drop-shadow-lg">
-                Ecosistema Tech • Confianza
+            
+            <p class="text-[10px] md:text-xs font-black text-blue-400 uppercase tracking-[0.3em] mt-8 drop-shadow-md">
+                <i class="fas fa-microchip mr-1"></i> Ecosistema Tech • Confianza
             </p>
-            <div class="w-40 h-[3px] bg-white/10 rounded-full mx-auto mt-6 overflow-hidden relative shadow-lg">
-                <div class="absolute top-0 left-0 h-full bg-blue-500 w-full animate-[loading_2s_ease-in-out] origin-left"></div>
+            
+            <div class="w-40 h-[4px] bg-slate-800/80 rounded-full mx-auto mt-6 overflow-hidden relative shadow-[0_0_10px_rgba(0,0,0,0.5)] border border-slate-700">
+                <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600 to-cyan-400 w-full animate-[loading_2s_ease-in-out] origin-left shadow-[0_0_15px_rgba(59,130,246,0.8)]"></div>
             </div>
         </div>
     </div>
