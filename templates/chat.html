@@ -241,6 +241,9 @@
                     <div id="cajaMensajes" class="mensajes-box p-4 sm:p-6 space-y-4">
                         {% for msg in mensajes %}
                             
+                            {% set f_str = msg.fecha_envio | string %}
+                            {% set hora_corta = f_str[17:22] if 'GMT' in f_str else (f_str[11:16] if f_str|length >= 16 else f_str) %}
+                            
                             {% if 'cotizacion' in msg.tipo %}
                             <div class="flex flex-col items-center my-6 w-full">
                                 <div class="bg-white border shadow-sm rounded-2xl p-5 max-w-sm w-full text-center relative overflow-hidden
@@ -315,26 +318,20 @@
                                         <div class="bg-slate-50 text-slate-400 text-xs font-bold py-2 rounded-xl">Cotización Declinada</div>
                                     {% endif %}
                                 </div>
-                                <!-- FORMATO DE HORA CORTO -->
-                                <span class="text-[9px] font-medium text-slate-400 mt-1.5">
-                                    {{ msg.fecha_envio[17:22] if msg.fecha_envio and msg.fecha_envio|length > 20 else msg.fecha_envio }}
-                                </span>
+                                <span class="text-[9px] font-medium text-slate-400 mt-1.5">{{ hora_corta }}</span>
                             </div>
 
                             {% else %}
                             
-                            <!-- MEJORA UX: Burbujas de chat nativas -->
                             <div class="flex flex-col w-full {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} items-end {% else %} items-start {% endif %} my-1">
                                 <div class="flex items-end max-w-[85%] md:max-w-[70%] gap-2">
                                     
-                                    <!-- Avatar del otro usuario (solo si el mensaje es recibido) -->
                                     {% if not (msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario) %}
                                         <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold border border-slate-300 flex-shrink-0">
                                             {{ msg.remitente[0]|upper if msg.remitente else '?' }}
                                         </div>
                                     {% endif %}
 
-                                    <!-- Burbuja de Mensaje -->
                                     <div class="relative px-4 py-2.5 text-sm shadow-sm
                                         {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} 
                                             bg-blue-600 text-white rounded-2xl rounded-br-none
@@ -350,10 +347,9 @@
                                             <p class="leading-relaxed whitespace-pre-wrap pr-8">{{ msg.mensaje }}</p>
                                         {% endif %}
                                         
-                                        <!-- Hora dentro de la burbuja -->
                                         <span class="absolute bottom-1 right-2 text-[9px] font-medium 
                                             {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} text-blue-200 {% else %} text-slate-400 {% endif %}">
-                                            {{ msg.fecha_envio[17:22] if msg.fecha_envio and msg.fecha_envio|length > 20 else msg.fecha_envio }}
+                                            {{ hora_corta }}
                                         </span>
                                     </div>
                                 </div>
@@ -525,14 +521,12 @@
                         const colorHora = esPropio ? 'text-blue-200' : 'text-slate-400';
                         const avatarInfo = esPropio ? '' : `<div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold border border-slate-300 flex-shrink-0">${msg.remitente ? msg.remitente.charAt(0).toUpperCase() : '?'}</div>`;
                         
-                        let horaCorta = msg.fecha_envio;
-                        if (msg.fecha_envio && msg.fecha_envio.length > 20) {
-                            horaCorta = msg.fecha_envio.substring(17, 22);
-                        }
+                        // 🛠️ SOLUCIÓN ROBUSTA DE FECHA JAVASCRIPT
+                        let f_str = String(msg.fecha_envio);
+                        let horaCorta = f_str.includes('GMT') ? f_str.substring(17, 22) : (f_str.length >= 16 ? f_str.substring(11, 16) : f_str);
 
                         let html = "";
                         
-                        // 1. DIBUJAR COTIZACIONES (Sin cambios en lógica)
                         if (msg.tipo && msg.tipo.includes('cotizacion')) {
                             let bordeColor = msg.tipo === 'cotizacion_pendiente' ? 'border-purple-200' : (msg.tipo === 'cotizacion_aceptada' ? 'border-emerald-200' : 'border-slate-200');
                             
@@ -585,7 +579,6 @@
                                 <span class="text-[9px] font-medium text-slate-400 mt-1.5">${horaCorta}</span>
                             </div>`;
                         
-                        // 2. DIBUJAR AVISOS DEL SISTEMA
                         } else if (msg.tipo === 'sistema' || (msg.mensaje && msg.mensaje.startsWith('SISTEMA:'))) {
                             let textoLimpio = msg.mensaje.replace('SISTEMA:', '').trim();
                             html = `
@@ -596,7 +589,6 @@
                                 <span class="text-[9px] font-medium text-slate-400 mt-1">${horaCorta}</span>
                             </div>`;
 
-                        // 3. DIBUJAR MENSAJES NORMALES E IMÁGENES (CON EL NUEVO DISEÑO)
                         } else {
                             let contenidoHtml = msg.tipo === 'imagen' 
                                 ? `<div class="rounded-lg overflow-hidden my-1"><img src="/static/uploads/${msg.mensaje}" class="max-w-full h-auto object-cover max-h-60 rounded cursor-zoom-in" onclick="window.open(this.src)"></div>` 
