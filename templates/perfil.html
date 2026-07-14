@@ -357,6 +357,42 @@
     </div>
 
     <script>
+// 🚀 FUNCIÓN NINJA PARA INYECTAR LA IA EN EL FORMULARIO
+        function aplicarTextoIA(texto) {
+            const txtAreaHabilidades = document.getElementById('field-habilidades');
+            
+            if (txtAreaHabilidades) {
+                // 1. Pegamos el texto en la caja del formulario
+                txtAreaHabilidades.value = texto;
+                
+                // 2. Le damos un efecto visual verde para que el usuario note el cambio
+                txtAreaHabilidades.classList.remove('bg-slate-50', 'border-slate-200');
+                txtAreaHabilidades.classList.add('bg-emerald-50', 'border-emerald-500', 'ring-2', 'ring-emerald-200');
+                
+                setTimeout(() => {
+                    txtAreaHabilidades.classList.add('bg-slate-50', 'border-slate-200');
+                    txtAreaHabilidades.classList.remove('bg-emerald-50', 'border-emerald-500', 'ring-2', 'ring-emerald-200');
+                }, 2000);
+
+                // 3. Ocultamos el panel lateral de Gemini para que la pantalla quede limpia
+                toggleCopilot();
+
+                // 4. Mostramos una alerta bonita recordando guardar
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: '¡Texto optimizado aplicado! Recuerda hacer clic en "Actualizar Perfil" para guardar.',
+                    showConfirmButton: false,
+                    timer: 4000,
+                    timerProgressBar: true,
+                    customClass: {
+                        popup: 'rounded-xl shadow-md border border-emerald-100'
+                    }
+                });
+            }
+        }
+
         function previewKycNinja(event, campo) {
             const file = event.target.files[0];
             if (file) {
