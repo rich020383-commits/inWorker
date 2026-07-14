@@ -108,7 +108,6 @@
                 {% endif %}
             </div>
 
-            <!-- Búsqueda con Píldoras de Filtro Rápido -->
             <form action="/tareas" method="GET" class="mt-8 pt-8 border-t border-slate-100 flex flex-col relative z-10">
                 <div class="flex flex-col sm:flex-row gap-3 w-full">
                     <div class="relative flex-1 group">
@@ -118,10 +117,73 @@
                     <div class="flex gap-2">
                         <select name="categoria_filtro" class="bg-white border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-slate-600 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm hover:bg-slate-50 transition w-full sm:w-auto">
                             <option value="">Todas las categorías</option>
-                            <option value="Soporte Técnico" {% if request.args.get('categoria_filtro') == 'Soporte Técnico' %}selected{% endif %}>Soporte Técnico</option>
-                            <option value="Plomería" {% if request.args.get('categoria_filtro') == 'Plomería' %}selected{% endif %}>Plomería</option>
-                            <option value="Electricidad" {% if request.args.get('categoria_filtro') == 'Electricidad' %}selected{% endif %}>Electricidad</option>
-                            <option value="Limpieza y Aseo General" {% if request.args.get('categoria_filtro') == 'Limpieza y Aseo General' %}selected{% endif %}>Aseo General</option>
+                            
+                            <optgroup label="🏠 Hogar y Construcción">
+                                <option value="Plomería" {% if request.args.get('categoria_filtro') == 'Plomería' %}selected{% endif %}>Plomería</option>
+                                <option value="Electricidad" {% if request.args.get('categoria_filtro') == 'Electricidad' %}selected{% endif %}>Electricidad</option>
+                                <option value="Construcción" {% if request.args.get('categoria_filtro') == 'Construcción' %}selected{% endif %}>Construcción</option>
+                                <option value="Maestro de obras" {% if request.args.get('categoria_filtro') == 'Maestro de obras' %}selected{% endif %}>Maestro de obras</option>
+                                <option value="Pintura" {% if request.args.get('categoria_filtro') == 'Pintura' %}selected{% endif %}>Pintura</option>
+                                <option value="Carpintería" {% if request.args.get('categoria_filtro') == 'Carpintería' %}selected{% endif %}>Carpintería</option>
+                                <option value="Ebanistería" {% if request.args.get('categoria_filtro') == 'Ebanistería' %}selected{% endif %}>Ebanistería</option>
+                                <option value="Remodelación" {% if request.args.get('categoria_filtro') == 'Remodelación' %}selected{% endif %}>Remodelación</option>
+                                <option value="Techos y cubiertas" {% if request.args.get('categoria_filtro') == 'Techos y cubiertas' %}selected{% endif %}>Techos y cubiertas</option>
+                                <option value="Pisos y revestimientos" {% if request.args.get('categoria_filtro') == 'Pisos y revestimientos' %}selected{% endif %}>Pisos y revestimientos</option>
+                                <option value="Impermeabilización" {% if request.args.get('categoria_filtro') == 'Impermeabilización' %}selected{% endif %}>Impermeabilización</option>
+                                <option value="Fumigación" {% if request.args.get('categoria_filtro') == 'Fumigación' %}selected{% endif %}>Fumigación</option>
+                                <option value="Cerrajería" {% if request.args.get('categoria_filtro') == 'Cerrajería' %}selected{% endif %}>Cerrajería</option>
+                                <option value="Aire acondicionado" {% if request.args.get('categoria_filtro') == 'Aire acondicionado' %}selected{% endif %}>Aire acondicionado</option>
+                                <option value="Calentadores de agua" {% if request.args.get('categoria_filtro') == 'Calentadores de agua' %}selected{% endif %}>Calentadores de agua</option>
+                                <option value="Bombas de agua" {% if request.args.get('categoria_filtro') == 'Bombas de agua' %}selected{% endif %}>Bombas de agua</option>
+                                <option value="Ventanas y puertas" {% if request.args.get('categoria_filtro') == 'Ventanas y puertas' %}selected{% endif %}>Ventanas y puertas</option>
+                                <option value="Vidriería" {% if request.args.get('categoria_filtro') == 'Vidriería' %}selected{% endif %}>Vidriería</option>
+                                <option value="Soldadura" {% if request.args.get('categoria_filtro') == 'Soldadura' %}selected{% endif %}>Soldadura</option>
+                                <option value="Herrería" {% if request.args.get('categoria_filtro') == 'Herrería' %}selected{% endif %}>Herrería</option>
+                                <option value="Gypsum / Drywall" {% if request.args.get('categoria_filtro') == 'Gypsum / Drywall' %}selected{% endif %}>Gypsum / Drywall</option>
+                                <option value="Servicio de gas" {% if request.args.get('categoria_filtro') == 'Servicio de gas' %}selected{% endif %}>Servicio de gas</option>
+                                <option value="Reparación de electrodomésticos" {% if request.args.get('categoria_filtro') == 'Reparación de electrodomésticos' %}selected{% endif %}>Reparación de electrodomésticos</option>
+                                <option value="Ingeniería civil" {% if request.args.get('categoria_filtro') == 'Ingeniería civil' %}selected{% endif %}>Ingeniería civil</option>
+                                <option value="Ingeniería eléctrica" {% if request.args.get('categoria_filtro') == 'Ingeniería eléctrica' %}selected{% endif %}>Ingeniería eléctrica</option>
+                                <option value="Ingeniería mecánica" {% if request.args.get('categoria_filtro') == 'Ingeniería mecánica' %}selected{% endif %}>Ingeniería mecánica</option>
+                                <option value="Arquitectura" {% if request.args.get('categoria_filtro') == 'Arquitectura' %}selected{% endif %}>Arquitectura</option>
+                                <option value="Topografía" {% if request.args.get('categoria_filtro') == 'Topografía' %}selected{% endif %}>Topografía</option>
+                                <option value="Control de plagas" {% if request.args.get('categoria_filtro') == 'Control de plagas' %}selected{% endif %}>Control de plagas</option>
+                                <option value="Captación y reúso de agua" {% if request.args.get('categoria_filtro') == 'Captación y reúso de agua' %}selected{% endif %}>Captación y reúso de agua</option>
+                                <option value="Muralismo" {% if request.args.get('categoria_filtro') == 'Muralismo' %}selected{% endif %}>Muralismo</option>
+                            </optgroup>
+
+                            <optgroup label="💻 Tecnología y Sistemas">
+                                <option value="Soporte Técnico" {% if request.args.get('categoria_filtro') == 'Soporte Técnico' %}selected{% endif %}>Soporte Técnico en Sistemas</option>
+                                <option value="Instalación de Cámaras (CCTV)" {% if request.args.get('categoria_filtro') == 'Instalación de Cámaras (CCTV)' %}selected{% endif %}>Instalación de Cámaras (CCTV)</option>
+                                <option value="Redes y Telecomunicaciones" {% if request.args.get('categoria_filtro') == 'Redes y Telecomunicaciones' %}selected{% endif %}>Redes y Telecomunicaciones</option>
+                                <option value="Desarrollo Web" {% if request.args.get('categoria_filtro') == 'Desarrollo Web' %}selected{% endif %}>Desarrollo Web y Programación</option>
+                            </optgroup>
+
+                            <optgroup label="🤝 Cuidado y Asistencia">
+                                <option value="Niñera / Cuidado Infantil" {% if request.args.get('categoria_filtro') == 'Niñera / Cuidado Infantil' %}selected{% endif %}>Niñera / Cuidado Infantil</option>
+                                <option value="Asistencia a Personas Mayores" {% if request.args.get('categoria_filtro') == 'Asistencia a Personas Mayores' %}selected{% endif %}>Asistencia a Personas Mayores</option>
+                                <option value="Paseador y Cuidador de Perros" {% if request.args.get('categoria_filtro') == 'Paseador y Cuidador de Perros' %}selected{% endif %}>Paseador y Cuidador de Perros</option>
+                                <option value="Enfermería a Domicilio" {% if request.args.get('categoria_filtro') == 'Enfermería a Domicilio' %}selected{% endif %}>Enfermería a Domicilio</option>
+                            </optgroup>
+
+                            <optgroup label="🚜 Transporte y Maquinaria">
+                                <option value="Conductor Designado" {% if request.args.get('categoria_filtro') == 'Conductor Designado' %}selected{% endif %}>Conductor Designado / Diligencias</option>
+                                <option value="Trasteos y Mudanzas" {% if request.args.get('categoria_filtro') == 'Trasteos y Mudanzas' %}selected{% endif %}>Trasteos y Mudanzas</option>
+                                <option value="Intermediación de Alquiler de Equipos" {% if request.args.get('categoria_filtro') == 'Intermediación de Alquiler de Equipos' %}selected{% endif %}>Intermediación de Alquiler de Equipos</option>
+                                <option value="Operación de Excavadoras" {% if request.args.get('categoria_filtro') == 'Operación de Excavadoras' %}selected{% endif %}>Operación de Excavadoras</option>
+                                <option value="Operación de Bulldozers" {% if request.args.get('categoria_filtro') == 'Operación de Bulldozers' %}selected{% endif %}>Operación de Bulldozers</option>
+                            </optgroup>
+
+                            <optgroup label="🚗 Automotriz">
+                                <option value="Mecánica a Domicilio" {% if request.args.get('categoria_filtro') == 'Mecánica a Domicilio' %}selected{% endif %}>Mecánica a Domicilio</option>
+                                <option value="Electricidad Automotriz" {% if request.args.get('categoria_filtro') == 'Electricidad Automotriz' %}selected{% endif %}>Electricidad Automotriz</option>
+                                <option value="Cerrajería Automotriz" {% if request.args.get('categoria_filtro') == 'Cerrajería Automotriz' %}selected{% endif %}>Cerrajería Automotriz</option>
+                            </optgroup>
+
+                            <optgroup label="✨ Otros Servicios">
+                                <option value="Limpieza y Aseo General" {% if request.args.get('categoria_filtro') == 'Limpieza y Aseo General' %}selected{% endif %}>Limpieza y Aseo General</option>
+                                <option value="Jardinería" {% if request.args.get('categoria_filtro') == 'Jardinería' %}selected{% endif %}>Jardinería</option>
+                            </optgroup>
                         </select>
                         <button type="submit" class="bg-blue-600 border border-blue-600 rounded-2xl px-5 py-4 text-white hover:bg-blue-700 transition shadow-sm flex items-center justify-center gap-2 font-bold text-sm">
                             <i class="fas fa-search"></i> <span class="hidden sm:inline">Buscar</span>
@@ -294,73 +356,73 @@
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">Categoría Técnica</label>
                         <select name="categoria" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner cursor-pointer">
-    <optgroup label="🏠 Hogar y Construcción">
-        <option value="Plomería">Plomería</option>
-        <option value="Electricidad">Electricidad</option>
-        <option value="Construcción">Construcción</option>
-        <option value="Maestro de obras">Maestro de obras</option>
-        <option value="Pintura">Pintura</option>
-        <option value="Carpintería">Carpintería</option>
-        <option value="Ebanistería">Ebanistería</option>
-        <option value="Remodelación">Remodelación</option>
-        <option value="Techos y cubiertas">Techos y cubiertas</option>
-        <option value="Pisos y revestimientos">Pisos y revestimientos</option>
-        <option value="Impermeabilización">Impermeabilización</option>
-        <option value="Fumigación">Fumigación</option>
-        <option value="Cerrajería">Cerrajería</option>
-        <option value="Aire acondicionado">Aire acondicionado</option>
-        <option value="Calentadores de agua">Calentadores de agua</option>
-        <option value="Bombas de agua">Bombas de agua</option>
-        <option value="Ventanas y puertas">Ventanas y puertas</option>
-        <option value="Vidriería">Vidriería</option>
-        <option value="Soldadura">Soldadura</option>
-        <option value="Herrería">Herrería</option>
-        <option value="Gypsum / Drywall">Gypsum / Drywall</option>
-        <option value="Servicio de gas">Servicio de gas</option>
-        <option value="Reparación de electrodomésticos">Reparación de electrodomésticos</option>
-        <option value="Ingeniería civil">Ingeniería civil</option>
-        <option value="Ingeniería eléctrica">Ingeniería eléctrica</option>
-        <option value="Ingeniería mecánica">Ingeniería mecánica</option>
-        <option value="Arquitectura">Arquitectura</option>
-        <option value="Topografía">Topografía</option>
-        <option value="Control de plagas">Control de plagas</option>
-        <option value="Captación y reúso de agua">Captación y reúso de agua</option>
-        <option value="Muralismo">Muralismo</option>
-    </optgroup>
-
-    <optgroup label="💻 Tecnología y Sistemas">
-        <option value="Soporte Técnico">Soporte Técnico en Sistemas</option>
-        <option value="Instalación de Cámaras (CCTV)">Instalación de Cámaras (CCTV)</option>
-        <option value="Redes y Telecomunicaciones">Redes y Telecomunicaciones</option>
-        <option value="Desarrollo Web">Desarrollo Web y Programación</option>
-    </optgroup>
-
-    <optgroup label="🤝 Cuidado y Asistencia">
-        <option value="Niñera / Cuidado Infantil">Niñera / Cuidado Infantil</option>
-        <option value="Asistencia a Personas Mayores">Asistencia a Personas Mayores</option>
-        <option value="Paseador y Cuidador de Perros">Paseador y Cuidador de Perros</option>
-        <option value="Enfermería a Domicilio">Enfermería a Domicilio</option>
-    </optgroup>
-
-    <optgroup label="🚜 Transporte y Maquinaria">
-        <option value="Conductor Designado">Conductor Designado / Diligencias</option>
-        <option value="Trasteos y Mudanzas">Trasteos y Mudanzas</option>
-        <option value="Intermediación de Alquiler de Equipos">Intermediación de Alquiler de Equipos</option>
-        <option value="Operación de Excavadoras">Operación de Excavadoras</option>
-        <option value="Operación de Bulldozers">Operación de Bulldozers</option>
-    </optgroup>
-
-    <optgroup label="🚗 Automotriz">
-        <option value="Mecánica a Domicilio">Mecánica a Domicilio</option>
-        <option value="Electricidad Automotriz">Electricidad Automotriz</option>
-        <option value="Cerrajería Automotriz">Cerrajería Automotriz</option>
-    </optgroup>
-
-    <optgroup label="✨ Otros Servicios">
-        <option value="Limpieza y Aseo General">Limpieza y Aseo General</option>
-        <option value="Jardinería">Jardinería</option>
-    </optgroup>
-</select>
+                            <optgroup label="🏠 Hogar y Construcción">
+                                <option value="Plomería">Plomería</option>
+                                <option value="Electricidad">Electricidad</option>
+                                <option value="Construcción">Construcción</option>
+                                <option value="Maestro de obras">Maestro de obras</option>
+                                <option value="Pintura">Pintura</option>
+                                <option value="Carpintería">Carpintería</option>
+                                <option value="Ebanistería">Ebanistería</option>
+                                <option value="Remodelación">Remodelación</option>
+                                <option value="Techos y cubiertas">Techos y cubiertas</option>
+                                <option value="Pisos y revestimientos">Pisos y revestimientos</option>
+                                <option value="Impermeabilización">Impermeabilización</option>
+                                <option value="Fumigación">Fumigación</option>
+                                <option value="Cerrajería">Cerrajería</option>
+                                <option value="Aire acondicionado">Aire acondicionado</option>
+                                <option value="Calentadores de agua">Calentadores de agua</option>
+                                <option value="Bombas de agua">Bombas de agua</option>
+                                <option value="Ventanas y puertas">Ventanas y puertas</option>
+                                <option value="Vidriería">Vidriería</option>
+                                <option value="Soldadura">Soldadura</option>
+                                <option value="Herrería">Herrería</option>
+                                <option value="Gypsum / Drywall">Gypsum / Drywall</option>
+                                <option value="Servicio de gas">Servicio de gas</option>
+                                <option value="Reparación de electrodomésticos">Reparación de electrodomésticos</option>
+                                <option value="Ingeniería civil">Ingeniería civil</option>
+                                <option value="Ingeniería eléctrica">Ingeniería eléctrica</option>
+                                <option value="Ingeniería mecánica">Ingeniería mecánica</option>
+                                <option value="Arquitectura">Arquitectura</option>
+                                <option value="Topografía">Topografía</option>
+                                <option value="Control de plagas">Control de plagas</option>
+                                <option value="Captación y reúso de agua">Captación y reúso de agua</option>
+                                <option value="Muralismo">Muralismo</option>
+                            </optgroup>
+                        
+                            <optgroup label="💻 Tecnología y Sistemas">
+                                <option value="Soporte Técnico">Soporte Técnico en Sistemas</option>
+                                <option value="Instalación de Cámaras (CCTV)">Instalación de Cámaras (CCTV)</option>
+                                <option value="Redes y Telecomunicaciones">Redes y Telecomunicaciones</option>
+                                <option value="Desarrollo Web">Desarrollo Web y Programación</option>
+                            </optgroup>
+                        
+                            <optgroup label="🤝 Cuidado y Asistencia">
+                                <option value="Niñera / Cuidado Infantil">Niñera / Cuidado Infantil</option>
+                                <option value="Asistencia a Personas Mayores">Asistencia a Personas Mayores</option>
+                                <option value="Paseador y Cuidador de Perros">Paseador y Cuidador de Perros</option>
+                                <option value="Enfermería a Domicilio">Enfermería a Domicilio</option>
+                            </optgroup>
+                        
+                            <optgroup label="🚜 Transporte y Maquinaria">
+                                <option value="Conductor Designado">Conductor Designado / Diligencias</option>
+                                <option value="Trasteos y Mudanzas">Trasteos y Mudanzas</option>
+                                <option value="Intermediación de Alquiler de Equipos">Intermediación de Alquiler de Equipos</option>
+                                <option value="Operación de Excavadoras">Operación de Excavadoras</option>
+                                <option value="Operación de Bulldozers">Operación de Bulldozers</option>
+                            </optgroup>
+                        
+                            <optgroup label="🚗 Automotriz">
+                                <option value="Mecánica a Domicilio">Mecánica a Domicilio</option>
+                                <option value="Electricidad Automotriz">Electricidad Automotriz</option>
+                                <option value="Cerrajería Automotriz">Cerrajería Automotriz</option>
+                            </optgroup>
+                        
+                            <optgroup label="✨ Otros Servicios">
+                                <option value="Limpieza y Aseo General">Limpieza y Aseo General</option>
+                                <option value="Jardinería">Jardinería</option>
+                            </optgroup>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">Presupuesto Inicial (COP)</label>
