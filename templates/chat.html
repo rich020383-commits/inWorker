@@ -36,6 +36,17 @@
             z-index: 10;
             border: 1px solid #e2e8f0;
         }
+        
+        /* 💡 NUEVO: Estilos Ninja para el Sistema de Estrellas */
+        .estrellas-box { display: flex; flex-direction: row-reverse; justify-content: center; }
+        .estrellas-box input { display: none; }
+        .estrellas-box label { font-size: 2.5rem; color: #e2e8f0; cursor: pointer; transition: color 0.2s ease-in-out, transform 0.2s; margin: 0 0.3rem; }
+        .estrellas-box label:hover,
+        .estrellas-box label:hover ~ label,
+        .estrellas-box input:checked ~ label {
+            color: #fbbf24; /* Color Ambar/Dorado */
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans antialiased flex flex-col min-h-screen">
@@ -543,6 +554,52 @@
         </div>
     </div>
 
+    <div id="modalCalificar" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[130] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white border border-slate-200 rounded-[2rem] max-w-sm w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 text-center relative" id="modalCalificarContent">
+            
+            <div class="p-8 pb-6">
+                <div class="w-16 h-16 mx-auto bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mb-4 shadow-inner border-2 border-amber-100">
+                    <i class="fas fa-star text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-900 mb-1">Califica el Servicio</h2>
+                <p class="text-xs text-slate-500 mb-6 font-medium">¿Qué tal te pareció el trabajo del especialista?</p>
+                
+                <form action="/calificar/{{ tarea.id }}" method="POST" class="space-y-5">
+                    
+                    <div class="estrellas-box mb-2">
+                        <input type="radio" id="star5" name="estrellas" value="5" required />
+                        <label for="star5" title="5 Estrellas"><i class="fas fa-star"></i></label>
+                        
+                        <input type="radio" id="star4" name="estrellas" value="4" />
+                        <label for="star4" title="4 Estrellas"><i class="fas fa-star"></i></label>
+                        
+                        <input type="radio" id="star3" name="estrellas" value="3" />
+                        <label for="star3" title="3 Estrellas"><i class="fas fa-star"></i></label>
+                        
+                        <input type="radio" id="star2" name="estrellas" value="2" />
+                        <label for="star2" title="2 Estrellas"><i class="fas fa-star"></i></label>
+                        
+                        <input type="radio" id="star1" name="estrellas" value="1" />
+                        <label for="star1" title="1 Estrella"><i class="fas fa-star"></i></label>
+                    </div>
+
+                    <div class="text-left">
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Reseña (Opcional)</label>
+                        <textarea name="resena" rows="3" placeholder="Ej: Excelente servicio, muy puntual y profesional..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-amber-500 transition resize-none shadow-inner"></textarea>
+                    </div>
+                    
+                    <button type="submit" onclick="this.innerHTML='<i class=\'fas fa-spinner fa-spin mr-2\'></i>Procesando...';" class="w-full bg-slate-900 hover:bg-amber-500 text-white font-black py-3.5 rounded-xl transition-all shadow-lg hover:shadow-amber-500/30 active:scale-95 uppercase tracking-widest text-xs flex items-center justify-center gap-2 mt-2">
+                        Enviar y Finalizar <i class="fas fa-check"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <button type="button" onclick="cerrarModalCalificar()" class="absolute top-4 right-4 text-slate-300 hover:text-rose-500 transition bg-slate-50 rounded-full p-1 border border-slate-100 active:scale-90 w-8 h-8 flex items-center justify-center shadow-sm">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+    </div>
+
     <script>
         const cajaMensajes = document.getElementById('cajaMensajes');
 
@@ -617,7 +674,7 @@
             });
         }
 
-        // --- LÓGICA DE HITOS Y ENCRUCIJADA ---
+        // --- LÓGICA DE HITOS Y MODALES FINANCIEROS ---
         function abrirModalHito() {
             const modal = document.getElementById('modalNuevoHito');
             const content = document.getElementById('modalNuevoHitoContent');
@@ -673,9 +730,32 @@
             window.location.reload(); 
         }
 
+        // 🚀 TRANSICIÓN FLUIDA AL MODAL DE CALIFICACIÓN
         function finalizarYCalificar() {
-            // 🚀 RUTA CORREGIDA: Apunta exactamente a tu app.route('/calificar/<int:tarea_id>')
-            window.location.href = `/calificar/{{ tarea.id }}`;
+            // 1. Ocultar el modal de la encrucijada
+            const modalEncrucijada = document.getElementById('modalDecisionCierre');
+            if(modalEncrucijada) modalEncrucijada.classList.add('hidden');
+            
+            // 2. Mostrar el nuevo modal de las estrellas
+            const modal = document.getElementById('modalCalificar');
+            const content = document.getElementById('modalCalificarContent');
+            if(modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
+                }, 10);
+            }
+        }
+
+        function cerrarModalCalificar() {
+            const modal = document.getElementById('modalCalificar');
+            const content = document.getElementById('modalCalificarContent');
+            if(modal) {
+                modal.classList.add('opacity-0');
+                content.classList.add('scale-95');
+                setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            }
         }
         // ------------------------------------------------
 

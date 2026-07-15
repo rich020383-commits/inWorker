@@ -234,6 +234,7 @@ class Tarea(db.Model):
     trabajador_nombre = db.Column(db.String(150))
     trabajador_correo = db.Column(db.String(150))
     costo_creditos = db.Column(db.Float, default=1.0)
+    resena = db.Column(db.Text, nullable=True)
     
     # 📍 NUEVAS COORDENADAS POR DEFECTO: BOGOTÁ, D.C.
     latitud = db.Column(db.Float, default=4.6097)
@@ -2587,7 +2588,6 @@ def confirmar_entrega(tarea_id):
 # =====================================================================
 # ⭐ MÓDULO DE REPUTACIÓN Y CIERRE DEFINITIVO (SOPORTA GET Y POST)
 # =====================================================================
-# 💡 SOLUCIÓN AL 405: Agregamos el método 'GET' a la ruta
 @app.route('/calificar/<int:tarea_id>', methods=['GET', 'POST'])
 def calificar_tecnico(tarea_id):
     if 'usuario_nombre' not in session:
@@ -2595,14 +2595,13 @@ def calificar_tecnico(tarea_id):
         
     correo_logueado = session['usuario_correo']
     
-    # 💡 Si la petición es GET (abriendo la página desde el botón de la encrucijada)
+    # 💡 Si la petición es GET (por si el navegador intenta recargar la página)
     if request.method == 'GET':
         tarea = Tarea.query.get_or_404(tarea_id)
-        # ⚠️ IMPORTANTE: Asegúrate de que tu archivo de vista de estrellas se llame 'calificar.html'
-        # Si se llama distinto (ej. 'calificar_tarea.html'), cámbialo en la siguiente línea:
-        return render_template('calificar.html', tarea=tarea)
+        # Esto es un fallback de seguridad en caso de que intenten entrar directo por URL
+        return render_template('calificar.html', tarea=tarea) 
         
-    # Si la petición es POST (cuando hunden el botón de enviar las estrellas)
+    # Si la petición es POST (cuando hunden el botón de enviar en el Modal Flotante)
     try:
         estrellas = float(request.form.get('estrellas', 0))
     except (ValueError, TypeError):
@@ -2618,6 +2617,9 @@ def calificar_tecnico(tarea_id):
         # Filtro de seguridad
         if tarea and getattr(tarea, 'calificada', 0) == 0 and correo_logueado == tarea.cliente_correo:
             
+            # 💡 1. ATRAPAMOS LO QUE EL CLIENTE ESCRIBIÓ EN EL MODAL
+            comentario = request.form.get('resena', '').strip()
+            
             tecnico = Usuario.query.filter_by(correo=tarea.trabajador_correo).first()
             if tecnico:
                 tecnico.puntuacion_total = (tecnico.puntuacion_total or 0.0) + estrellas
@@ -2627,12 +2629,22 @@ def calificar_tecnico(tarea_id):
             tarea.estado = 'Finalizada'
             tarea.calificada = 1
             
+            # 💡 2. GUARDAMOS LA RESEÑA EN LA BASE DE DATOS
+            tarea.resena = comentario
+            
+            # 💡 3. CREAMOS EL MENSAJE DINÁMICO PARA EL CHAT
+            texto_mensaje = f"⭐ SERVICIO CERRADO Y CALIFICADO. El cliente ha finalizado este requerimiento y ha otorgado {estrellas} estrellas al especialista."
+            if comentario:
+                texto_mensaje += f"\n\n📝 Reseña del cliente: \"{comentario}\""
+            else:
+                texto_mensaje += " ¡Gracias por usar el ecosistema inWorker!"
+
             # Mensaje visual de que se calificó exitosamente
             mensaje_sistema = Mensaje(
                 tarea_id=tarea_id,
                 canal_trabajador=tarea.trabajador_correo, 
                 remitente_correo='sistema@inworker.co',
-                mensaje=f"⭐ SERVICIO CERRADO Y CALIFICADO. El cliente ha finalizado este requerimiento y ha otorgado {estrellas} estrellas al especialista. ¡Gracias por usar el ecosistema inWorker!",
+                mensaje=texto_mensaje,
                 tipo='sistema'
             )
             db.session.add(mensaje_sistema)
