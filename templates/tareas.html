@@ -118,7 +118,6 @@
                         <select name="categoria_filtro" class="bg-white border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-slate-600 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm hover:bg-slate-50 transition w-full sm:w-auto">
                             <option value="">Todas las categorías</option>
                             
-                            <!-- 💼 NUEVO BLOQUE: Legal y Financiero -->
                             <optgroup label="⚖️ Legal y Financiero">
                                 <option value="Abogado Penal" {% if request.args.get('categoria_filtro') == 'Abogado Penal' %}selected{% endif %}>Abogado Penal</option>
                                 <option value="Abogado Laboral" {% if request.args.get('categoria_filtro') == 'Abogado Laboral' %}selected{% endif %}>Abogado Laboral</option>
@@ -128,7 +127,6 @@
                                 <option value="Trámites Legales" {% if request.args.get('categoria_filtro') == 'Trámites Legales' %}selected{% endif %}>Trámites Legales</option>
                             </optgroup>
 
-                            <!-- 🎓 NUEVO BLOQUE: Educación y Tutorías -->
                             <optgroup label="🎓 Educación y Tutorías">
                                 <option value="Clases de Matemáticas" {% if request.args.get('categoria_filtro') == 'Clases de Matemáticas' %}selected{% endif %}>Clases de Matemáticas</option>
                                 <option value="Clases de Idiomas" {% if request.args.get('categoria_filtro') == 'Clases de Idiomas' %}selected{% endif %}>Clases de Idiomas</option>
@@ -137,7 +135,6 @@
                                 <option value="Tutoría Universitaria" {% if request.args.get('categoria_filtro') == 'Tutoría Universitaria' %}selected{% endif %}>Tutoría Universitaria</option>
                             </optgroup>
 
-                            <!-- 💅 NUEVO BLOQUE: Belleza y Bienestar -->
                             <optgroup label="💅 Belleza y Bienestar">
                                 <option value="Manicure y Pedicure" {% if request.args.get('categoria_filtro') == 'Manicure y Pedicure' %}selected{% endif %}>Manicure y Pedicure</option>
                                 <option value="Keratinas y Alisados" {% if request.args.get('categoria_filtro') == 'Keratinas y Alisados' %}selected{% endif %}>Keratinas y Alisados</option>
@@ -385,7 +382,6 @@
                         <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">Categoría Técnica</label>
                         <select name="categoria" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner cursor-pointer">
                             
-                            <!-- 💼 NUEVO BLOQUE: Legal y Financiero (MODAL) -->
                             <optgroup label="⚖️ Legal y Financiero">
                                 <option value="Abogado Penal">Abogado Penal</option>
                                 <option value="Abogado Laboral">Abogado Laboral</option>
@@ -395,7 +391,6 @@
                                 <option value="Trámites Legales">Trámites Legales</option>
                             </optgroup>
 
-                            <!-- 🎓 NUEVO BLOQUE: Educación y Tutorías (MODAL) -->
                             <optgroup label="🎓 Educación y Tutorías">
                                 <option value="Clases de Matemáticas">Clases de Matemáticas</option>
                                 <option value="Clases de Idiomas">Clases de Idiomas</option>
@@ -404,7 +399,6 @@
                                 <option value="Tutoría Universitaria">Tutoría Universitaria</option>
                             </optgroup>
 
-                            <!-- 💅 NUEVO BLOQUE: Belleza y Bienestar (MODAL) -->
                             <optgroup label="💅 Belleza y Bienestar">
                                 <option value="Manicure y Pedicure">Manicure y Pedicure</option>
                                 <option value="Keratinas y Alisados">Keratinas y Alisados</option>
@@ -544,6 +538,16 @@
                         <span class="text-[9px] text-emerald-500 block uppercase font-black tracking-widest mb-0.5"><i class="fas fa-shield-check mr-1"></i> Escrow</span>
                     </div>
                 </div>
+
+                <div id="detalle-alerta-profesional" class="hidden mt-4 bg-indigo-50 border border-indigo-200 rounded-xl p-4 flex items-start gap-3 shadow-sm transition-all duration-300">
+                    <i class="fas fa-robot text-indigo-500 mt-0.5 shrink-0 text-lg"></i>
+                    <div>
+                        <p class="text-[10px] font-black text-indigo-800 uppercase tracking-widest mb-1">Bot inWorker: Tip Escrow</p>
+                        <p class="text-[11px] text-indigo-900/80 leading-relaxed font-medium">
+                            En servicios profesionales, sugerimos acordar un valor menor por la <strong>"Consulta Inicial o Revisión de Caso"</strong>. Al fondearla en Garantía, se desbloquearán los números de teléfono para enviar archivos.
+                        </p>
+                    </div>
+                </div>
             </div>
 
             <div class="p-6 pt-2 border-t border-slate-100 bg-white shrink-0">
@@ -633,7 +637,7 @@
             }
         }
 
-        // 👁️ Funciones para Modal de Pre-visualización (El Filtro)
+        // 👁️ Funciones para Modal de Pre-visualización (El Filtro) con Lógica de Categorías Profesionales
         function abrirModalDetalles(btn) {
             const id = btn.getAttribute('data-id');
             const titulo = btn.getAttribute('data-titulo');
@@ -649,6 +653,20 @@
             document.getElementById('detalle-pago').innerHTML = `$${pagoFormateado} <span class="text-[10px] font-bold text-slate-400">COP</span>`;
             
             document.getElementById('detalle-btn-chat').href = `/chat/${id}`;
+
+            // 🧠 LÓGICA DE ALERTA PROFESIONAL
+            const categoriasProfesionales = [
+                'Abogado Penal', 'Abogado Laboral', 'Abogado de Familia', 
+                'Contabilidad y Finanzas', 'Asesoría Tributaria', 'Trámites Legales', 
+                'Arquitectura', 'Ingeniería civil', 'Ingeniería mecánica', 'Ingeniería eléctrica'
+            ];
+            const alertaProfesional = document.getElementById('detalle-alerta-profesional');
+            
+            if (categoriasProfesionales.includes(categoria)) {
+                alertaProfesional.classList.remove('hidden');
+            } else {
+                alertaProfesional.classList.add('hidden');
+            }
 
             const modal = document.getElementById('modalDetalles');
             const content = document.getElementById('modalDetallesContent');
