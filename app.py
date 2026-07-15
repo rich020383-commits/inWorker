@@ -2430,8 +2430,12 @@ def responder_cotizacion(tarea_id, mensaje_id):
     return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
 
 
+import os
+import time
+from werkzeug.utils import secure_filename
+
 # =====================================================================
-# 🔐 MÓDULO DE ESCROW: CONFIRMACIÓN DE ENTREGA Y DESEMBOLSO - OPTIMIZADO
+# 🔐 MÓDULO DE ESCROW: CONFIRMACIÓN DE ENTREGA Y FOTOS - OPTIMIZADO
 # =====================================================================
 @app.route('/confirmar_entrega/<int:tarea_id>', methods=['POST'])
 def confirmar_entrega(tarea_id):
@@ -2442,20 +2446,65 @@ def confirmar_entrega(tarea_id):
     VALOR_CREDITO_COP = 10000 # Regla de oro de inWorker
     
     try:
-        # ⚡ Traemos la orden de servicio directamente usando el modelo
         tarea = Tarea.query.get(tarea_id)
         
         if not tarea or tarea.estado != 'En Garantia':
             flash("❌ Operación no válida para el estado actual de la tarea.", "error")
             return redirect(url_for('ver_chat', tarea_id=tarea_id))
+
+        # 📸 NUEVO: MOTOR PARA RECIBIR Y GUARDAR LAS FOTOS DE EVIDENCIA
+        if 'foto_despues' in request.files or 'foto_antes' in request.files:
+            foto_antes = request.files.get('foto_antes')
+            foto_despues = request.files.get('foto_despues')
             
+            # Función auxiliar para guardar la foto y meterla al chat
+            def procesar_y_guardar_foto(archivo, etiqueta):
+                if archivo and archivo.filename != '':
+                    filename = secure_filename(archivo.filename)
+                    # Nombre único (igual al que pide tu log)
+                    nuevo_nombre = f"chat_{tarea_id}_{int(time.time())}_{filename}"
+                    
+                    # Asegurar que la carpeta existe y guardar
+                    ruta_carpeta = os.path.join(app.root_path, 'static', 'uploads')
+                    os.makedirs(ruta_carpeta, exist_ok=True)
+                    ruta_guardado = os.path.join(ruta_carpeta, nuevo_nombre)
+                    archivo.save(ruta_guardado)
+                    
+                    # 1. Crear la burbuja de la imagen en el chat
+                    msg_foto = Mensaje(
+                        tarea_id=tarea_id,
+                        canal_trabajador=tarea.trabajador_correo,
+                        remitente_correo=correo_logueado,
+                        mensaje=nuevo_nombre,
+                        tipo='imagen',
+                        leido=0
+                    )
+                    db.session.add(msg_foto)
+                    
+                    # 2. Crear una burbuja de texto para explicar qué es la foto
+                    msg_texto = Mensaje(
+                        tarea_id=tarea_id,
+                        canal_trabajador=tarea.trabajador_correo,
+                        remitente_correo=correo_logueado,
+                        mensaje=f"📸 Evidencia fotográfica ({etiqueta}) enviada para revisión.",
+                        tipo='texto',
+                        leido=0
+                    )
+                    db.session.add(msg_texto)
+
+            # Si enviaron fotos, las procesamos
+            if foto_antes:
+                procesar_y_guardar_foto(foto_antes, "Estado Inicial")
+            if foto_despues:
+                procesar_y_guardar_foto(foto_despues, "Trabajo Terminado")
+
         # Evaluar y actualizar las banderas de conformidad según el remitente
         if correo_logueado == tarea.cliente_correo:
             tarea.confirmacion_cliente = 1
             flash("🚀 Has confirmado la conformidad del servicio.", "success")
         elif correo_logueado == tarea.trabajador_correo:
             tarea.confirmacion_trabajador = 1
-            flash("📢 Has notificado al cliente que el trabajo está finalizado.", "success")
+            flash("📢 Evidencia enviada con éxito. Has notificado al cliente que el trabajo está finalizado.", "success")
         else:
             return redirect(url_for('ver_chat', tarea_id=tarea_id))
             
@@ -2464,7 +2513,6 @@ def confirmar_entrega(tarea_id):
             creditos_totales = tarea.costo_creditos or 0.0
             tecnico_destino = tarea.trabajador_correo
             
-            # Buscamos al especialista asignado para fonear su billetera
             tecnico = Usuario.query.filter_by(correo=tecnico_destino).first()
             
             if tecnico:
@@ -2478,50 +2526,39 @@ def confirmar_entrega(tarea_id):
                     padrino = Usuario.query.filter_by(codigo_embajador=tecnico.referido_por).first()
                     
                     if padrino:
-                        # 1. Validar ventana de tiempo (6 meses = 180 días)
                         from datetime import datetime
-                        # Obtenemos la fecha actual en la base de datos o local
-                        fecha_actual = db.func.current_timestamp()
-                        
-                        # Para evitar líos de zonas horarias en la comparación de Python, usamos una consulta directa o restamos días de forma segura
                         diferencia_tiempo = datetime.utcnow() - tecnico.fecha_registro
                         
                         if diferencia_tiempo.days <= 180:
-                            # 2. Calcular la retención de inWorker (12%)
                             retencion_inworker = creditos_totales * 0.12
-                            
-                            # 3. Calcular el Rango del Padrino por volumen de reclutados
                             referidos_count = Usuario.query.filter_by(referido_por=padrino.codigo_embajador).count()
                             
                             if referidos_count <= 10:
-                                porcentaje_padrino = 0.10  # Bronce
+                                porcentaje_padrino = 0.10  
                             elif referidos_count <= 25:
-                                porcentaje_padrino = 0.15  # Plata
+                                porcentaje_padrino = 0.15  
                             elif referidos_count <= 50:
-                                porcentaje_padrino = 0.20  # Oro
+                                porcentaje_padrino = 0.20  
                             else:
-                                porcentaje_padrino = 0.30  # Diamante (Gancho maestro)
+                                porcentaje_padrino = 0.30  
                             
-                            # 4. Asignar Comisión en créditos al Embajador
                             comision_padrino = round(retencion_inworker * porcentaje_padrino, 2)
                             
                             if comision_padrino > 0:
                                 padrino.saldo_creditos = round((padrino.saldo_creditos or 0.0) + comision_padrino, 2)
-                                print(f"🎁 Comisión de {comision_padrino} Cr asignada al Embajador {padrino.nombre} por el técnico {tecnico.nombre}")
             
             # Pasamos la orden al estado de cierre definitivo
             tarea.estado = 'Finalizada'
             
-            # Formateamos el monto neto en pesos del Técnico para el historial
             try:
                 monto_pesos_tecnico = f"${float(creditos_tecnico * VALOR_CREDITO_COP):,.0f}"
             except Exception:
                 monto_pesos_tecnico = f"${creditos_tecnico * VALOR_CREDITO_COP:,.0f}"
                 
-            # Generamos el aviso oficial del sistema dentro de la sala de negociación
+            # Generamos el aviso oficial del sistema
             mensaje_sistema = (
                 f"SISTEMA: El servicio ha sido cerrado. El pago neto de {creditos_tecnico} Cr ({monto_pesos_tecnico} COP) "
-                f"ha sido liberado de la garantía y transferido al saldo de {tarea.trabajador_nombre}. "
+                f"ha sido liberado de la garantía y transferido al saldo del especialista. "
                 f"¡Gracias por usar inWorker!"
             )
             
@@ -2536,27 +2573,36 @@ def confirmar_entrega(tarea_id):
             db.session.add(nuevo_aviso)
             flash("✨ ¡Garantía liberada con éxito! Los fondos netos ya están en la billetera del especialista.", "success")
             
-        # ⚡ Un solo commit impacta y bloquea toda la transacción de forma segura
+        # ⚡ Un solo commit impacta base de datos, saldo y chat
         db.session.commit()
         
     except Exception as e:
         db.session.rollback()
-        print(f"❌ Error crítico en pasarela de Escrow (Tarea #{tarea_id}): {e}")
-        flash("❌ Ocurrió un error al procesar la liberación de la garantía.", "error")
+        print(f"❌ Error crítico en pasarela de Escrow: {e}")
+        flash("❌ Ocurrió un error al procesar tu solicitud.", "error")
         
     return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=tarea.trabajador_correo if tarea else None))
 
 
 # =====================================================================
-# ⭐ MÓDULO DE REPUTACIÓN Y CIERRE DEFINITIVO DE TAREA - OPTIMIZADO
+# ⭐ MÓDULO DE REPUTACIÓN Y CIERRE DEFINITIVO (SOPORTA GET Y POST)
 # =====================================================================
-@app.route('/calificar/<int:tarea_id>', methods=['POST'])
+# 💡 SOLUCIÓN AL 405: Agregamos el método 'GET' a la ruta
+@app.route('/calificar/<int:tarea_id>', methods=['GET', 'POST'])
 def calificar_tecnico(tarea_id):
     if 'usuario_nombre' not in session:
         return redirect(url_for('index'))
         
     correo_logueado = session['usuario_correo']
     
+    # 💡 Si la petición es GET (abriendo la página desde el botón de la encrucijada)
+    if request.method == 'GET':
+        tarea = Tarea.query.get_or_404(tarea_id)
+        # ⚠️ IMPORTANTE: Asegúrate de que tu archivo de vista de estrellas se llame 'calificar.html'
+        # Si se llama distinto (ej. 'calificar_tarea.html'), cámbialo en la siguiente línea:
+        return render_template('calificar.html', tarea=tarea)
+        
+    # Si la petición es POST (cuando hunden el botón de enviar las estrellas)
     try:
         estrellas = float(request.form.get('estrellas', 0))
     except (ValueError, TypeError):
@@ -2567,45 +2613,38 @@ def calificar_tecnico(tarea_id):
         return redirect(url_for('ver_chat', tarea_id=tarea_id))
         
     try:
-        # ⚡ Consultamos la orden de servicio mediante el ORM
         tarea = Tarea.query.get(tarea_id)
         
-        # 🛡️ FILTRO DE SEGURIDAD ACTUALIZADO: 
-        # Ya no exigimos que el estado sea 'Finalizada' previamente, porque ESTA acción es la que finaliza el ciclo.
+        # Filtro de seguridad
         if tarea and getattr(tarea, 'calificada', 0) == 0 and correo_logueado == tarea.cliente_correo:
             
-            # Buscamos al técnico asignado para actualizar su reputación global
             tecnico = Usuario.query.filter_by(correo=tarea.trabajador_correo).first()
-            
             if tecnico:
-                # Incremento seguro manejando fallbacks por si los campos están en NULL/None
                 tecnico.puntuacion_total = (tecnico.puntuacion_total or 0.0) + estrellas
                 tecnico.total_calificaciones = (tecnico.total_calificaciones or 0) + 1
                 
-            # 💡 AQUÍ CERRAMOS EL CANDADO MAESTRO
+            # AQUÍ CERRAMOS EL CANDADO MAESTRO
             tarea.estado = 'Finalizada'
             tarea.calificada = 1
             
-            # 🤖 Mensaje de cierre en la Sala de Negociación
+            # Mensaje visual de que se calificó exitosamente
             mensaje_sistema = Mensaje(
                 tarea_id=tarea_id,
-                canal_trabajador=tarea.trabajador_correo, # Usamos el correo del técnico como canal de sala
+                canal_trabajador=tarea.trabajador_correo, 
                 remitente_correo='sistema@inworker.co',
                 mensaje=f"⭐ SERVICIO CERRADO Y CALIFICADO. El cliente ha finalizado este requerimiento y ha otorgado {estrellas} estrellas al especialista. ¡Gracias por usar el ecosistema inWorker!",
                 tipo='sistema'
             )
             db.session.add(mensaje_sistema)
             
-            # Consolidamos la transacción de manera atómica
             db.session.commit()
             flash("⭐ ¡Servicio finalizado y especialista calificado con éxito!", "success")
             
     except Exception as e:
         db.session.rollback()
-        print(f"❌ Error crítico al procesar calificación de tarea #{tarea_id}: {e}")
+        print(f"❌ Error crítico al procesar calificación: {e}")
         flash("❌ Ocurrió un error interno al guardar tu calificación.", "error")
         
-    # Redirigimos al chat (que ahora mostrará la pantalla de "Chat Cerrado" porque el estado es Finalizada)
     return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=tarea.trabajador_correo if tarea else None))
 
 # =====================================================================
