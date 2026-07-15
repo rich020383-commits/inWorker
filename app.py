@@ -409,21 +409,21 @@ def api_ia_redactar():
         return jsonify({'success': False, 'error': 'Texto vacío'}), 400
 
     try:
-        # 1. El Prompt Maestro de Upward AI (¡AHORA CON EL CATÁLOGO COMPLETO!)
+        # 1. El Prompt Maestro de Upward AI (¡ACTUALIZADO CON EL NUEVO ECOSISTEMA!)
         prompt_maestro = f"""
-        Eres Upward AI, el asistente experto de inWorker (un marketplace de servicios técnicos).
-        Un cliente ha descrito su problema de forma muy básica o informal:
+        Eres Upward AI, el asistente experto de inWorker (un marketplace integral de servicios técnicos, profesionales y de bienestar).
+        Un cliente ha descrito su problema o necesidad de forma muy básica o informal:
         "{texto_cliente}"
         
         Tu tarea:
-        1. Reescribe este problema en un lenguaje profesional, claro y técnico (máximo 2 párrafos cortos), listo para ser publicado como una orden de trabajo.
-        2. Al final del texto, agrega un salto de línea y sugiere OBLIGATORIAMENTE cuál de las siguientes categorías exactas debe elegir el cliente en el formulario:
-        [Plomería, Electricidad, Construcción, Maestro de obras, Pintura, Carpintería, Ebanistería, Remodelación, Techos y cubiertas, Pisos y revestimientos, Impermeabilización, Fumigación, Cerrajería, Aire acondicionado, Calentadores de agua, Bombas de agua, Ventanas y puertas, Vidriería, Soldadura, Herrería, Gypsum / Drywall, Servicio de gas, Reparación de electrodomésticos, Ingeniería civil, Ingeniería eléctrica, Ingeniería mecánica, Arquitectura, Topografía, Control de plagas, Captación y reúso de agua, Muralismo, Soporte Técnico, Instalación de Cámaras (CCTV), Redes y Telecomunicaciones, Desarrollo Web, Niñera / Cuidado Infantil, Asistencia a Personas Mayores, Paseador y Cuidador de Perros, Enfermería a Domicilio, Conductor Designado, Trasteos y Mudanzas, Intermediación de Alquiler de Equipos, Operación de Excavadoras, Operación de Bulldozers, Mecánica a Domicilio, Electricidad Automotriz, Cerrajería Automotriz, Limpieza y Aseo General, Jardinería]
+        1. Reescribe esta necesidad en un lenguaje profesional, claro y directo (máximo 2 párrafos cortos), listo para ser publicado como una orden de trabajo o solicitud de servicio.
+        2. Al final del texto, agrega un salto de línea y sugiere OBLIGATORIAMENTE cuál de las siguientes categorías exactas debe elegir el cliente en el formulario (debes elegir la que mejor se adapte):
+        [Abogado Penal, Abogado Laboral, Abogado de Familia, Contabilidad y Finanzas, Asesoría Tributaria, Trámites Legales, Clases de Matemáticas, Clases de Idiomas, Clases de Música, Refuerzo Escolar, Tutoría Universitaria, Manicure y Pedicure, Keratinas y Alisados, Maquillaje Profesional, Barbería y Corte, Masajes Relajantes, Plomería, Electricidad, Construcción, Maestro de obras, Pintura, Carpintería, Ebanistería, Remodelación, Techos y cubiertas, Pisos y revestimientos, Impermeabilización, Fumigación, Cerrajería, Aire acondicionado, Calentadores de agua, Bombas de agua, Ventanas y puertas, Vidriería, Soldadura, Herrería, Gypsum / Drywall, Servicio de gas, Reparación de electrodomésticos, Ingeniería civil, Ingeniería eléctrica, Ingeniería mecánica, Arquitectura, Topografía, Control de plagas, Captación y reúso de agua, Muralismo, Soporte Técnico, Instalación de Cámaras (CCTV), Redes y Telecomunicaciones, Desarrollo Web, Niñera / Cuidado Infantil, Asistencia a Personas Mayores, Paseador y Cuidador de Perros, Enfermería a Domicilio, Conductor Designado, Trasteos y Mudanzas, Intermediación de Alquiler de Equipos, Operación de Excavadoras, Operación de Bulldozers, Mecánica a Domicilio, Electricidad Automotriz, Cerrajería Automotriz, Limpieza y Aseo General, Jardinería]
         
         Ejemplo de formato de salida:
-        "Se requiere revisión y diagnóstico de..."
+        "Se requiere un profesional para la revisión y gestión de..."
         
-        Sugerencia de categoría: Reparación de electrodomésticos
+        Sugerencia de categoría: Abogado Laboral
         """
         
         # 2. Llamada real a la API de Gemini
@@ -445,7 +445,7 @@ def api_ia_redactar():
         print(f"❌ Error crítico en Upward AI (Gemini): {e}")
         return jsonify({
             'success': False, 
-            'error': 'Nuestros servidores de IA están congestionados. Por favor, describe tu problema manualmente.'
+            'error': 'Nuestros servidores de IA están congestionados. Por favor, describe tu requerimiento manualmente.'
         }), 500
 
 # =====================================================================
@@ -1114,26 +1114,32 @@ def api_optimizar_perfil():
     habilidades_actuales = data.get('habilidades', '')
     
     # 🕵️‍♂️ Monitoreo en logs de Render
-    print(f"--- NUEVA PETICIÓN DE IA ---")
+    print(f"--- NUEVA PETICIÓN DE IA (COPILOTO PERFIL) ---")
     print(f"Profesión recibida: {profesion}")
     print(f"Habilidades recibidas: {habilidades_actuales}")
     
     prompt = f"""
-    Eres un experto en marca profesional para la plataforma inWorker.
-    Tu tarea es redactar una descripción de perfil impecable, atractiva y muy vendedora basada estrictamente en los datos del trabajador.
+    Eres el Copiloto inWorker, el asistente de inteligencia artificial experto en marca personal dentro de inWorker (un marketplace integral que abarca desde servicios técnicos y construcción, hasta asesorías legales, financieras, tutorías educativas y belleza).
+    
+    Tu tarea es redactar un extracto de perfil impecable, atractivo y altamente vendedor, basado estrictamente en los datos del trabajador independiente.
     
     INFORMACIÓN REAL DEL USUARIO:
-    - Oficio seleccionado: {profesion}
+    - Oficio/Profesión seleccionada: {profesion}
     - Habilidades y Experiencia ingresadas: {habilidades_actuales}
     
-    REQUISITOS DEL TEXTO:
-    1. Dale prioridad absoluta a TODAS las habilidades y tecnologías que el usuario mencionó. No dejes por fuera detalles importantes.
-    2. El texto debe ser fluido, redactado con un tono profesional, serio y confiable.
-    3. Permite que la extensión se adapte de forma natural para cubrir bien la experiencia del usuario, estructurando un extracto profesional sólido.
-    4. Devuelve ÚNICAMENTE el texto sugerido final. No agregues introducciones, saludos, notas ni comillas.
+    REQUISITOS DEL TEXTO (INSTRUCCIONES ESTRICTAS):
+    1. El tono debe ADAPTARSE a la profesión: altamente formal y riguroso para áreas legales/financieras; técnico y resolutivo para construcción/tecnología; cercano y empático para cuidado/educación/belleza.
+    2. Redacta obligatoriamente en PRIMERA PERSONA del singular ("Soy...", "Ofrezco...", "Me especializo en...").
+    3. Dale prioridad absoluta a TODAS las habilidades, herramientas y tecnologías que el usuario mencionó. Realza su experiencia sin inventar datos que no existan en su descripción original.
+    4. El texto debe transmitir máxima confianza, calidad y enfoque a resultados para persuadir al cliente a contratar.
+    5. Permite que la extensión se adapte de forma natural (máximo 2 o 3 párrafos cortos y contundentes).
+    6. Devuelve ÚNICAMENTE el texto sugerido final. No agregues introducciones, saludos, notas, confirmaciones ni comillas.
     """
     
     try:
+        # Asegúrate de tener 'client' instanciado, ej: client = genai.Client()
+        client = genai.Client() 
+        
         # 🚀 Consumo estable con el nuevo SDK de Gemini
         response = client.models.generate_content(
             model='gemini-2.5-flash',
@@ -1141,13 +1147,13 @@ def api_optimizar_perfil():
         )
         texto_optimizado = response.text.strip()
         
-        print(f"✅ Respuesta exitosa del nuevo Gemini: {texto_optimizado}")
+        print(f"✅ Respuesta exitosa del Copiloto Gemini: {texto_optimizado}")
         return jsonify({'sugerencia': texto_optimizado})
         
     except Exception as e:
         print(f"❌ ERROR REAL EN NUEVO SDK DE GEMINI: {e}")
         # El respaldo amigable por si la API falla o excede la cuota
-        respaldo = f"Especialista en {profesion} comprometido con la excelencia operativa, puntualidad y soluciones eficientes en inWorker."
+        respaldo = f"Profesional especializado en {profesion}. Comprometido con la excelencia operativa, la puntualidad y en brindar soluciones eficientes y de la más alta calidad a través de la plataforma inWorker."
         return jsonify({'sugerencia': respaldo})
 
 # --- RUTAS DEL ADMINISTRADOR MÓDULOS CORE - OPTIMIZADO ---

@@ -196,6 +196,31 @@
                         <select id="field-profesion" name="profesion" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition cursor-pointer">
                             <option value="">-- Selecciona tu especialidad principal --</option>
                             
+                            <optgroup label="⚖️ Legal y Financiero">
+                                <option value="Abogado Penal" {% if usuario['profesion'] == 'Abogado Penal' %}selected{% endif %}>Abogado Penal</option>
+                                <option value="Abogado Laboral" {% if usuario['profesion'] == 'Abogado Laboral' %}selected{% endif %}>Abogado Laboral</option>
+                                <option value="Abogado de Familia" {% if usuario['profesion'] == 'Abogado de Familia' %}selected{% endif %}>Abogado de Familia</option>
+                                <option value="Contabilidad y Finanzas" {% if usuario['profesion'] == 'Contabilidad y Finanzas' %}selected{% endif %}>Contabilidad y Finanzas</option>
+                                <option value="Asesoría Tributaria" {% if usuario['profesion'] == 'Asesoría Tributaria' %}selected{% endif %}>Asesoría Tributaria</option>
+                                <option value="Trámites Legales" {% if usuario['profesion'] == 'Trámites Legales' %}selected{% endif %}>Trámites Legales</option>
+                            </optgroup>
+
+                            <optgroup label="🎓 Educación y Tutorías">
+                                <option value="Clases de Matemáticas" {% if usuario['profesion'] == 'Clases de Matemáticas' %}selected{% endif %}>Clases de Matemáticas</option>
+                                <option value="Clases de Idiomas" {% if usuario['profesion'] == 'Clases de Idiomas' %}selected{% endif %}>Clases de Idiomas</option>
+                                <option value="Clases de Música" {% if usuario['profesion'] == 'Clases de Música' %}selected{% endif %}>Clases de Música</option>
+                                <option value="Refuerzo Escolar" {% if usuario['profesion'] == 'Refuerzo Escolar' %}selected{% endif %}>Refuerzo Escolar</option>
+                                <option value="Tutoría Universitaria" {% if usuario['profesion'] == 'Tutoría Universitaria' %}selected{% endif %}>Tutoría Universitaria</option>
+                            </optgroup>
+
+                            <optgroup label="💅 Belleza y Bienestar">
+                                <option value="Manicure y Pedicure" {% if usuario['profesion'] == 'Manicure y Pedicure' %}selected{% endif %}>Manicure y Pedicure</option>
+                                <option value="Keratinas y Alisados" {% if usuario['profesion'] == 'Keratinas y Alisados' %}selected{% endif %}>Keratinas y Alisados</option>
+                                <option value="Maquillaje Profesional" {% if usuario['profesion'] == 'Maquillaje Profesional' %}selected{% endif %}>Maquillaje Profesional</option>
+                                <option value="Barbería y Corte" {% if usuario['profesion'] == 'Barbería y Corte' %}selected{% endif %}>Barbería y Corte</option>
+                                <option value="Masajes Relajantes" {% if usuario['profesion'] == 'Masajes Relajantes' %}selected{% endif %}>Masajes Relajantes</option>
+                            </optgroup>
+
                             <optgroup label="🏠 Hogar y Construcción">
                                 <option value="Plomería" {% if usuario['profesion'] == 'Plomería' %}selected{% endif %}>Plomería</option>
                                 <option value="Electricidad" {% if usuario['profesion'] == 'Electricidad' %}selected{% endif %}>Electricidad</option>
@@ -427,7 +452,12 @@
             "Fumigación": "<strong>Manejo de Químicos:</strong> El uso de pesticidas exige cumplir con normativas de salud. Debes usar equipo de protección adecuado y dar indicaciones estrictas de bioseguridad al cliente.",
             "Ingeniería civil": "<strong>Matrícula Profesional:</strong> Debes contar con matrícula expedida por el COPNIA. Cualquier aval estructural o daño en la obra es de tu entera responsabilidad civil y legal.",
             "Arquitectura": "<strong>Matrícula Profesional:</strong> Debes contar con matrícula expedida por el CPNAA. Eres responsable de asegurar que el proyecto cumpla con las normativas de curaduría urbana.",
-            "Techos y cubiertas": "<strong>Trabajo en Alturas:</strong> Por normativa nacional (MinTrabajo), toda labor a más de 1.5 metros exige certificado vigente de Trabajo en Alturas y uso estricto de arnés y línea de vida."
+            "Techos y cubiertas": "<strong>Trabajo en Alturas:</strong> Por normativa nacional (MinTrabajo), toda labor a más de 1.5 metros exige certificado vigente de Trabajo en Alturas y uso estricto de arnés y línea de vida.",
+            // 🛡️ NUEVAS ADVERTENCIAS AÑADIDAS
+            "Abogado Penal": "<strong>Matrícula Vigente:</strong> Para ejercer o dar asesoría oficial, debes contar con tu Tarjeta Profesional de Abogado vigente expedida por el Consejo Superior de la Judicatura.",
+            "Abogado Laboral": "<strong>Matrícula Vigente:</strong> Para ejercer o dar asesoría oficial, debes contar con tu Tarjeta Profesional de Abogado vigente expedida por el Consejo Superior de la Judicatura.",
+            "Abogado de Familia": "<strong>Matrícula Vigente:</strong> Para ejercer o dar asesoría oficial, debes contar con tu Tarjeta Profesional de Abogado vigente expedida por el Consejo Superior de la Judicatura.",
+            "Contabilidad y Finanzas": "<strong>Matrícula Vigente:</strong> Requiere Tarjeta Profesional de Contador Público expedida por la Junta Central de Contadores para firmas y balances."
         };
 
         function evaluarAdvertenciaSeguridad() {

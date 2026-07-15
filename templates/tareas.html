@@ -118,6 +118,34 @@
                         <select name="categoria_filtro" class="bg-white border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-slate-600 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm hover:bg-slate-50 transition w-full sm:w-auto">
                             <option value="">Todas las categorías</option>
                             
+                            <!-- 💼 NUEVO BLOQUE: Legal y Financiero -->
+                            <optgroup label="⚖️ Legal y Financiero">
+                                <option value="Abogado Penal" {% if request.args.get('categoria_filtro') == 'Abogado Penal' %}selected{% endif %}>Abogado Penal</option>
+                                <option value="Abogado Laboral" {% if request.args.get('categoria_filtro') == 'Abogado Laboral' %}selected{% endif %}>Abogado Laboral</option>
+                                <option value="Abogado de Familia" {% if request.args.get('categoria_filtro') == 'Abogado de Familia' %}selected{% endif %}>Abogado de Familia</option>
+                                <option value="Contabilidad y Finanzas" {% if request.args.get('categoria_filtro') == 'Contabilidad y Finanzas' %}selected{% endif %}>Contabilidad y Finanzas</option>
+                                <option value="Asesoría Tributaria" {% if request.args.get('categoria_filtro') == 'Asesoría Tributaria' %}selected{% endif %}>Asesoría Tributaria</option>
+                                <option value="Trámites Legales" {% if request.args.get('categoria_filtro') == 'Trámites Legales' %}selected{% endif %}>Trámites Legales</option>
+                            </optgroup>
+
+                            <!-- 🎓 NUEVO BLOQUE: Educación y Tutorías -->
+                            <optgroup label="🎓 Educación y Tutorías">
+                                <option value="Clases de Matemáticas" {% if request.args.get('categoria_filtro') == 'Clases de Matemáticas' %}selected{% endif %}>Clases de Matemáticas</option>
+                                <option value="Clases de Idiomas" {% if request.args.get('categoria_filtro') == 'Clases de Idiomas' %}selected{% endif %}>Clases de Idiomas</option>
+                                <option value="Clases de Música" {% if request.args.get('categoria_filtro') == 'Clases de Música' %}selected{% endif %}>Clases de Música</option>
+                                <option value="Refuerzo Escolar" {% if request.args.get('categoria_filtro') == 'Refuerzo Escolar' %}selected{% endif %}>Refuerzo Escolar</option>
+                                <option value="Tutoría Universitaria" {% if request.args.get('categoria_filtro') == 'Tutoría Universitaria' %}selected{% endif %}>Tutoría Universitaria</option>
+                            </optgroup>
+
+                            <!-- 💅 NUEVO BLOQUE: Belleza y Bienestar -->
+                            <optgroup label="💅 Belleza y Bienestar">
+                                <option value="Manicure y Pedicure" {% if request.args.get('categoria_filtro') == 'Manicure y Pedicure' %}selected{% endif %}>Manicure y Pedicure</option>
+                                <option value="Keratinas y Alisados" {% if request.args.get('categoria_filtro') == 'Keratinas y Alisados' %}selected{% endif %}>Keratinas y Alisados</option>
+                                <option value="Maquillaje Profesional" {% if request.args.get('categoria_filtro') == 'Maquillaje Profesional' %}selected{% endif %}>Maquillaje Profesional</option>
+                                <option value="Barbería y Corte" {% if request.args.get('categoria_filtro') == 'Barbería y Corte' %}selected{% endif %}>Barbería y Corte</option>
+                                <option value="Masajes Relajantes" {% if request.args.get('categoria_filtro') == 'Masajes Relajantes' %}selected{% endif %}>Masajes Relajantes</option>
+                            </optgroup>
+
                             <optgroup label="🏠 Hogar y Construcción">
                                 <option value="Plomería" {% if request.args.get('categoria_filtro') == 'Plomería' %}selected{% endif %}>Plomería</option>
                                 <option value="Electricidad" {% if request.args.get('categoria_filtro') == 'Electricidad' %}selected{% endif %}>Electricidad</option>
@@ -356,6 +384,35 @@
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">Categoría Técnica</label>
                         <select name="categoria" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner cursor-pointer">
+                            
+                            <!-- 💼 NUEVO BLOQUE: Legal y Financiero (MODAL) -->
+                            <optgroup label="⚖️ Legal y Financiero">
+                                <option value="Abogado Penal">Abogado Penal</option>
+                                <option value="Abogado Laboral">Abogado Laboral</option>
+                                <option value="Abogado de Familia">Abogado de Familia</option>
+                                <option value="Contabilidad y Finanzas">Contabilidad y Finanzas</option>
+                                <option value="Asesoría Tributaria">Asesoría Tributaria</option>
+                                <option value="Trámites Legales">Trámites Legales</option>
+                            </optgroup>
+
+                            <!-- 🎓 NUEVO BLOQUE: Educación y Tutorías (MODAL) -->
+                            <optgroup label="🎓 Educación y Tutorías">
+                                <option value="Clases de Matemáticas">Clases de Matemáticas</option>
+                                <option value="Clases de Idiomas">Clases de Idiomas</option>
+                                <option value="Clases de Música">Clases de Música</option>
+                                <option value="Refuerzo Escolar">Refuerzo Escolar</option>
+                                <option value="Tutoría Universitaria">Tutoría Universitaria</option>
+                            </optgroup>
+
+                            <!-- 💅 NUEVO BLOQUE: Belleza y Bienestar (MODAL) -->
+                            <optgroup label="💅 Belleza y Bienestar">
+                                <option value="Manicure y Pedicure">Manicure y Pedicure</option>
+                                <option value="Keratinas y Alisados">Keratinas y Alisados</option>
+                                <option value="Maquillaje Profesional">Maquillaje Profesional</option>
+                                <option value="Barbería y Corte">Barbería y Corte</option>
+                                <option value="Masajes Relajantes">Masajes Relajantes</option>
+                            </optgroup>
+
                             <optgroup label="🏠 Hogar y Construcción">
                                 <option value="Plomería">Plomería</option>
                                 <option value="Electricidad">Electricidad</option>
