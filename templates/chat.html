@@ -239,6 +239,40 @@
                     </div>
 
                     <div id="cajaMensajes" class="mensajes-box p-4 sm:p-6 space-y-4">
+                        
+                        <!-- 💡 INICIO: Sistema Inteligente de Escrow para Profesionales -->
+                        {% set categorias_profesionales = [
+                            'Abogado Penal', 'Abogado Laboral', 'Abogado de Familia', 
+                            'Contabilidad y Finanzas', 'Asesoría Tributaria', 'Trámites Legales', 
+                            'Arquitectura', 'Ingeniería civil', 'Ingeniería mecánica', 'Ingeniería eléctrica',
+                            'Clases de Matemáticas', 'Clases de Idiomas', 'Clases de Música', 'Refuerzo Escolar', 'Tutoría Universitaria'
+                        ] %}
+
+                        {% if tarea.categoria in categorias_profesionales and tarea.estado not in ['En Garantia', 'Finalizada'] %}
+                        <div class="my-2 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-2xl p-4 shadow-sm relative overflow-hidden animate-fade-in-down w-full max-w-2xl mx-auto">
+                            <div class="absolute -right-4 -top-4 w-16 h-16 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
+                            <div class="absolute left-0 top-0 w-1 h-full bg-indigo-500"></div>
+                            
+                            <div class="flex items-start gap-3 relative z-10">
+                                <div class="w-9 h-9 rounded-full bg-indigo-100 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0 shadow-inner">
+                                    <i class="fas fa-robot text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-[10px] font-black text-indigo-800 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                                        <i class="fas fa-shield-check text-emerald-500"></i> Bot inWorker: Tip de Seguridad
+                                    </p>
+                                    <p class="text-xs text-indigo-900/80 leading-relaxed font-medium">
+                                        Por seguridad de ambos, para dar una cotización final exacta en este oficio, recomendamos acordar un valor menor por la <strong>"Consulta Inicial o Revisión de Caso"</strong>.
+                                    </p>
+                                    <div class="mt-2 bg-white/60 rounded-xl p-2.5 border border-indigo-100 text-[11px] text-indigo-800">
+                                        <i class="fas fa-unlock-alt text-indigo-500 mr-1"></i> Al fondear la consulta inicial en Garantía, <strong>se desbloquearán automáticamente los números de teléfono</strong> para enviar documentos o agendar videollamadas.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <!-- 💡 FIN: Sistema Inteligente de Escrow -->
+
                         {% for msg in mensajes %}
                             
                             {% set f_str = msg.fecha_envio | string %}
@@ -299,7 +333,8 @@
                                                     <p class="text-[9px] text-slate-400 mt-1.5 leading-tight">Haz clic aquí al terminar el servicio para solicitar tus fondos.</p>
                                                 
                                                 {% elif session['usuario_correo'] == tarea.cliente_correo %}
-                                                    <form action="/chat/{{ tarea.id }}/liberar_fondos" method="POST">
+                                                    <!-- 💡 FORMULARIO INTERCEPTADO PARA MOSTRAR LA ENCRUCIJADA -->
+                                                    <form action="/chat/{{ tarea.id }}/liberar_fondos" method="POST" onsubmit="event.preventDefault(); procesarLiberacion(this);">
                                                         <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
                                                         <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-[10px] uppercase tracking-wider transition shadow-md active:scale-95 flex items-center justify-center">
                                                             <i class="fas fa-hand-holding-dollar mr-2"></i> Liberar Fondos al Técnico
@@ -377,6 +412,15 @@
                         </div>
                     {% else %}
                         <div class="p-3 sm:p-4 bg-white border-t border-slate-200">
+                            <!-- 💡 BOTÓN DE ACCIÓN RÁPIDA (SOLO PARA TRABAJADORES) -->
+                            {% if session.get('usuario_rol') in ['Trabajador', 'Worker'] and tarea.estado != 'Finalizada' %}
+                            <div class="flex justify-start mb-3">
+                                <button type="button" onclick="abrirModalHito()" class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black px-4 py-2 rounded-xl text-[10px] uppercase tracking-widest shadow-md shadow-indigo-500/30 transition-all active:scale-95 flex items-center gap-2 border border-indigo-500">
+                                    <i class="fas fa-file-invoice-dollar text-sm"></i> Generar Cobro Adicional o Hito
+                                </button>
+                            </div>
+                            {% endif %}
+
                             <form id="formEnviarMensaje" action="/chat/{{ tarea.id }}" method="POST" enctype="multipart/form-data" class="flex flex-col">
                                 <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
                                 
@@ -421,6 +465,98 @@
 
         </div>
     </main>
+
+    <!-- 🛠️ MODAL: NUEVO HITO O ADICIONAL (TRABAJADOR) -->
+    <div id="modalNuevoHito" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white border border-slate-200 rounded-[2rem] max-w-sm w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="modalNuevoHitoContent">
+            
+            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shadow-inner">
+                        <i class="fas fa-plus-circle text-sm"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-black text-indigo-900 uppercase tracking-widest leading-tight">Añadir Cobro</h2>
+                        <p class="text-[9px] text-indigo-500 font-bold uppercase tracking-wider mt-0.5">Protegido por Escrow</p>
+                    </div>
+                </div>
+                <button type="button" onclick="cerrarModalHito()" class="text-slate-400 hover:text-rose-500 transition-colors bg-white p-2 rounded-full border border-slate-200 shadow-sm active:scale-90">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Asegúrate de tener esta ruta configurada en tu backend si usan una diferente para cotizaciones adicionales -->
+            <form action="/chat/{{ tarea.id }}/enviar_cotizacion" method="POST" class="p-6 space-y-4">
+                <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
+                <input type="hidden" name="es_hito_adicional" value="true">
+
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Tipo de Cobro</label>
+                    <select name="tipo_cobro" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:outline-none focus:border-indigo-500 transition cursor-pointer shadow-inner">
+                        <option value="Hito de Proyecto">📌 Siguiente Hito (Ej: Radicar Demanda)</option>
+                        <option value="Ajuste en Sitio">🔧 Ajuste en Sitio (Ej: Repuestos extra)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Concepto / Descripción</label>
+                    <input type="text" name="concepto" required placeholder="Ej: Compra de tubo PVC / 2da Etapa..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-indigo-500 transition shadow-inner">
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Valor del Adicional (COP)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><span class="text-emerald-500 font-black">$</span></div>
+                        <input type="number" name="monto_pesos" required placeholder="50000" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-4 py-3 text-sm font-black text-slate-900 focus:outline-none focus:border-emerald-500 transition shadow-inner">
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100">
+                    <button type="submit" class="w-full py-3.5 bg-slate-900 hover:bg-indigo-600 text-white font-black uppercase tracking-widest rounded-xl transition-all shadow-lg hover:shadow-indigo-500/30 flex items-center justify-center gap-2 text-xs active:scale-[0.98]">
+                        Enviar Cobro al Cliente <i class="fas fa-paper-plane ml-1"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ⚖️ MODAL: ENCRUCIJADA DE DECISIÓN (CLIENTE) -->
+    <div id="modalDecisionCierre" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[120] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white border border-slate-200 rounded-[2rem] max-w-md w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 text-center relative" id="modalDecisionCierreContent">
+            
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-blue-500"></div>
+
+            <div class="p-8 pb-6">
+                <div class="w-20 h-20 mx-auto bg-emerald-50 text-emerald-500 rounded-full border-4 border-emerald-100 flex items-center justify-center mb-5 animate-bounce">
+                    <i class="fas fa-check-circle text-4xl"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-900 leading-tight tracking-tight mb-2">¡Pago Liberado!</h2>
+                <p class="text-sm text-slate-500 font-medium">El especialista ya recibió los fondos en su billetera inWorker. ¿Cómo deseas continuar con este requerimiento?</p>
+            </div>
+
+            <div class="px-6 pb-8 space-y-3">
+                <button onclick="continuarProceso()" class="w-full bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-2xl p-4 text-left flex items-start gap-4 transition-all group">
+                    <div class="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-md">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-indigo-900">Continuar con inWorker</h3>
+                        <p class="text-[10px] text-indigo-700/80 mt-1 leading-relaxed">Mantén el chat abierto y recibe las siguientes cotizaciones bajo la protección de Garantía Escrow.</p>
+                    </div>
+                </button>
+
+                <button onclick="finalizarYCalificar()" class="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl p-4 text-left flex items-start gap-4 transition-all group">
+                    <div class="w-10 h-10 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-800">Finalizar y Calificar</h3>
+                        <p class="text-[10px] text-slate-500 mt-1 leading-relaxed">Da por terminado este requerimiento por completo y evalúa el trabajo del especialista.</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
         const cajaMensajes = document.getElementById('cajaMensajes');
@@ -496,6 +632,69 @@
             });
         }
 
+        // --- LÓGICA DE HITOS Y ENCRUCIJADA (NUEVO) ---
+        function abrirModalHito() {
+            const modal = document.getElementById('modalNuevoHito');
+            const content = document.getElementById('modalNuevoHitoContent');
+            if(modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
+                }, 10);
+            }
+        }
+
+        function cerrarModalHito() {
+            const modal = document.getElementById('modalNuevoHito');
+            const content = document.getElementById('modalNuevoHitoContent');
+            if(modal) {
+                modal.classList.add('opacity-0');
+                content.classList.add('scale-95');
+                setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            }
+        }
+
+        function procesarLiberacion(form) {
+            const btn = form.querySelector('button');
+            const oldHtml = btn.innerHTML;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Liberando fondos...`;
+            btn.disabled = true;
+
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form)
+            }).then(response => {
+                // Sin importar si redirecciona, mostramos el modal para que el cliente elija
+                mostrarEncrucijadaCliente();
+            }).catch(err => {
+                console.error(err);
+                mostrarEncrucijadaCliente(); 
+            });
+        }
+
+        function mostrarEncrucijadaCliente() {
+            const modal = document.getElementById('modalDecisionCierre');
+            const content = document.getElementById('modalDecisionCierreContent');
+            if(modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
+                }, 10);
+            }
+        }
+
+        function continuarProceso() {
+            window.location.reload(); 
+        }
+
+        function finalizarYCalificar() {
+            // Asegúrate de tener la ruta /calificar_tarea configurada
+            window.location.href = `/calificar_tarea/{{ tarea.id }}`;
+        }
+        // ------------------------------------------------
+
         const URL_API_MENSAGES = `/api/chat/{{ tarea.id if tarea.id else tarea['id'] }}/{{ canal_actual }}`;
         const usuarioSesion = "{{ session['usuario_correo'] }}";
         const nombreUsuarioActual = "{{ nombre_usuario }}";
@@ -521,7 +720,6 @@
                         const colorHora = esPropio ? 'text-blue-200' : 'text-slate-400';
                         const avatarInfo = esPropio ? '' : `<div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold border border-slate-300 flex-shrink-0">${msg.remitente ? msg.remitente.charAt(0).toUpperCase() : '?'}</div>`;
                         
-                        // 🛠️ SOLUCIÓN ROBUSTA DE FECHA JAVASCRIPT
                         let f_str = String(msg.fecha_envio);
                         let horaCorta = f_str.includes('GMT') ? f_str.substring(17, 22) : (f_str.length >= 16 ? f_str.substring(11, 16) : f_str);
 

@@ -2193,7 +2193,7 @@ def ver_chat(tarea_id):
                            trabajador_perfil=datos_trabajador)
 
 # =====================================================================
-# 💼 DISPARADOR DE OFERTAS ECONÓMICAS (COTIZACIONES) - OPTIMIZADO
+# 💼 DISPARADOR DE OFERTAS ECONÓMICAS E HITOS ADICIONALES
 # =====================================================================
 @app.route('/chat/<int:tarea_id>/enviar_cotizacion', methods=['POST'])
 def enviar_cotizacion(tarea_id):
@@ -2202,29 +2202,51 @@ def enviar_cotizacion(tarea_id):
         
     correo_logueado = session['usuario_correo']
     canal_sala = request.form.get('canal_actual')
-    concepto = request.form.get('concepto', '').strip()
+    concepto_original = request.form.get('concepto', '').strip()
+    
+    # 💡 MAGIA NUEVA: Capturar si esto viene del Modal de Hitos Adicionales
+    es_hito_adicional = request.form.get('es_hito_adicional') == 'true'
+    tipo_cobro = request.form.get('tipo_cobro', 'Cotización')
+    
+    # Enriquecer el concepto visualmente en la base de datos si es un extra
+    if es_hito_adicional:
+        concepto = f"{tipo_cobro}: {concepto_original}"
+    else:
+        concepto = concepto_original
     
     try:
         monto_pesos = float(request.form.get('monto_pesos', 0))
     except (ValueError, TypeError):
         monto_pesos = 0.0
     
-    if monto_pesos <= 0 or not concepto:
+    if monto_pesos <= 0 or not concepto_original:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'success': False, 'error': 'Datos de cotización inválidos'}), 400
-        flash("❌ Ingresa un valor en pesos válido y la descripción del servicio.", "error")
+        flash("❌ Ingresa un valor en pesos válido y la descripción del cobro.", "error")
         return redirect(url_for('ver_chat', tarea_id=tarea_id))
 
-    # 🚨 REGLA: Si la recarga máxima es de $1.000.000, los técnicos no pueden cotizar más de eso.
+    # 🚨 REGLA: Límite máximo por recibo individual de Escrow
     if monto_pesos > 1000000:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify({'success': False, 'error': 'El valor máximo permitido por cotización es de $1.000.000 COP.'}), 400
-        flash("❌ El valor máximo permitido por cotización es de $1.000.000 COP por razones de seguridad.", "error")
+            return jsonify({'success': False, 'error': 'El valor máximo permitido por cobro es de $1.000.000 COP.'}), 400
+        flash("❌ El valor máximo permitido por recibo es de $1.000.000 COP por razones de seguridad de la pasarela.", "error")
         return redirect(url_for('ver_chat', tarea_id=tarea_id))
         
     contenido_cotizacion = f"{monto_pesos}|{concepto}"
     
     try:
+        tarea_obj = Tarea.query.get(tarea_id)
+        if not tarea_obj:
+            return jsonify({'success': False, 'error': 'Requerimiento no encontrado'}), 404
+
+        # Bloqueo estricto: Si ya cerraron el trato, no se cobra más
+        if tarea_obj.estado == 'Finalizada':
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'error': 'El servicio ya fue cerrado y calificado.'}), 400
+            flash("❌ Esta tarea ya está finalizada, no puedes generar más cobros.", "error")
+            return redirect(url_for('ver_chat', tarea_id=tarea_id))
+
+        # Crear la burbuja del cobro en el chat (como una factura pendiente)
         nueva_oferta = Mensaje(
             tarea_id=tarea_id,
             canal_trabajador=canal_sala,
@@ -2235,19 +2257,23 @@ def enviar_cotizacion(tarea_id):
         )
         db.session.add(nueva_oferta)
         
-        tarea_obj = Tarea.query.get(tarea_id)
-        if tarea_obj:
+        # 💡 ACTUALIZACIÓN INTELIGENTE DE ESTADO: 
+        # Solo regresamos la tarea a "Cotización Pendiente" si era la primera oferta de todas.
+        # Si es un hito y ya estaban trabajando (En Garantia), no tocamos el estado principal.
+        if not es_hito_adicional and tarea_obj.estado == 'Disponible':
             tarea_obj.estado = 'Cotización Pendiente'
             
         db.session.commit()
-        flash(f"💼 ¡Oferta de ${monto_pesos:,.0f} COP enviada exitosamente!", "success")
+        
+        msg_exito = f"📌 Cobro adicional por ${monto_pesos:,.0f} COP enviado." if es_hito_adicional else f"💼 Oferta de ${monto_pesos:,.0f} COP enviada exitosamente."
+        flash(msg_exito, "success")
         
     except Exception as e:
         db.session.rollback()
         print(f"❌ Error crítico enviando cotización en tarea #{tarea_id}: {e}")
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify({'success': False, 'error': 'Error interno al procesar la oferta.'}), 500
-        flash("❌ Ocurrió un error al procesar tu oferta. Inténtalo de nuevo.", "error")
+            return jsonify({'success': False, 'error': 'Error interno al procesar el cobro.'}), 500
+        flash("❌ Ocurrió un error al procesar tu transacción. Inténtalo de nuevo.", "error")
         return redirect(url_for('ver_chat', tarea_id=tarea_id))
     
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'multipart/form-data' in request.content_type:
@@ -2522,7 +2548,7 @@ def confirmar_entrega(tarea_id):
 
 
 # =====================================================================
-# ⭐ MÓDULO DE REPUTACIÓN Y CALIFICACIÓN - OPTIMIZADO
+# ⭐ MÓDULO DE REPUTACIÓN Y CIERRE DEFINITIVO DE TAREA - OPTIMIZADO
 # =====================================================================
 @app.route('/calificar/<int:tarea_id>', methods=['POST'])
 def calificar_tecnico(tarea_id):
@@ -2544,8 +2570,9 @@ def calificar_tecnico(tarea_id):
         # ⚡ Consultamos la orden de servicio mediante el ORM
         tarea = Tarea.query.get(tarea_id)
         
-        # 🛡️ FILTRO DE SEGURIDAD: Solo el cliente dueño de una tarea finalizada y no calificada puede votar
-        if tarea and tarea.estado == 'Finalizada' and getattr(tarea, 'calificada', 0) == 0 and correo_logueado == tarea.cliente_correo:
+        # 🛡️ FILTRO DE SEGURIDAD ACTUALIZADO: 
+        # Ya no exigimos que el estado sea 'Finalizada' previamente, porque ESTA acción es la que finaliza el ciclo.
+        if tarea and getattr(tarea, 'calificada', 0) == 0 and correo_logueado == tarea.cliente_correo:
             
             # Buscamos al técnico asignado para actualizar su reputación global
             tecnico = Usuario.query.filter_by(correo=tarea.trabajador_correo).first()
@@ -2555,18 +2582,30 @@ def calificar_tecnico(tarea_id):
                 tecnico.puntuacion_total = (tecnico.puntuacion_total or 0.0) + estrellas
                 tecnico.total_calificaciones = (tecnico.total_calificaciones or 0) + 1
                 
-            # Marcamos la tarea como calificada de forma definitiva para evitar dobles sumas
+            # 💡 AQUÍ CERRAMOS EL CANDADO MAESTRO
+            tarea.estado = 'Finalizada'
             tarea.calificada = 1
+            
+            # 🤖 Mensaje de cierre en la Sala de Negociación
+            mensaje_sistema = Mensaje(
+                tarea_id=tarea_id,
+                canal_trabajador=tarea.trabajador_correo, # Usamos el correo del técnico como canal de sala
+                remitente_correo='sistema@inworker.co',
+                mensaje=f"⭐ SERVICIO CERRADO Y CALIFICADO. El cliente ha finalizado este requerimiento y ha otorgado {estrellas} estrellas al especialista. ¡Gracias por usar el ecosistema inWorker!",
+                tipo='sistema'
+            )
+            db.session.add(mensaje_sistema)
             
             # Consolidamos la transacción de manera atómica
             db.session.commit()
-            flash("⭐ ¡Gracias por calificar al especialista!", "success")
+            flash("⭐ ¡Servicio finalizado y especialista calificado con éxito!", "success")
             
     except Exception as e:
         db.session.rollback()
         print(f"❌ Error crítico al procesar calificación de tarea #{tarea_id}: {e}")
         flash("❌ Ocurrió un error interno al guardar tu calificación.", "error")
         
+    # Redirigimos al chat (que ahora mostrará la pantalla de "Chat Cerrado" porque el estado es Finalizada)
     return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=tarea.trabajador_correo if tarea else None))
 
 # =====================================================================
@@ -2823,7 +2862,7 @@ def solicitar_liberacion(tarea_id):
     return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
 
 # =====================================================================
-# 💸 CLIENTE: LIBERAR FONDOS AL TRABAJADOR (CIERRE DE CICLO)
+# 💸 CLIENTE: LIBERAR FONDOS AL TRABAJADOR (CIERRE DE HITO / CICLO)
 # =====================================================================
 @app.route('/chat/<int:tarea_id>/liberar_fondos', methods=['POST'])
 def liberar_fondos(tarea_id):
@@ -2837,6 +2876,8 @@ def liberar_fondos(tarea_id):
         
         # Validamos que esté en garantía y tenga un técnico asignado
         if tarea.estado != 'En Garantia' or not tarea.trabajador_correo:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'error': 'Esta orden no está en garantía.'}), 400
             flash("❌ Esta orden no está en garantía o no tiene un trabajador asignado.", "error")
             return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
             
@@ -2857,7 +2898,7 @@ def liberar_fondos(tarea_id):
         saldo_tecnico_actual = trabajador.saldo_creditos or 0.0
         trabajador.saldo_creditos = round(saldo_tecnico_actual + creditos_tecnico, 2)
         
-        # 🕵️‍♂️ NUEVO MOTOR DE EMBAJADORES (PROGRAMA DE CRECIMIENTO EN PILOTO AUTOMÁTICO)
+        # 🕵️‍♂️ MOTOR DE EMBAJADORES (PROGRAMA DE CRECIMIENTO EN PILOTO AUTOMÁTICO)
         if trabajador.referido_por:
             padrino = Usuario.query.filter_by(codigo_embajador=trabajador.referido_por).first()
             
@@ -2908,25 +2949,33 @@ def liberar_fondos(tarea_id):
                     padrino.nivel_embajador = nuevo_nivel
                     print(f"🏆 ¡EL EMBAJADOR {padrino.nombre} HA ASCENDIDO AL NIVEL {nuevo_nivel}! Servicios red: {padrino.servicios_red}")
 
-        # Cambiamos el estado de la tarea a Finalizada
-        tarea.estado = 'Finalizada'
+        # 💡 CIRUGÍA NINJA: Mantenemos el chat vivo y reseteamos el ciclo de pago
+        tarea.estado = 'Cotización Pendiente'
+        tarea.confirmacion_cliente = 0
+        tarea.confirmacion_trabajador = 0
         
-        # Inyectamos el mensaje final de victoria (Reflejando el pago NETO del 88%)
+        # Inyectamos el mensaje del sistema invitando a continuar
         mensaje_sistema = Mensaje(
             tarea_id=tarea_id,
             canal_trabajador=canal_sala,
             remitente_correo='sistema@inworker.co',
-            mensaje=f"🎉 ¡TRABAJO FINALIZADO! El cliente ha liberado los fondos exitosamente. Se han transferido {creditos_tecnico} Créditos netos a la billetera del técnico.",
+            mensaje=f"🎉 ¡PAGO LIBERADO! Se han transferido {creditos_tecnico} Créditos netos a la billetera del especialista.\n\n🔒 El chat sigue abierto y protegido por inWorker. Si desean continuar con un siguiente paso, el especialista puede generar un nuevo cobro desde aquí.",
             tipo='sistema'
         )
         db.session.add(mensaje_sistema)
         
         db.session.commit()
-        flash("🎉 ¡Fondos liberados con éxito! Gracias por usar inWorker.", "success")
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type and 'multipart/form-data' in request.content_type:
+            return jsonify({'success': True})
+            
+        flash("🎉 ¡Fondos liberados con éxito!", "success")
         
     except Exception as e:
         db.session.rollback()
         print(f"❌ Error crítico al liberar fondos: {e}")
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'error': 'Error interno al procesar el pago.'}), 500
         flash("❌ Ocurrió un error al procesar el pago al técnico.", "error")
         
     return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
