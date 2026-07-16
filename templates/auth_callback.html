@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conectando con Google...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center">
+    
+    <div class="text-center">
+        <i class="fas fa-circle-notch fa-spin text-4xl text-blue-600 mb-4"></i>
+        <h2 class="text-lg font-bold text-slate-800">Sincronizando cuenta...</h2>
+        <p class="text-xs text-slate-500 mt-2">Por favor no cierres esta ventana.</p>
+    </div>
+
+    <script>
+        // Tus llaves de Supabase
+        const supabaseUrl = 'https://tjdqrngasqqafrwaeoao.supabase.co'; 
+        const supabaseAnonKey = 'sb_publishable_8eGQza0GkdmDR33Wcvh7NQ_uqMwACUY';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        // Supabase detecta automáticamente que venimos de Google
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' || session) {
+                // Capturamos el correo y nombre desde Google
+                const userEmail = session.user.email;
+                const userName = session.user.user_metadata.full_name || userEmail.split('@')[0];
+
+                // Enviamos los datos a Flask para que inicie la sesión real
+                try {
+                    const response = await fetch('/auth/google/sync', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ correo: userEmail, nombre: userName })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        // Redirigimos al panel principal (Dashboard)
+                        window.location.href = data.redirect;
+                    } else {
+                        throw new Error("Fallo la sincronización en el servidor");
+                    }
+                } catch (error) {
+                    console.error(error);
+                    window.location.href = '/login?error=sync';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

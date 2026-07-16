@@ -44,16 +44,18 @@
                 Registrarse
             </div>
         </div>
-<div class="flex items-center space-x-2 my-6">
-    <div class="h-px bg-slate-200 flex-1"></div>
-    <span class="text-[10px] font-bold text-slate-400 uppercase">O continúa con</span>
-    <div class="h-px bg-slate-200 flex-1"></div>
-</div>
 
-<button type="button" onclick="loginConGoogle()" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 py-3 rounded-xl font-bold transition shadow-sm active:scale-[0.98] cursor-pointer mb-6">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" class="w-5 h-5">
-    Google
-</button>
+        <button id="btn-google" type="button" onclick="loginConGoogle()" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 py-3 rounded-xl font-bold transition shadow-sm active:scale-[0.98] cursor-pointer mb-6 disabled:opacity-50 disabled:cursor-not-allowed">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" class="w-5 h-5" id="google-icon">
+            <i class="fas fa-spinner fa-spin hidden text-slate-500" id="google-spinner"></i>
+            <span id="google-text">Continuar con Google</span>
+        </button>
+
+        <div class="flex items-center space-x-2 my-6">
+            <div class="h-px bg-slate-200 flex-1"></div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase">O usa tu correo</span>
+            <div class="h-px bg-slate-200 flex-1"></div>
+        </div>
 
         <form id="form-login" method="POST" action="/login" class="space-y-4">
             <div class="text-left space-y-1">
@@ -178,7 +180,9 @@
     </div>
 
     <script>
-        // VISIBILIDAD DE CONTRASEÑA (Global)
+        // ==========================================
+        // 1. MANEJO DE INTERFAZ Y PESTAÑAS
+        // ==========================================
         function togglePassword(inputId, iconId) {
             const input = document.getElementById(inputId);
             const icon = document.getElementById(iconId);
@@ -186,17 +190,14 @@
             if (input && icon) {
                 if (input.type === "password") {
                     input.type = "text";
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
+                    icon.classList.replace('fa-eye', 'fa-eye-slash');
                 } else {
                     input.type = "password";
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
+                    icon.classList.replace('fa-eye-slash', 'fa-eye');
                 }
             }
         }
 
-        // MOTOR DE CAMBIO DE PESTAÑAS (Ahora soporta 3 modos)
         function cambiarPestaña(tipo) {
             const formLogin = document.getElementById('form-login');
             const formRegistro = document.getElementById('form-registro');
@@ -205,7 +206,6 @@
             const tabLogin = document.getElementById('tab-login');
             const tabRegistro = document.getElementById('tab-registro');
 
-            // Ocultar todos primero por limpieza
             formLogin.style.display = 'none';
             formRegistro.style.display = 'none';
             formRecuperar.style.display = 'none';
@@ -215,20 +215,20 @@
                 tabs.style.display = 'flex';
                 tabLogin.className = "flex-1 pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 cursor-pointer transition-all duration-200";
                 tabRegistro.className = "flex-1 pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 cursor-pointer transition-all duration-200";
-            
             } else if (tipo === 'registro') {
                 formRegistro.style.display = 'block';
                 tabs.style.display = 'flex';
                 tabLogin.className = "flex-1 pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 cursor-pointer transition-all duration-200";
                 tabRegistro.className = "flex-1 pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 cursor-pointer transition-all duration-200";
-            
             } else if (tipo === 'recuperar') {
                 formRecuperar.style.display = 'block';
-                tabs.style.display = 'none'; // Ocultamos los botones de Login/Registro arriba para evitar distracciones
+                tabs.style.display = 'none'; 
             }
         }
 
-        // CONTROL DE CARGA INICIAL
+        // ==========================================
+        // 2. LÓGICA DE CARGA INICIAL
+        // ==========================================
         document.addEventListener("DOMContentLoaded", function() {
             const alertBox = document.getElementById('flash-message-box');
             if (alertBox) {
@@ -243,9 +243,8 @@
             const urlParams = new URLSearchParams(window.location.search);
             const action = urlParams.get('action');
             let rol = urlParams.get('rol');
-            const ref = urlParams.get('ref'); // 🥷 Capturamos el link de referido
+            const ref = urlParams.get('ref'); 
 
-            // 🥷 Si la URL trae un código de referido, abrimos directo el registro
             if (action === 'registro' || ref) cambiarPestaña('registro');
             else if (action === 'recuperar') cambiarPestaña('recuperar');
             else if (action === 'login') cambiarPestaña('login');
@@ -257,24 +256,44 @@
             }
         });
 
-// 🚀 INICIALIZACIÓN SUPABASE
+        // ==========================================
+        // 3. AUTENTICACIÓN GOOGLE / SUPABASE
+        // ==========================================
         const supabaseUrl = 'https://tjdqrngasqqafrwaeoao.supabase.co'; 
         const supabaseAnonKey = 'sb_publishable_8eGQza0GkdmDR33Wcvh7NQ_uqMwACUY';
 
-        const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
-        const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+        // Variable única para evitar conflictos
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
         async function loginConGoogle() {
-            const { data, error } = await supabase.auth.signInWithOAuth({
+            // Animación de carga en el botón
+            const btn = document.getElementById('btn-google');
+            const icon = document.getElementById('google-icon');
+            const spinner = document.getElementById('google-spinner');
+            const text = document.getElementById('google-text');
+            
+            btn.disabled = true;
+            icon.classList.add('hidden');
+            spinner.classList.remove('hidden');
+            text.innerText = "Conectando...";
+
+            // Llamada a Supabase
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: 'https://inworker.co/auth/callback' // Tu ruta de retorno
+                    redirectTo: 'https://inworker.co/auth/callback' 
                 }
             });
             
             if (error) {
                 console.error("Error al iniciar sesión:", error.message);
-                alert("No pudimos conectar con Google. Revisa la consola.");
+                alert("Hubo un error conectando con Google. Por favor, intenta de nuevo.");
+                
+                // Restaurar botón si hay error
+                btn.disabled = false;
+                icon.classList.remove('hidden');
+                spinner.classList.add('hidden');
+                text.innerText = "Continuar con Google";
             }
         }
     </script>

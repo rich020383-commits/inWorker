@@ -10,6 +10,8 @@ from PIL import Image
 from google import genai
 from moderacion import es_mensaje_seguro
 from disputas_ia import analizar_disputa_chat
+from flask import jsonify
+import uuid
 
 # 🔧 CONFIGURACIÓN AVANZADA CON FLASK-SQLALCHEMY
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, current_app, send_from_directory
@@ -621,6 +623,53 @@ def registrar():
         print(f"⚠️ Error crítico en el registro: {e}")
         flash("❌ Ocurrió un error interno. Por favor, inténtalo de nuevo.", "error")
         return redirect(url_for('login', action='registro'))
+# =====================================================================
+# 🌉 4. PUENTE PARA LOGIN CON GOOGLE
+# =====================================================================
+@app.route('/auth/callback')
+def auth_callback():
+    # Esta ruta solo muestra la página que procesa la respuesta de Google
+    return render_template('auth_callback.html')
+
+@app.route('/auth/google/sync', methods=['POST'])
+def auth_google_sync():
+    # Recibimos los datos que JavaScript capturó de Google
+    data = request.get_json()
+    correo = data.get('correo')
+    nombre = data.get('nombre')
+
+    if not correo:
+        return jsonify({"error": "No se recibió correo"}), 400
+
+    # 1. Buscamos si el usuario ya existe en nuestra base de datos
+    usuario = Usuario.query.filter_by(correo=correo).first()
+
+    # 2. Si es la primera vez que entra con Google, lo registramos automáticamente
+    if not usuario:
+        nuevo_usuario = Usuario(
+            nombre=nombre,
+            cedula=f"GOOG-{str(uuid.uuid4())[:8].upper()}", # Cédula temporal
+            correo=correo,
+            contrasena="OAUTH_GOOGLE_ACCOUNT", # Contraseña inaccesible manualmente
+            rol="Trabajador", # Rol por defecto (luego lo puede cambiar en su perfil)
+            telefono="Sin especificar",
+            verificado=1, # Ya viene verificado por Google
+            saldo_creditos=0.0,
+            codigo_embajador=generar_codigo_embajador(),
+            referido_por=None
+        )
+        db.session.add(nuevo_usuario)
+        db.session.commit()
+        usuario = nuevo_usuario
+
+    # 3. Iniciamos la sesión en Flask (Igual que en tu login tradicional)
+    session['usuario_nombre'] = usuario.nombre
+    session['usuario_rol'] = usuario.rol
+    session['usuario_correo'] = usuario.correo
+
+    # Le decimos a JavaScript a dónde debe redirigir
+    return jsonify({"redirect": url_for('home')}), 200
+
 # =====================================================================
 # 🛡️ GESTIÓN DE ADMINISTRACIÓN: VERIFICAR Y PAUSAR ESPECIALISTAS
 # =====================================================================
