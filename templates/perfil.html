@@ -560,18 +560,35 @@
             .then(response => response.json())
             .then(data => {
                 document.getElementById(loaderId)?.remove();
-                let sugerenciaIA = data.sugerencia;
-                let textoEscapado = sugerenciaIA.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                
+                // 1. Limpiamos el texto que manda Gemini (quitamos los ** de negritas)
+                let sugerenciaLimpia = data.sugerencia.replace(/\*\*/g, '');
+                
+                // 2. Para mostrarlo bonito en el chat, convertimos los saltos de línea reales en etiquetas <br>
+                let htmlParaElChat = sugerenciaLimpia.replace(/\n/g, '<br>');
 
-                box.innerHTML += `
-                    <div class="bg-white border border-emerald-200 text-slate-800 p-4 rounded-2xl rounded-tl-none shadow-sm mt-4 text-sm relative">
-                        <div class="absolute -left-2 -top-2 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white"></div>
-                        <p class="font-black text-emerald-700 uppercase tracking-wide text-[10px] mb-2"><i class="fas fa-check-circle mr-1"></i> Sugerencia Optimizada</p>
-                        <p class="text-slate-600 leading-relaxed mb-4">${sugerenciaIA}</p>
-                        <button onclick="aplicarTextoIA('${textoEscapado}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black px-4 py-2.5 rounded-xl text-xs uppercase tracking-wide transition flex items-center justify-center w-full shadow-md">
-                            <i class="fas fa-arrow-left mr-2"></i> Aplicar al Formulario
-                        </button>
-                    </div>`;
+                // Creamos el contenedor de la respuesta
+                const divRespuesta = document.createElement('div');
+                divRespuesta.className = 'bg-white border border-emerald-200 text-slate-800 p-4 rounded-2xl rounded-tl-none shadow-sm mt-4 text-sm relative';
+                
+                // Inyectamos el HTML de la tarjeta
+                divRespuesta.innerHTML = `
+                    <div class="absolute -left-2 -top-2 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white"></div>
+                    <p class="font-black text-emerald-700 uppercase tracking-wide text-[10px] mb-2"><i class="fas fa-check-circle mr-1"></i> Sugerencia Optimizada</p>
+                    <p class="text-slate-600 leading-relaxed mb-4 text-xs">${htmlParaElChat}</p>
+                    <button id="btn-aplicar-ia-${loaderId}" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black px-4 py-2.5 rounded-xl text-xs uppercase tracking-wide transition flex items-center justify-center w-full shadow-md">
+                        <i class="fas fa-arrow-left mr-2"></i> Aplicar al Formulario
+                    </button>
+                `;
+                
+                // Añadimos el bloque al chat
+                box.appendChild(divRespuesta);
+                
+                // 3. LA MAGIA: Le asignamos la función al botón por código puro, pasando el texto original limpio
+                document.getElementById(`btn-aplicar-ia-${loaderId}`).addEventListener('click', function() {
+                    aplicarTextoIA(sugerenciaLimpia);
+                });
+
                 box.scrollTop = box.scrollHeight;
             })
             .catch(error => {
