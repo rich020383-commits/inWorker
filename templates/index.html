@@ -27,7 +27,31 @@
         }
     </script>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col relative z-0">
+
+    <div class="fixed inset-0 z-[-1] pointer-events-none">
+        <div class="absolute inset-0 bg-slate-50"></div>
+        <img src="{{ url_for('static', filename='img/bg-dashboard.webp') }}" 
+             alt="Fondo inWorker" 
+             class="absolute inset-0 w-full h-full object-cover object-center opacity-[0.03] grayscale mix-blend-multiply">
+    </div>
+
+    ```
+
+### Paso 2: Un Título Limpio y Minimalista
+Ahora, busca el bloque gigante del banner (el que empieza con `` y el `<div class="relative w-full h-48 md:h-64...`) y **bórralo todo**. 
+
+En su lugar, pon este título súper limpio que va directo al grano:
+
+```html
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-6">
+        
+        <div class="mb-8 mt-2">
+            <h1 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Tu Ecosistema de Trabajo</h1>
+            <p class="text-sm text-slate-500 font-medium mt-1 max-w-2xl">
+                Gestiona tus servicios, conecta con el mejor talento y supervisa tus proyectos con total seguridad.
+            </p>
+        </div>
 
     <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm px-4 py-3">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
