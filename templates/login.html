@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>inWorker - Acceso Centralizado</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex items-center justify-center p-4 font-sans">
@@ -43,6 +44,16 @@
                 Registrarse
             </div>
         </div>
+<div class="flex items-center space-x-2 my-6">
+    <div class="h-px bg-slate-200 flex-1"></div>
+    <span class="text-[10px] font-bold text-slate-400 uppercase">O continúa con</span>
+    <div class="h-px bg-slate-200 flex-1"></div>
+</div>
+
+<button type="button" onclick="loginConGoogle()" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 py-3 rounded-xl font-bold transition shadow-sm active:scale-[0.98] cursor-pointer mb-6">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" class="w-5 h-5">
+    Google
+</button>
 
         <form id="form-login" method="POST" action="/login" class="space-y-4">
             <div class="text-left space-y-1">
@@ -245,6 +256,27 @@
                 if (selectRol) selectRol.value = rol;
             }
         });
+
+// 🚀 INICIALIZACIÓN SUPABASE
+        const supabaseUrl = 'https://tjdqrngasqqafrwaeoao.supabase.co'; 
+        const supabaseAnonKey = 'sb_publishable_8eGQza0GkdmDR33Wcvh7NQ_uqMwACUY';
+
+        const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+        const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        async function loginConGoogle() {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: 'https://inworker.co/auth/callback' // Tu ruta de retorno
+                }
+            });
+            
+            if (error) {
+                console.error("Error al iniciar sesión:", error.message);
+                alert("No pudimos conectar con Google. Revisa la consola.");
+            }
+        }
     </script>
 </body>
 </html>
