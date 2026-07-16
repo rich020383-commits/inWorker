@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InWorker: Trabaja y contrata con total confianza</title>
+    <title>inWorker: Trabaja y contrata con total confianza</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -262,15 +262,25 @@
 
     </main>
 
-    <footer class="bg-white border-t border-slate-200 px-4 py-8 text-center mt-10">
-        <div class="flex items-center justify-center space-x-2 mb-4">
+    <footer class="bg-white border-t border-slate-200 px-4 py-12 text-center mt-10">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex items-center justify-center space-x-2 mb-6">
             <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-6 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer">
         </div>
+        
+        <!-- Enlaces Legales Críticos para Google -->
+        <div class="flex flex-col sm:flex-row justify-center gap-4 text-[11px] font-bold text-blue-600 uppercase tracking-wider mb-8">
+            <a href="/privacidad" class="hover:underline">Política de Privacidad</a>
+            <span class="hidden sm:inline text-slate-300">|</span>
+            <a href="/registro" class="hover:underline">Términos de Servicio</a>
+        </div>
+
         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">inWorker &copy; 2026 - Uniendo Tecnología y Confianza</p>
         <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-2">
             Una marca de <span class="text-slate-400">Barakah Tech Hub S.A.S.</span>
         </p>
-    </footer>
+    </div>
+</footer>
 
     <script>
         window.addEventListener('load', () => {

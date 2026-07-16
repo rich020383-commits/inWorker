@@ -3131,6 +3131,10 @@ def analizar_disputa_admin(tarea_id):
         "analisis_ia": texto_analisis
     })
 
+@app.route('/privacidad')
+def privacidad():
+    return render_template('privacidad.html')
+
 # =====================================================================
 # ⚖️ RESOLUCIÓN MANUAL DE DISPUTAS (ARBITRAJE ADMINISTRATIVO) - BLINDADO
 # =====================================================================
