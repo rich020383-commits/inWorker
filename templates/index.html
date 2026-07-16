@@ -133,20 +133,82 @@
         {% endif %}
     {% endwith %}
 
-    <div id="pwa-install-banner" class="hidden bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 flex justify-between items-center shadow-md border-b border-indigo-700">
-        <div class="flex items-center space-x-3">
-            <div class="bg-white/20 p-2 rounded-lg"><i class="fas fa-mobile-alt text-lg"></i></div>
-            <div>
-                <p class="text-sm font-bold">Instalar inWorker App</p>
-                <p class="text-[10px] text-blue-100">Acceso más rápido, sin abrir el navegador.</p>
-            </div>
+    <div id="smart-app-banner" class="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:w-96 bg-white/90 backdrop-blur-lg border border-slate-200/80 shadow-2xl rounded-2xl p-4 z-[9999] transition-all duration-500 translate-y-24 opacity-0 flex items-center justify-between gap-3 hidden">
+        
+        <div class="flex-shrink-0 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Icon" class="w-8 h-8 object-contain filter brightness-0 invert">
         </div>
-        <button id="btn-instalar-pwa" class="bg-white text-blue-600 font-black px-4 py-1.5 rounded-full text-xs shadow hover:scale-105 transition-transform uppercase tracking-wider">
-            Instalar
-        </button>
+
+        <div class="flex-grow">
+            <h4 class="text-sm font-black text-slate-900 leading-tight">inWorker App</h4>
+            <p class="text-[10px] text-slate-500 font-medium leading-tight mt-0.5">La mejor experiencia para tu celular.</p>
+        </div>
+
+        <div class="flex items-center gap-2 flex-shrink-0">
+            <button id="install-app-btn" class="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black uppercase px-4 py-2.5 rounded-xl shadow-md transition-transform active:scale-95">
+                Instalar
+            </button>
+            <button id="close-banner-btn" class="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-colors flex items-center justify-center w-8 h-8">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
     </div>
 
     <script>
+    let deferredPrompt;
+    const banner = document.getElementById('smart-app-banner');
+    const closeBtn = document.getElementById('close-banner-btn');
+    const installBtn = document.getElementById('install-app-btn');
+
+    console.log("🚀 Script del Smart Banner cargado correctamente.");
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        console.log("📱 ¡El navegador detectó que la app se puede instalar!");
+        e.preventDefault(); // Detenemos el banner feo de Chrome
+        deferredPrompt = e;
+
+        // Revisamos la memoria de la sesión
+        const bannerClosedThisSession = sessionStorage.getItem('inworker_app_banner_closed');
+        console.log("🕵️‍♂️ ¿El usuario cerró el banner en esta sesión?:", bannerClosedThisSession);
+
+        if (!bannerClosedThisSession) {
+            console.log("✨ Mostrando el Smart Banner elegante en 1 segundo...");
+            banner.classList.remove('hidden');
+            
+            setTimeout(() => {
+                banner.classList.remove('translate-y-24', 'opacity-0');
+                banner.classList.add('translate-y-0', 'opacity-100');
+            }, 1000);
+        } else {
+            console.log("🛑 El banner no se muestra porque el usuario ya lo cerró antes.");
+        }
+    });
+
+    closeBtn.addEventListener('click', () => {
+        banner.classList.remove('translate-y-0', 'opacity-100');
+        banner.classList.add('translate-y-24', 'opacity-0');
+        
+        setTimeout(() => {
+            banner.classList.add('hidden');
+        }, 500);
+
+        sessionStorage.setItem('inworker_app_banner_closed', 'true');
+        console.log("❌ Banner cerrado y guardado en memoria de sesión.");
+    });
+
+    installBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                console.log("✅ ¡El usuario aceptó instalar inWorker!");
+                banner.classList.add('hidden');
+            }
+            deferredPrompt = null;
+        }
+    });
+</script>
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
