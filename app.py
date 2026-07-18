@@ -325,15 +325,22 @@ with app.app_context():
         pass # Si falla, significa que la columna ya existe, lo ignoramos
     # ⚡ FIN DEL PARCHE
     
-    # 2. Sembrado automático del Administrador Principal 'baraka'
-    admin_existe = Usuario.query.filter_by(correo='baraka@inworker.com').first()
+    # 2. Sembrado automático del Administrador Principal (BLINDADO)
+admin_email = 'baraka@inworker.com'
+admin_pass = os.environ.get('ADMIN_PASS') # Lee desde Render
+
+if not admin_pass:
+    print("⚠️ ¡ERROR: La variable de entorno ADMIN_PASS no está configurada en Render!")
+else:
+    admin_existe = Usuario.query.filter_by(correo=admin_email).first()
     if not admin_existe:
-        print("Creando usuario Administrador predeterminado en almacenamiento persistente...")
+        print("Creando administrador con cifrado de seguridad...")
         nuevo_admin = Usuario(
             nombre='baraka',
             cedula='99999999',
-            correo='baraka@inworker.com',
-            contrasena='baraka123', # Conserva tu credencial exacta actual
+            correo=admin_email,
+            # ¡Cifrado activo! Convertimos el texto plano a un hash seguro
+            contrasena=generate_password_hash(admin_pass),
             rol='Admin',
             profesion='Administrador Principal',
             telefono='3000000000',
@@ -342,9 +349,9 @@ with app.app_context():
         )
         db.session.add(nuevo_admin)
         db.session.commit()
-        print("¡Administrador 'baraka' blindado y registrado con éxito!")
+        print("¡Administrador registrado de forma segura!")
     else:
-        print("El Administrador principal ya está operativo en el almacenamiento persistente.")
+        print("El Administrador principal ya está operativo.")
 
 # =========================================================================
 # ENDPOINT API PARA POLLEO ASÍNCRONO DE NOTIFICACIONES GLOBALES
@@ -526,30 +533,43 @@ def index():
     return render_template('landing.html')
 
 
-# =====================================================================
-# 🔑 2. MÓDULO DE AUTENTICACIÓN CENTRALIZADO (Maneja GET y POST) - OPTIMIZADO
-# =====================================================================
+from werkzeug.security import check_password_hash, generate_password_hash # Asegúrate de tener ambos
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         correo_form = request.form['correo']
         contrasena_form = request.form['contrasena']
         
-        # ⚡ Consulta segura y directa usando el modelo Usuario de SQLAlchemy
-        usuario = Usuario.query.filter_by(correo=correo_form, contrasena=contrasena_form).first()
+        usuario = Usuario.query.filter_by(correo=correo_form).first()
         
         if usuario:
-            # SQLAlchemy nos permite mapear las propiedades directo del objeto obtenido
-            session['usuario_nombre'] = usuario.nombre
-            session['usuario_rol'] = usuario.rol
-            session['usuario_correo'] = usuario.correo
-            return redirect(url_for('home'))
+            # CASO A: Contraseña ya está cifrada (o es el Admin recién creado)
+            if check_password_hash(usuario.contrasena, contrasena_form):
+                login_exitoso(usuario)
+                return redirect(url_for('home'))
+            
+            # CASO B: Contraseña está en texto plano (Migración Automática)
+            elif usuario.contrasena == contrasena_form:
+                # La migramos a formato seguro en este instante
+                usuario.contrasena = generate_password_hash(contrasena_form)
+                db.session.commit()
+                print(f"🔄 Usuario {usuario.correo} migrado a contraseña segura.")
+                
+                login_exitoso(usuario)
+                return redirect(url_for('home'))
         
+        # Si no entra en A ni B, credenciales inválidas
         flash("❌ Credenciales incorrectas.", "error")
         return redirect(url_for('login'))
         
-    # Si entran por GET (es decir, haciendo clic en "Ingresar al Panel" desde la landing)
     return render_template('login.html')
+
+# Función auxiliar para no repetir código
+def login_exitoso(usuario):
+    session['usuario_nombre'] = usuario.nombre
+    session['usuario_rol'] = usuario.rol
+    session['usuario_correo'] = usuario.correo
 
 
 # =====================================================================
@@ -1012,39 +1032,36 @@ def admin_desembolsar_retiro(retiro_id):
         retiro.estado = 'Desembolsado'
         db.session.commit()
         
-        # 📧 3. DISPARAMOS EL CORREO AL TÉCNICO
+        # 📧 3. DISPARAMOS EL CORREO BLINDADO AL TÉCNICO
         try:
+            # Buscamos al usuario para personalizar el correo con su nombre
+            tecnico = Usuario.query.filter_by(correo=retiro.usuario_correo).first()
+            nombre_tecnico = tecnico.nombre if tecnico else "Especialista"
+
             msg = Message(
                 '💰 ¡Tu dinero ha sido desembolsado! - inWorker',
                 recipients=[retiro.usuario_correo]
             )
-            msg.html = f"""
-            <html>
-                <body style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 20px;">
-                    <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; padding: 30px; border: 1px solid #e2e8f0;">
-                        <h2 style="color: #10b981; text-align: center;">¡Transferencia Exitosa! 💸</h2>
-                        <p style="color: #475569; font-size: 16px;">Hola, te confirmamos que hemos procesado tu solicitud de retiro.</p>
-                        
-                        <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                            <p style="margin: 5px 0; color: #334155;"><strong>Monto:</strong> ${retiro.equivalente_pesos:,.0f} COP</p>
-                            <p style="margin: 5px 0; color: #334155;"><strong>Método:</strong> {retiro.metodo_pago}</p>
-                            <p style="margin: 5px 0; color: #334155;"><strong>Destino:</strong> {retiro.detalles_cuenta}</p>
-                        </div>
-                        
-                        <p style="color: #64748b; font-size: 14px;">El dinero ya debería estar reflejado en tu cuenta. Puedes verificar el soporte de pago ingresando a tu panel de inWorker.</p>
-                        
-                        <div style="text-align: center; margin-top: 30px;">
-                            <a href="https://inworker.co/dashboard" style="background-color: #10b981; color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold;">Ir a mi Billetera</a>
-                        </div>
-                    </div>
-                </body>
-            </html>
-            """
+            
+            # Conectamos con el archivo HTML premium y le pasamos los datos financieros exactos
+            msg.html = render_template(
+                'correo_retiro_exitoso.html',
+                nombre_tecnico=nombre_tecnico,
+                metodo_pago=retiro.metodo_pago,
+                cuenta_destino=retiro.detalles_cuenta,
+                monto_bruto=retiro.monto_bruto,
+                comision=retiro.comision_plataforma,
+                costo_banco=retiro.costo_bancario,
+                monto_neto=retiro.equivalente_pesos,
+                url_dashboard=url_for('dashboard', _external=True)
+            )
+            
             mail.send(msg)
         except Exception as e:
             print(f"⚠️ El desembolso se hizo, pero falló el envío de correo: {e}")
         
-        flash(f"✅ ¡Nómina pagada! Soporte guardado y correo enviado a {retiro.usuario_correo}.", "success")
+        # Corrección de término legal (Nunca usar "Nómina")
+        flash(f"✅ ¡Fondos desembolsados! Soporte guardado y correo enviado a {retiro.usuario_correo}.", "success")
     else:
         flash("❌ Archivo no permitido o dañado. Usa JPG, PNG o PDF.", "error")
         
