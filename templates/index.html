@@ -10,7 +10,7 @@
     <!-- End Google Tag Manager -->
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>inWorker - Dashboard</title>
 
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
@@ -21,7 +21,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -35,7 +35,7 @@
         }
     </script>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col relative z-0">
+<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col relative z-0 pb-16 md:pb-0">
 
 <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KMVS6XHL"
@@ -66,8 +66,12 @@
                     <span class="text-xs text-slate-500 font-medium">Hola, <strong class="text-slate-900">{{ nombre_usuario | default('Usuario') }}</strong></span>
                     <span class="text-[9px] font-black uppercase tracking-wider text-blue-600">{{ session['usuario_role'] if 'usuario_role' in session else session['usuario_rol'] }}</span>
                 </div>
-                <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200">
-                    {{ nombre_usuario[0]|upper if nombre_usuario else 'U' }}
+                <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200 overflow-hidden">
+                    {% if usuario and usuario.foto %}
+                        <img src="{{ url_for('static', filename='uploads/' + usuario.foto) }}" class="w-full h-full object-cover" alt="User">
+                    {% else %}
+                        {{ nombre_usuario[0]|upper if nombre_usuario else 'U' }}
+                    {% endif %}
                 </div>
                 <a href="{{ url_for('logout') }}" class="text-slate-400 hover:text-red-500 transition-colors" title="Cerrar Sesión">
                     <i class="fas fa-sign-out-alt text-lg"></i>
@@ -75,25 +79,18 @@
             </div>
         </div>
     </header>
-</header>
 
-    <!-- ========================================== -->
-    <!-- 🚀 HERO BANNER DEL DASHBOARD -->
-    <!-- ========================================== -->
     <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-6">
         
-        <!-- Tarjeta de Bienvenida con la imagen Premium -->
+        <!-- ========================================== -->
+        <!-- BANNER HERO SOLO PARA ADMIN -->
+        <!-- ========================================== -->
+        {% if session['usuario_rol'] == 'Admin' %}
         <div class="relative w-full h-48 md:h-64 rounded-2xl overflow-hidden shadow-lg mb-8 group">
-            
-            <!-- Imagen horizontal (Ecosistema Tech) -->
             <img src="{{ url_for('static', filename='img/bg-dashboard.webp') }}" 
                  alt="Ecosistema inWorker" 
                  class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105">
-            
-            <!-- Degradado oscuro de izquierda a derecha (para que el texto blanco se lea perfecto) -->
             <div class="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/40 to-transparent"></div>
-            
-            <!-- Texto del Banner -->
             <div class="relative h-full flex flex-col justify-center px-6 md:px-12">
                 <span class="text-blue-400 text-xs md:text-sm font-bold tracking-widest uppercase mb-1 drop-shadow-md">
                     <i class="fas fa-rocket mr-1"></i> Panel de Control
@@ -105,8 +102,8 @@
                     Gestiona tus servicios, conecta con el mejor talento y supervisa tus proyectos con total seguridad.
                 </p>
             </div>
-            
         </div>
+        {% endif %}
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -148,24 +145,24 @@
 
     <div id="smart-app-banner" class="fixed bottom-6 left-4 right-4 md:left-auto md:right-8 md:w-auto md:min-w-[380px] bg-white/70 backdrop-blur-2xl border border-white/80 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] rounded-full p-2 z-[9999] transition-all duration-700 translate-y-24 opacity-0 flex items-center justify-between gap-3 hidden">
     
-    <div class="flex-shrink-0 bg-gradient-to-tr from-blue-600 to-indigo-600 w-11 h-11 rounded-full flex items-center justify-center shadow-inner ml-1 border border-white/20">
-        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Icon" class="w-6 h-6 object-contain filter brightness-0 invert">
-    </div>
+        <div class="flex-shrink-0 bg-gradient-to-tr from-blue-600 to-indigo-600 w-11 h-11 rounded-full flex items-center justify-center shadow-inner ml-1 border border-white/20">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Icon" class="w-6 h-6 object-contain filter brightness-0 invert">
+        </div>
 
-    <div class="flex-grow pl-1">
-        <h4 class="text-[13px] font-black text-slate-900 tracking-tight leading-none">inWorker App</h4>
-        <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Tu ecosistema móvil</p>
-    </div>
+        <div class="flex-grow pl-1">
+            <h4 class="text-[13px] font-black text-slate-900 tracking-tight leading-none">inWorker App</h4>
+            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Tu ecosistema móvil</p>
+        </div>
 
-    <div class="flex items-center gap-1 pr-1">
-        <button id="install-app-btn" class="bg-slate-900 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider px-5 py-2.5 rounded-full shadow-lg hover:shadow-blue-500/30 transition-all active:scale-95">
-            Instalar
-        </button>
-        <button id="close-banner-btn" class="text-slate-400 hover:text-rose-500 bg-transparent hover:bg-white/50 w-9 h-9 rounded-full transition-colors flex items-center justify-center">
-            <i class="fas fa-times text-sm"></i>
-        </button>
+        <div class="flex items-center gap-1 pr-1">
+            <button id="install-app-btn" class="bg-slate-900 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider px-5 py-2.5 rounded-full shadow-lg hover:shadow-blue-500/30 transition-all active:scale-95">
+                Instalar
+            </button>
+            <button id="close-banner-btn" class="text-slate-400 hover:text-rose-500 bg-transparent hover:bg-white/50 w-9 h-9 rounded-full transition-colors flex items-center justify-center">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
     </div>
-</div>
 
     <script>
     let deferredPrompt;
@@ -173,58 +170,42 @@
     const closeBtn = document.getElementById('close-banner-btn');
     const installBtn = document.getElementById('install-app-btn');
 
-    console.log("🚀 Script del Smart Banner cargado correctamente.");
-
     window.addEventListener('beforeinstallprompt', (e) => {
-        console.log("📱 ¡El navegador detectó que la app se puede instalar!");
-        e.preventDefault(); // Detenemos el banner feo de Chrome
+        e.preventDefault();
         deferredPrompt = e;
-
-        // Revisamos la memoria de la sesión
         const bannerClosedThisSession = sessionStorage.getItem('inworker_app_banner_closed');
-        console.log("🕵️‍♂️ ¿El usuario cerró el banner en esta sesión?:", bannerClosedThisSession);
 
         if (!bannerClosedThisSession) {
-            console.log("✨ Mostrando el Smart Banner elegante en 1 segundo...");
             banner.classList.remove('hidden');
-            
             setTimeout(() => {
                 banner.classList.remove('translate-y-24', 'opacity-0');
                 banner.classList.add('translate-y-0', 'opacity-100');
             }, 1000);
-        } else {
-            console.log("🛑 El banner no se muestra porque el usuario ya lo cerró antes.");
         }
     });
 
     closeBtn.addEventListener('click', () => {
         banner.classList.remove('translate-y-0', 'opacity-100');
         banner.classList.add('translate-y-24', 'opacity-0');
-        
-        setTimeout(() => {
-            banner.classList.add('hidden');
-        }, 500);
-
+        setTimeout(() => { banner.classList.add('hidden'); }, 500);
         sessionStorage.setItem('inworker_app_banner_closed', 'true');
-        console.log("❌ Banner cerrado y guardado en memoria de sesión.");
     });
 
     installBtn.addEventListener('click', async () => {
         if (deferredPrompt) {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            
-            if (outcome === 'accepted') {
-                console.log("✅ ¡El usuario aceptó instalar inWorker!");
-                banner.classList.add('hidden');
-            }
+            if (outcome === 'accepted') { banner.classList.add('hidden'); }
             deferredPrompt = null;
         }
     });
-</script>
+    </script>
 
-    <main class="max-w-7xl mx-auto px-4 py-8 space-y-6 flex-grow w-full">
+    <div class="space-y-6 flex-grow w-full max-w-md mx-auto md:max-w-full">
         
+        <!-- ========================================== -->
+        <!-- MÓDULO DEL ADMINISTRADOR -->
+        <!-- ========================================== -->
         {% if session['usuario_rol'] == 'Admin' %}
         <div class="bg-slate-900 rounded-2xl p-6 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 border border-slate-800">
             <div class="flex items-center space-x-4 text-white">
@@ -276,18 +257,6 @@
             </div>
         </div>
 
-        <script>
-        function analizarConIA(tareaId) {
-            alert("Iniciando análisis forense con Gemini AI... Esto puede tomar unos segundos.");
-            fetch(`/admin/disputa/${tareaId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if(data.success) { alert(data.analisis_ia); } else { alert("Error: " + data.error); }
-                })
-                .catch(error => alert("Ocurrió un error de red al contactar a la IA."));
-        }
-        </script>
-
         <div class="mt-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <h3 class="text-lg font-black text-slate-800 mb-4 flex items-center">
                 <i class="fas fa-search-dollar text-purple-600 mr-2"></i> Auditoría de Recargas Nequi
@@ -331,42 +300,41 @@
                 {% endif %}
             </div>
         </div>
-<div class="mt-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-    <h3 class="text-lg font-black text-slate-800 mb-4 flex items-center">
-        <i class="fas fa-id-card text-indigo-600 mr-2"></i> Auditoría de Identidad (KYC)
-    </h3>
-    <div class="space-y-4">
-        {% if tecnicos_pendientes_kyc %}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {% for tec in tecnicos_pendientes_kyc %}
-                <div class="border border-indigo-100 bg-indigo-50/50 rounded-xl p-4 flex flex-col gap-3">
-                    <div class="flex justify-between items-start">
-                        <div class="overflow-hidden">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Especialista</p>
-                            <p class="font-bold text-slate-800 text-xs truncate w-full" title="{{ tec.nombre }}">{{ tec.nombre }}</p>
-                            <p class="text-[9px] font-medium text-slate-500 truncate">{{ tec.correo }}</p>
-                        </div>
-                        <div class="text-right shrink-0 ml-2">
-                            <span class="bg-indigo-100 text-indigo-700 text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md">Revisión</span>
-                        </div>
-                    </div>
 
-                    <div class="mt-auto pt-2 border-t border-indigo-100">
-                        <button onclick="abrirModalKYC('{{ tec.id }}', '{{ tec.nombre }}', '{{ tec.cedula }}', '{{ url_for('static', filename='uploads/' + tec.kyc_cedula) }}', '{{ url_for('static', filename='uploads/' + tec.kyc_selfie) }}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-wider py-2.5 rounded-lg transition shadow-sm flex items-center justify-center gap-2">
-                            <i class="fas fa-search-plus"></i> Auditar Documentos
-                        </button>
+        <div class="mt-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h3 class="text-lg font-black text-slate-800 mb-4 flex items-center">
+                <i class="fas fa-id-card text-indigo-600 mr-2"></i> Auditoría de Identidad (KYC)
+            </h3>
+            <div class="space-y-4">
+                {% if tecnicos_pendientes_kyc %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for tec in tecnicos_pendientes_kyc %}
+                        <div class="border border-indigo-100 bg-indigo-50/50 rounded-xl p-4 flex flex-col gap-3">
+                            <div class="flex justify-between items-start">
+                                <div class="overflow-hidden">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Especialista</p>
+                                    <p class="font-bold text-slate-800 text-xs truncate w-full" title="{{ tec.nombre }}">{{ tec.nombre }}</p>
+                                    <p class="text-[9px] font-medium text-slate-500 truncate">{{ tec.correo }}</p>
+                                </div>
+                                <div class="text-right shrink-0 ml-2">
+                                    <span class="bg-indigo-100 text-indigo-700 text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md">Revisión</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-auto pt-2 border-t border-indigo-100">
+                                <button onclick="abrirModalKYC('{{ tec.id }}', '{{ tec.nombre }}', '{{ tec.cedula }}', '{{ url_for('static', filename='uploads/' + tec.kyc_cedula) }}', '{{ url_for('static', filename='uploads/' + tec.kyc_selfie) }}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-wider py-2.5 rounded-lg transition shadow-sm flex items-center justify-center gap-2">
+                                    <i class="fas fa-search-plus"></i> Auditar Documentos
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
                     </div>
-                </div>
-            {% endfor %}
+                {% else %}
+                    <p class="text-sm text-slate-500 italic">No hay técnicos pendientes de verificación de identidad. Todo seguro. 🛡️</p>
+                {% endif %}
             </div>
-        {% else %}
-            <p class="text-sm text-slate-500 italic">No hay técnicos pendientes de verificación de identidad. Todo seguro. 🛡️</p>
-        {% endif %}
-    </div>
-</div>
-<!-- ========================================== -->
-        <!-- 💸 CONTROL DE NÓMINA A TÉCNICOS (SOLO ADMIN) -->
-        <!-- ========================================== -->
+        </div>
+
         <div class="mt-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <h3 class="text-lg font-black text-slate-800 mb-4 flex items-center">
                 <i class="fas fa-hand-holding-usd text-emerald-600 mr-2"></i> Nómina y Desembolsos
@@ -406,9 +374,7 @@
                                 {% elif ret.estado == 'Procesando' %}
                                     <form action="/admin/retiro/{{ ret.id }}/desembolsar" method="POST" enctype="multipart/form-data" class="space-y-2">
                                         <div class="relative w-full">
-                                            <!-- Input de foto invisible encima del botón -->
                                             <input type="file" name="comprobante_pago" required accept="image/*,application/pdf" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20" onchange="this.nextElementSibling.innerHTML = '<i class=\'fas fa-check text-emerald-500\'></i> Soporte Cargado'">
-                                            <!-- Botón visual -->
                                             <div class="w-full bg-white border-2 border-dashed border-slate-300 rounded-lg py-2 px-3 flex items-center justify-center gap-2 text-[10px] font-bold text-slate-500 hover:border-emerald-400 transition">
                                                 <i class="fas fa-upload text-slate-400"></i> Adjuntar Soporte
                                             </div>
@@ -427,281 +393,270 @@
                 {% endif %}
             </div>
         </div>
+        <script>
+        function analizarConIA(tareaId) {
+            alert("Iniciando análisis forense con Gemini AI... Esto puede tomar unos segundos.");
+            fetch(`/admin/disputa/${tareaId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.success) { alert(data.analisis_ia); } else { alert("Error: " + data.error); }
+                })
+                .catch(error => alert("Ocurrió un error de red al contactar a la IA."));
+        }
+        </script>
         {% endif %}
 
-        {% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 mb-6 relative overflow-hidden group">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10 opacity-50 group-hover:scale-110 transition-transform duration-500"></div>
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 z-10">
-                <div class="flex items-center gap-5 w-full md:w-auto">
-                    <div class="relative">
-                        {% if usuario and usuario.foto %}
-                            <img src="{{ url_for('static', filename='uploads/' + usuario.foto) }}" alt="Foto de perfil" class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md">
-                        {% else %}
-                            <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-100 to-indigo-50 flex items-center justify-center text-blue-600 font-black text-2xl border-4 border-white shadow-md">
-                                {{ session['usuario_nombre'][0]|upper if session['usuario_nombre'] else 'U' }}
-                            </div>
-                        {% endif %}
-                        {% if usuario and usuario.verificado == 1 %}
-                            <div class="absolute bottom-0 right-0 bg-emerald-500 text-white p-1 rounded-full border-2 border-white shadow-sm" title="Identidad Validada">
-                                <i class="fas fa-check-circle text-xs"></i>
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-1">
-                            <h2 class="text-lg font-black text-slate-900 tracking-tight">{{ session['usuario_nombre'] }}</h2>
-                            <span class="bg-blue-100 text-blue-700 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md">
-                                Nivel Pro
-                            </span>
-                        </div>
-                        <p class="text-sm font-bold text-slate-600 mb-1">
-                            {{ usuario.profesion if usuario and usuario.profesion else 'Técnico Especialista' }}
-                        </p>
-                        <p class="text-xs text-slate-500 italic line-clamp-2 max-w-lg">
-                            "{{ usuario.descripcion if usuario.descripcion and usuario.descripcion != 'Sin especificar' and usuario.descripcion != '' else (usuario.habilidades if usuario.habilidades and usuario.habilidades != 'Sin especificar' and usuario.habilidades != '' else 'Aún no has configurado tu resumen profesional. Optimízalo en tu perfil para atraer más clientes.') }}"
-                        </p>
-                    </div>
-                </div>
-                <div class="w-full md:w-auto flex-shrink-0">
-                    <a href="{{ url_for('ver_perfil') }}" class="w-full md:w-auto flex items-center justify-center gap-2 bg-slate-900 hover:bg-blue-600 text-white font-bold py-2.5 px-6 rounded-xl transition-colors shadow-sm text-xs uppercase tracking-wide">
-                        <i class="fas fa-pen-fancy"></i> Optimizar Perfil
-                    </a>
-                </div>
-            </div>
-        </div>
-        {% endif %}
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 rounded-3xl shadow-xl shadow-slate-900/20 border border-slate-700 group">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-                <div class="absolute bottom-0 left-0 w-24 h-24 bg-emerald-500/20 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
-                <div class="relative z-10 flex items-start justify-between">
-                    <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                            <i class="fas fa-wallet text-emerald-400"></i> 
-                            {% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}
-                                Mi Billetera (Ganancias)
-                            {% else %}
-                                Mi Billetera (Saldo Activo)
-                            {% endif %}
-                        </p>
-                        <h2 class="text-3xl font-black text-white mt-1">
-                            ${{ "{:,.0f}".format((saldo | default(0) | float) * 10000) }} <span class="text-sm font-normal text-slate-400">COP</span>
-                        </h2>
-                        <p class="text-xs text-emerald-400 font-medium mt-2 bg-emerald-500/10 inline-block px-2 py-1 rounded-md">
-                            {{ saldo | default(0) | float }} Créditos InWorker
-                        </p>
-                    </div>
-
-                    {% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}
-                        <button onclick="abrirModalRetiro()" class="h-10 w-10 rounded-full bg-white/10 hover:bg-emerald-500 flex items-center justify-center text-white backdrop-blur-sm transition-all border border-white/10 active:scale-95 shadow-lg" title="Retirar Fondos">
-                            <i class="fas fa-arrow-up"></i>
-                        </button>
-                    {% else %}
-                        <a href="/recargar_billetera" class="h-10 w-10 rounded-full bg-white/10 hover:bg-blue-500 flex items-center justify-center text-white backdrop-blur-sm transition-all border border-white/10 active:scale-95 shadow-lg" title="Recargar Saldo">
-                            <i class="fas fa-plus"></i>
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">En Garantía (Escrow)</p>
-                    <h2 class="text-3xl font-black text-slate-900">${{ "{:,.0f}".format(fondos_escrow | default(0) | float) }} <span class="text-sm font-normal text-slate-400">COP</span></h2>
-                    <p class="text-xs text-slate-500 font-medium mt-1">Protegido por inWorker</p>
-                </div>
-                <div class="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
-                    <i class="fas fa-lock text-xl"></i>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Órdenes en Mediación</p>
-                    <h2 class="text-3xl font-black text-slate-900">{{ ordenes_mediacion | default(0) }}</h2>
-                    <p class="text-xs text-amber-600 font-medium mt-1">Requieren tu atención</p>
-                </div>
-                <div class="h-12 w-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
-                    <i class="fas fa-gavel text-xl"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- ========================================== -->
+        <!-- 📱 DASHBOARD DEL USUARIO / TÉCNICO (DISEÑO PREMIUM) -->
+        <!-- ========================================== -->
+        {% if session['usuario_rol'] != 'Admin' %}
             
-            <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-                    <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                        <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                            <i class="fas fa-inbox text-blue-500"></i> Bandeja de Entrada Activa
-                        </h3>
-                        <a href="{{ url_for('ver_tareas') }}" class="text-[10px] font-black text-blue-600 hover:text-blue-800 uppercase tracking-widest transition">Ver Catálogo &rarr;</a>
-                    </div>
+            <div class="mb-6 mt-2">
+                <h1 class="text-2xl font-bold text-slate-800">Hola, {{ session['usuario_nombre'].split(' ')[0] if session['usuario_nombre'] else 'Usuario' }} 👋</h1>
+                <p class="text-slate-500 text-sm mt-1">Qué bueno verte de nuevo</p>
+            </div>
+
+            <!-- Tarjeta Wallet -->
+            <div class="bg-slate-900 rounded-3xl p-6 mb-6 shadow-lg shadow-blue-900/20 relative overflow-hidden">
+                <div class="flex items-center gap-2 text-slate-300 text-sm mb-2">
+                    <span>Saldo disponible</span>
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div class="text-4xl font-bold text-white mb-3 tracking-tight">${{ "{:,.0f}".format((saldo | default(0) | float) * 10000) }} <span class="text-lg font-normal text-slate-400">COP</span></div>
+                <div class="inline-block bg-emerald-500/20 text-emerald-400 text-xs font-semibold px-3 py-1 rounded-full mb-6 border border-emerald-500/30">
+                    {{ saldo | default(0) | float }} Créditos InWorker
+                </div>
+                <div class="flex justify-between items-center mt-2">
+                    <span class="text-slate-400 text-sm hidden md:block">Disponible para retirar</span>
+                    <span class="text-slate-400 text-xs md:hidden">Disponible</span>
                     
-                    {% if bandeja_entrada %}
-                    <div class="divide-y divide-slate-100">
-                        {% for chat in bandeja_entrada %}
-                        <a href="/chat/{{ chat.id }}" class="block p-5 hover:bg-slate-50 transition-colors group">
-                            <div class="flex justify-between items-start gap-4">
-                                <div class="flex items-center gap-4 w-full overflow-hidden">
-                                    <div class="relative flex-shrink-0">
-                                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200 group-hover:bg-blue-600 group-hover:text-white transition-colors shadow-inner">
-                                            <i class="fas fa-comments"></i>
-                                        </div>
-                                        {% if chat.no_leidos > 0 %}
-                                        <div class="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-black text-white shadow-sm animate-bounce">
-                                            {{ chat.no_leidos }}
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="overflow-hidden w-full">
-                                        <h4 class="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate">{{ chat.titulo }}</h4>
-                                        <p class="text-xs text-slate-500 mt-1 truncate font-medium {% if chat.no_leidos > 0 %}text-slate-700 font-bold{% endif %}">
-                                            {% if chat.no_leidos > 0 %}<i class="fas fa-circle text-[6px] text-rose-500 mr-1 align-middle"></i>{% endif %}
-                                            {{ chat.snippet }}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="text-right shrink-0 hidden sm:block">
-                                    <span class="inline-block px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-sm
-                                        {% if chat.estado == 'Cotización Pendiente' %} bg-purple-50 text-purple-600 border border-purple-200
-                                        {% elif chat.estado == 'En Garantia' %} bg-emerald-50 text-emerald-600 border border-emerald-200
-                                        {% else %} bg-slate-100 text-slate-500 border border-slate-200 {% endif %}">
-                                        {{ chat.estado }}
-                                    </span>
-                                </div>
-                            </div>
-                        </a>
-                        {% endfor %}
-                    </div>
+                    {% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}
+                        <button onclick="abrirModalRetiro()" class="bg-white text-slate-900 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-gray-100 transition active:scale-95 shadow-sm">
+                            Retirar fondos <span>&rarr;</span>
+                        </button>
                     {% else %}
-                    <div class="p-10 text-center">
-                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 text-slate-300 mb-5 border-4 border-white shadow-sm">
-                            <i class="fas fa-check-double text-3xl"></i>
-                        </div>
-                        <h4 class="text-base font-black text-slate-800">Tu bandeja está al día</h4>
-                        <p class="text-xs text-slate-500 mt-2 max-w-sm mx-auto font-medium">No tienes negociaciones activas en este momento. Publica una nueva solicitud o explora el marketplace.</p>
-                        <a href="{{ url_for('ver_tareas') }}" class="inline-block mt-6 bg-slate-900 hover:bg-blue-600 text-white font-black py-3.5 px-8 rounded-xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-slate-900/20 hover:shadow-blue-600/30 active:scale-95">
-                            Explorar Servicios <i class="fas fa-arrow-right ml-1"></i>
+                        <a href="/recargar_billetera" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-blue-700 transition active:scale-95 shadow-sm shadow-blue-600/30">
+                            Recargar saldo <span>&rarr;</span>
                         </a>
-                    </div>
                     {% endif %}
                 </div>
             </div>
 
-            <div class="space-y-6">
+            <!-- Contadores Rápidos -->
+            <div class="grid grid-cols-3 gap-3 mb-8">
+                <div class="bg-white border border-gray-100 rounded-2xl p-3 text-center shadow-sm">
+                    <div class="text-2xl font-bold text-slate-800">{{ propuestas_activas | default(0) }}</div>
+                    <div class="text-[10px] md:text-xs text-slate-500 font-medium mt-1 leading-tight">Propuestas<br>activas</div>
+                </div>
+                <div class="bg-white border border-gray-100 rounded-2xl p-3 text-center shadow-sm">
+                    <div class="text-2xl font-bold text-slate-800">{{ servicios_curso | default(0) }}</div>
+                    <div class="text-[10px] md:text-xs text-slate-500 font-medium mt-1 leading-tight">Servicios<br>en curso</div>
+                </div>
+                <div class="bg-white border border-gray-100 rounded-2xl p-3 text-center shadow-sm opacity-60">
+                    <div class="text-2xl font-bold text-slate-800">{{ ordenes_mediacion | default(0) }}</div>
+                    <div class="text-[10px] md:text-xs text-slate-500 font-medium mt-1 leading-tight">Mediaciones<br>activas</div>
+                </div>
+            </div>
+
+            <!-- Bandeja de entrada -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-slate-800">Bandeja de entrada</h2>
+                    <a href="{{ url_for('ver_tareas') }}" class="text-blue-600 text-sm font-medium hover:underline">Ver todo &rarr;</a>
+                </div>
                 
-                <div class="bg-white border border-slate-200 rounded-3xl shadow-sm p-6">
-                    <h3 class="font-bold text-slate-800 text-sm mb-5">Acciones Rápidas</h3>
-                    <div class="grid grid-cols-3 gap-2">
-                        <a href="{{ url_for('ver_perfil') }}" class="flex flex-col items-center justify-start gap-2 p-2 hover:bg-slate-50 rounded-2xl transition group cursor-pointer text-center">
-                            <div class="h-12 w-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shadow-sm group-hover:shadow-blue-200 group-hover:scale-105 transition-all duration-300">
-                                <i class="fas fa-user-edit text-lg"></i>
-                            </div>
-                            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Perfil</span>
-                        </a>
-
-                        {% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}
-                            <button onclick="abrirModalRetiro()" class="flex flex-col items-center justify-start gap-2 p-2 hover:bg-slate-50 rounded-2xl transition group cursor-pointer text-center w-full">
-                                <div class="h-12 w-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm group-hover:shadow-emerald-200 group-hover:scale-105 transition-all duration-300">
-                                    <i class="fas fa-hand-holding-usd text-lg"></i>
+                {% if bandeja_entrada %}
+                    {% for chat in bandeja_entrada[:1] %}
+                    <a href="/chat/{{ chat.id }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex gap-3 cursor-pointer hover:shadow-md transition active:scale-[0.99] block">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0 mt-1">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="flex-1 overflow-hidden">
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-slate-800 text-sm pr-2 truncate">Mensaje de {{ chat.titulo }}</h3>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <span class="text-[10px] text-slate-400">{{ chat.estado }}</span>
+                                    {% if chat.no_leidos > 0 %}
+                                    <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
+                                    {% endif %}
                                 </div>
-                                <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Retirar</span>
-                            </button>
-                        {% else %}
-                            <a href="/recargar_billetera" class="flex flex-col items-center justify-start gap-2 p-2 hover:bg-slate-50 rounded-2xl transition group cursor-pointer text-center w-full">
-                                <div class="h-12 w-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm group-hover:shadow-emerald-200 group-hover:scale-105 transition-all duration-300">
-                                    <i class="fas fa-credit-card text-lg"></i>
-                                </div>
-                                <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Recargar</span>
-                            </a>
-                        {% endif %}
-
-                        <a href="{{ url_for('ver_perfil') }}?autostart_copilot=true" class="flex flex-col items-center justify-start gap-2 p-2 hover:bg-indigo-50/50 rounded-2xl transition group cursor-pointer text-center">
-                            <div class="h-12 w-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/40 group-hover:scale-110 group-hover:shadow-indigo-500/60 transition-all duration-300">
-                                <i class="fas fa-magic text-lg"></i>
                             </div>
-                            <span class="text-[10px] font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 uppercase tracking-wide">Copilot</span>
-                        </a>
-                    </div>
-                </div>
-
-                <a href="/embajador" class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-5 shadow-lg shadow-purple-500/30 text-white flex items-center justify-between group hover:scale-[1.02] transition-transform duration-300 block border border-purple-500/50 relative overflow-hidden">
-                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-white rounded-full blur-[50px] opacity-20 pointer-events-none"></div>
-                    <div class="flex items-center gap-4 relative z-10">
-                        <div class="bg-white/20 w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-inner">
-                            <i class="fas fa-crown text-2xl text-yellow-300 group-hover:rotate-12 transition duration-300"></i>
+                            <p class="text-sm text-slate-500 mt-1 line-clamp-2 leading-tight">{{ chat.snippet }}</p>
                         </div>
-                        <div>
-                            <h3 class="font-black tracking-wide text-sm leading-tight uppercase shadow-black/10 text-shadow-sm">Bóveda VIP</h3>
-                            <p class="text-purple-200 text-[10px] font-medium mt-0.5">Recompensas y Certificados</p>
-                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <div class="bg-white border border-gray-100 rounded-2xl p-6 text-center shadow-sm">
+                        <i class="fas fa-inbox text-slate-300 text-3xl mb-2"></i>
+                        <p class="text-sm font-medium text-slate-500">No tienes mensajes nuevos.</p>
                     </div>
-                    <div class="bg-black/20 w-8 h-8 rounded-full flex items-center justify-center relative z-10 group-hover:bg-white/20 transition">
-                        <i class="fas fa-chevron-right text-purple-200 group-hover:text-white group-hover:translate-x-1 transition text-xs"></i>
-                    </div>
-                </a>
-
-                {% if usuario and usuario.codigo_embajador %}
-                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-3xl shadow-sm p-6 relative overflow-hidden">
-                    <div class="absolute -right-6 -bottom-6 text-blue-500/10 text-7xl transform -rotate-12 pointer-events-none"><i class="fas fa-gift"></i></div>
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="bg-blue-600 text-white p-2 rounded-xl text-xs shadow-md shadow-blue-500/20"><i class="fas fa-bullhorn"></i></div>
-                        <div>
-                            <h3 class="font-black text-slate-900 text-sm tracking-tight">Programa de Embajadores</h3>
-                            <p class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">¡Gana por tus recomendados!</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">
-                        Comparte tu enlace. Ganarás comisiones sobre lo que recaude inWorker por cada servicio exitoso que ellos hagan durante sus primeros 6 meses.
-                    </p>
-                    <div class="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between shadow-inner mb-3">
-                        <div class="overflow-hidden mr-2">
-                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Mi Código Único</span>
-                            <span class="text-sm font-black text-slate-800 tracking-wider select-all uppercase" id="texto-codigo">{{ usuario.codigo_embajador }}</span>
-                        </div>
-                        <button onclick="copiarEnlaceReferido('{{ usuario.codigo_embajador }}')" id="btn-copiar-ref" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-wider py-2 px-3.5 rounded-lg transition-all shadow-md active:scale-95 flex items-center gap-1.5 focus:outline-none">
-                            <i class="fas fa-copy" id="icono-copiar"></i> <span id="texto-btn-copiar">Enlace</span>
-                        </button>
-                    </div>
-                </div>
-
-                <script>
-                function copiarEnlaceReferido(codigo) {
-                    const urlReferido = window.location.origin + '/login?ref=' + codigo;
-                    navigator.clipboard.writeText(urlReferido).then(() => {
-                        const btn = document.getElementById('btn-copiar-ref');
-                        const icono = document.getElementById('icono-copiar');
-                        const texto = document.getElementById('texto-btn-copiar');
-                        btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-                        btn.classList.add('bg-emerald-500');
-                        icono.className = "fas fa-check";
-                        texto.innerText = "¡Copiado!";
-                        setTimeout(() => {
-                            btn.classList.remove('bg-emerald-500');
-                            btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-                            icono.className = "fas fa-copy";
-                            texto.innerText = "Enlace";
-                        }, 2500);
-                    }).catch(err => console.error('Error al copiar el enlace: ', err));
-                }
-                </script>
                 {% endif %}
+            </div>
 
-                <div class="bg-white border border-slate-200 rounded-3xl shadow-sm p-5">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-slate-800 text-sm">Red inWorker</h3>
-                        <span class="flex items-center text-[9px] font-bold text-emerald-600 uppercase tracking-widest"><span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-1.5"></span> En vivo</span>
-                    </div>
-                    <div id="live-activity-feed" class="space-y-3 relative text-xs h-40 overflow-hidden"></div>
+            <!-- Acciones Rápidas -->
+            <div class="mb-8">
+                <h2 class="text-lg font-bold text-slate-800 mb-4">Acciones rápidas</h2>
+                <div class="grid grid-cols-4 gap-3">
+                    <a href="{{ url_for('ver_perfil') }}" class="flex flex-col items-center gap-2 active:scale-95 transition">
+                        <div class="w-14 h-14 bg-white border border-gray-100 rounded-2xl shadow-sm flex justify-center items-center text-blue-600">
+                            <i class="fas fa-user text-xl"></i>
+                        </div>
+                        <span class="text-[10px] text-slate-600 font-medium text-center leading-tight">Mi<br>perfil</span>
+                    </a>
+                    <a href="{{ url_for('ver_tareas') }}" class="flex flex-col items-center gap-2 active:scale-95 transition">
+                        <div class="w-14 h-14 bg-white border border-gray-100 rounded-2xl shadow-sm flex justify-center items-center text-blue-600">
+                            <i class="fas fa-plus text-xl"></i>
+                        </div>
+                        <span class="text-[10px] text-slate-600 font-medium text-center leading-tight">Servicios</span>
+                    </a>
+                    <a href="{{ url_for('ver_perfil') }}?autostart_copilot=true" class="flex flex-col items-center gap-2 active:scale-95 transition">
+                        <div class="w-14 h-14 bg-white border border-gray-100 rounded-2xl shadow-sm flex justify-center items-center text-purple-600">
+                            <i class="fas fa-wand-magic-sparkles text-xl"></i>
+                        </div>
+                        <span class="text-[10px] text-slate-600 font-medium text-center leading-tight">Copilot</span>
+                    </a>
+                    <button onclick="{% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}abrirModalRetiro(){% else %}window.location.href='/recargar_billetera'{% endif %}" class="flex flex-col items-center gap-2 active:scale-95 transition">
+                        <div class="w-14 h-14 bg-white border border-gray-100 rounded-2xl shadow-sm flex justify-center items-center text-emerald-600">
+                            <i class="fas fa-dollar-sign text-xl"></i>
+                        </div>
+                        <span class="text-[10px] text-slate-600 font-medium text-center leading-tight">{% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}Retirar<br>fondos{% else %}Recargar<br>saldo{% endif %}</span>
+                    </button>
                 </div>
+            </div>
 
-            </div> </div> </main>
+            <!-- Bóveda VIP Banner -->
+            <a href="/embajador" class="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 mb-4 flex justify-between items-center relative overflow-hidden block active:scale-[0.98] transition">
+                <div class="relative z-10 w-2/3">
+                    <h3 class="font-bold text-indigo-700 mb-1 flex items-center gap-2 text-sm">
+                        <i class="fas fa-crown"></i> Bóveda VIP
+                    </h3>
+                    <p class="text-[11px] text-indigo-900/70 mb-3 leading-tight">Accede a beneficios exclusivos, recompensas y certificaciones.</p>
+                    <span class="text-[10px] text-indigo-700 font-bold hover:underline uppercase tracking-wide">Ver beneficios &rarr;</span>
+                </div>
+                <div class="absolute -right-4 top-1/2 -translate-y-1/2 bg-gradient-to-br from-indigo-400 to-indigo-600 w-20 h-24 rounded-3xl opacity-80 rotate-12 flex justify-center items-center shadow-lg">
+                   <i class="fas fa-shield-alt text-3xl text-white -rotate-12"></i>
+                </div>
+            </a>
 
-    <div id="modalRetiro" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4 transition-opacity">
-        <div class="bg-white border border-slate-200 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl p-6 relative transform transition-all custom-scrollbar">
+            <!-- Embajadores Banner -->
+            {% if usuario and usuario.codigo_embajador %}
+            <div class="bg-blue-50 border border-blue-100 rounded-2xl p-5 mb-8 flex justify-between items-center relative overflow-hidden">
+                <div class="relative z-10 w-2/3">
+                    <h3 class="font-bold text-blue-700 mb-1 flex items-center gap-2 text-sm">
+                        Programa de Embajadores
+                    </h3>
+                    <p class="text-[11px] text-blue-900/70 mb-3 leading-tight">Gana comisiones recomendando inWorker a otros profesionales.</p>
+                    <button onclick="copiarEnlaceReferido('{{ usuario.codigo_embajador }}')" id="btn-copiar-ref" class="text-[10px] text-blue-700 font-bold bg-white/60 px-3 py-1.5 rounded-lg border border-blue-200">
+                        <i class="fas fa-copy" id="icono-copiar"></i> <span id="texto-btn-copiar">Copiar: {{ usuario.codigo_embajador }}</span>
+                    </button>
+                </div>
+                <div class="absolute -right-2 top-1/2 -translate-y-1/2 bg-blue-200 w-16 h-16 rounded-full flex justify-center items-center opacity-70">
+                    <i class="fas fa-users text-2xl text-blue-600"></i>
+                </div>
+            </div>
+            
+            <script>
+            function copiarEnlaceReferido(codigo) {
+                const urlReferido = window.location.origin + '/login?ref=' + codigo;
+                navigator.clipboard.writeText(urlReferido).then(() => {
+                    const btn = document.getElementById('btn-copiar-ref');
+                    const icono = document.getElementById('icono-copiar');
+                    const texto = document.getElementById('texto-btn-copiar');
+                    btn.classList.add('bg-emerald-100', 'border-emerald-200', 'text-emerald-700');
+                    icono.className = "fas fa-check";
+                    texto.innerText = "¡Copiado!";
+                    setTimeout(() => {
+                        btn.classList.remove('bg-emerald-100', 'border-emerald-200', 'text-emerald-700');
+                        icono.className = "fas fa-copy";
+                        texto.innerText = "Copiar: " + codigo;
+                    }, 2500);
+                }).catch(err => console.error('Error al copiar el enlace: ', err));
+            }
+            </script>
+            {% endif %}
+
+            <!-- Red inWorker (Feed) -->
+            <div class="bg-white border border-slate-200 rounded-3xl shadow-sm p-5 mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-slate-800 text-sm">Red inWorker</h3>
+                    <span class="flex items-center text-[9px] font-bold text-emerald-600 uppercase tracking-widest"><span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-1.5"></span> En vivo</span>
+                </div>
+                <div id="live-activity-feed" class="space-y-3 relative text-xs h-40 overflow-hidden"></div>
+            </div>
+
+            <script>
+                const eventosSimulados = [
+                    { texto: "Fondo de garantía asegurado exitosamente en la plataforma", color: "bg-emerald-500" },
+                    { texto: "Nueva orden de servicio publicada en tu ciudad", color: "bg-blue-500" },
+                    { texto: "Especialista validado y activo en el ecosistema", color: "bg-indigo-500" },
+                    { texto: "Retiro procesado hacia billetera digital", color: "bg-emerald-500" }
+                ];
+                function rotarFeedActividad() {
+                    const feed = document.getElementById("live-activity-feed");
+                    if (!feed) return;
+                    const evento = eventosSimulados[Math.floor(Math.random() * eventosSimulados.length)];
+                    const nuevaFila = document.createElement("div");
+                    nuevaFila.className = "p-3 bg-slate-50 border border-slate-100 rounded-xl opacity-0 -translate-y-2 transition-all duration-500";
+                    nuevaFila.innerHTML = `
+                        <div class="flex items-start space-x-2.5">
+                            <div class="w-2 h-2 mt-1.5 rounded-full ${evento.color} flex-shrink-0"></div>
+                            <div>
+                                <p class="text-slate-700 font-medium leading-tight">${evento.texto}</p>
+                                <span class="text-[9px] text-slate-400 mt-1 block">Justo ahora</span>
+                            </div>
+                        </div>`;
+                    feed.insertBefore(nuevaFila, feed.firstChild);
+                    setTimeout(() => { nuevaFila.classList.remove("opacity-0", "-translate-y-2"); }, 50);
+                    if (feed.children.length > 4) {
+                        const ultimo = feed.lastChild;
+                        ultimo.classList.add("opacity-0", "translate-y-2");
+                        setTimeout(() => ultimo.remove(), 500);
+                    }
+                }
+                rotarFeedActividad(); setTimeout(rotarFeedActividad, 500); setInterval(rotarFeedActividad, 7000);
+            </script>
+        {% endif %} <!-- Fin Interfaz de Usuario -->
+
+    </div> 
+    </main>
+
+    <!-- ========================================== -->
+    <!-- MENÚ DE NAVEGACIÓN INFERIOR (Mobile App Style) -->
+    <!-- ========================================== -->
+    {% if session['usuario_rol'] != 'Admin' %}
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 flex justify-between px-6 py-3 pb-safe md:hidden z-[90]">
+        <a href="{{ url_for('home') }}" class="flex flex-col items-center gap-1 text-blue-600">
+            <i class="fas fa-home text-xl"></i>
+            <span class="text-[10px] font-bold">Inicio</span>
+        </a>
+        <a href="{{ url_for('ver_tareas') }}" class="flex flex-col items-center gap-1 text-gray-400 hover:text-blue-600 transition">
+            <i class="fas fa-file-contract text-xl"></i>
+            <span class="text-[10px] font-medium">Contratos</span>
+        </a>
+        <a href="{{ url_for('ir_al_chat_reciente') }}" class="flex flex-col items-center gap-1 text-gray-400 hover:text-blue-600 transition relative">
+            <i class="fas fa-inbox text-xl"></i>
+            {% if notificaciones_sin_leer and notificaciones_sin_leer > 0 %}
+            <div class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white"></div>
+            {% endif %}
+            <span class="text-[10px] font-medium">Bandeja</span>
+        </a>
+        <a href="#" onclick="{% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}abrirModalRetiro(){% else %}window.location.href='/recargar_billetera'{% endif %}" class="flex flex-col items-center gap-1 text-gray-400 hover:text-blue-600 transition">
+            <i class="fas fa-wallet text-xl"></i>
+            <span class="text-[10px] font-medium">Wallet</span>
+        </a>
+        <a href="{{ url_for('ver_perfil') }}" class="flex flex-col items-center gap-1 text-gray-400 hover:text-blue-600 transition">
+            <i class="fas fa-ellipsis-h text-xl"></i>
+            <span class="text-[10px] font-medium">Más</span>
+        </a>
+    </nav>
+    {% endif %}
+
+    <!-- ========================================== -->
+    <!-- MODAL DE RETIRO -->
+    <!-- ========================================== -->
+    <div id="modalRetiro" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-[100] p-4 transition-opacity">
+        <div class="bg-white border border-slate-200 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl p-6 relative transform transition-all custom-scrollbar">
             <div class="flex justify-between items-start mb-6 sticky top-0 bg-white z-10 pb-2 border-b border-slate-100">
                 <div class="flex items-center space-x-3">
                     <div class="bg-emerald-50 p-2 rounded-lg text-emerald-600"><i class="fas fa-money-bill-wave"></i></div>
@@ -755,128 +710,87 @@
             </form>
         </div>
     </div>
-
     <script>
-        // FEED DE ACTIVIDAD EN VIVO 
-        const eventosSimulados = [
-            { texto: "Fondo de garantía asegurado exitosamente en la plataforma", color: "bg-emerald-500" },
-            { texto: "Nueva orden de servicio publicada en tu ciudad", color: "bg-blue-500" },
-            { texto: "Especialista validado y activo en el ecosistema", color: "bg-indigo-500" },
-            { texto: "Retiro procesado hacia billetera digital", color: "bg-emerald-500" }
-        ];
-
-        function rotarFeedActividad() {
-            const feed = document.getElementById("live-activity-feed");
-            if (!feed) return;
-
-            const evento = eventosSimulados[Math.floor(Math.random() * eventosSimulados.length)];
-            const nuevaFila = document.createElement("div");
-            nuevaFila.className = "p-3 bg-slate-50 border border-slate-100 rounded-xl opacity-0 -translate-y-2 transition-all duration-500";
-            nuevaFila.innerHTML = `
-                <div class="flex items-start space-x-2.5">
-                    <div class="w-2 h-2 mt-1.5 rounded-full ${evento.color} flex-shrink-0"></div>
-                    <div>
-                        <p class="text-slate-700 font-medium leading-tight">${evento.texto}</p>
-                        <span class="text-[9px] text-slate-400 mt-1 block">Justo ahora</span>
-                    </div>
-                </div>
-            `;
-
-            feed.insertBefore(nuevaFila, feed.firstChild);
-            setTimeout(() => { nuevaFila.classList.remove("opacity-0", "-translate-y-2"); }, 50);
-
-            if (feed.children.length > 4) {
-                const ultimo = feed.lastChild;
-                ultimo.classList.add("opacity-0", "translate-y-2");
-                setTimeout(() => ultimo.remove(), 500);
-            }
-        }
-
-        rotarFeedActividad();
-        setTimeout(rotarFeedActividad, 500);
-        setInterval(rotarFeedActividad, 7000);
-
         function abrirModalRetiro() { document.getElementById('modalRetiro')?.classList.remove('hidden'); }
         function cerrarModalRetiro() { document.getElementById('modalRetiro')?.classList.add('hidden'); }
     </script>
-<div id="modalKYC" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[100] p-4 transition-opacity">
-    <div class="bg-white border border-slate-200 w-full max-w-4xl max-h-[95vh] overflow-y-auto rounded-2xl shadow-2xl relative transform transition-all custom-scrollbar flex flex-col">
-        <div class="p-5 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
-            <div class="flex items-center space-x-3">
-                <div class="bg-indigo-50 p-2 rounded-lg text-indigo-600"><i class="fas fa-user-shield text-xl"></i></div>
-                <div>
-                    <h2 class="text-lg font-black text-slate-900 tracking-tight">Auditoría de Identidad</h2>
-                    <p id="kyc-modal-nombre" class="text-xs font-bold text-slate-500"></p>
+
+    <!-- ========================================== -->
+    <!-- MODAL KYC DE IDENTIDAD (ADMIN) -->
+    <!-- ========================================== -->
+    <div id="modalKYC" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[100] p-4 transition-opacity">
+        <div class="bg-white border border-slate-200 w-full max-w-4xl max-h-[95vh] overflow-y-auto rounded-2xl shadow-2xl relative transform transition-all custom-scrollbar flex flex-col">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-indigo-50 p-2 rounded-lg text-indigo-600"><i class="fas fa-user-shield text-xl"></i></div>
+                    <div>
+                        <h2 class="text-lg font-black text-slate-900 tracking-tight">Auditoría de Identidad</h2>
+                        <p id="kyc-modal-nombre" class="text-xs font-bold text-slate-500"></p>
+                    </div>
                 </div>
+                <button type="button" onclick="cerrarModalKYC()" class="text-slate-400 hover:text-rose-500 transition bg-slate-50 hover:bg-rose-50 p-2 rounded-lg"><i class="fas fa-times text-lg"></i></button>
             </div>
-            <button type="button" onclick="cerrarModalKYC()" class="text-slate-400 hover:text-rose-500 transition bg-slate-50 hover:bg-rose-50 p-2 rounded-lg"><i class="fas fa-times text-lg"></i></button>
-        </div>
-        
-        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50">
-            <div class="flex flex-col gap-2">
-                <div class="flex justify-between items-center">
-                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider"><i class="fas fa-id-card text-indigo-500 mr-1"></i> Frente de Cédula</span>
-                    <span id="kyc-modal-cedula" class="text-xs font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded shadow-sm border border-indigo-200"></span>
+            
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50">
+                <div class="flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider"><i class="fas fa-id-card text-indigo-500 mr-1"></i> Frente de Cédula</span>
+                        <span id="kyc-modal-cedula" class="text-xs font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded shadow-sm border border-indigo-200"></span>
+                    </div>
+                    <div class="bg-slate-200 rounded-xl overflow-hidden border border-slate-300 h-72 flex items-center justify-center cursor-zoom-in relative group shadow-inner" onclick="window.open(document.getElementById('kyc-img-cedula').src)">
+                        <img id="kyc-img-cedula" src="" alt="Cédula" class="w-full h-full object-contain">
+                        <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center transition-all">
+                            <i class="fas fa-expand text-white text-4xl"></i>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-slate-200 rounded-xl overflow-hidden border border-slate-300 h-72 flex items-center justify-center cursor-zoom-in relative group shadow-inner" onclick="window.open(document.getElementById('kyc-img-cedula').src)">
-                    <img id="kyc-img-cedula" src="" alt="Cédula" class="w-full h-full object-contain">
-                    <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center transition-all">
-                        <i class="fas fa-expand text-white text-4xl"></i>
+
+                <div class="flex flex-col gap-2">
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider"><i class="fas fa-camera text-indigo-500 mr-1"></i> Selfie de Seguridad</span>
+                    <div class="bg-slate-200 rounded-xl overflow-hidden border border-slate-300 h-72 flex items-center justify-center cursor-zoom-in relative group shadow-inner" onclick="window.open(document.getElementById('kyc-img-selfie').src)">
+                        <img id="kyc-img-selfie" src="" alt="Selfie" class="w-full h-full object-contain">
+                        <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center transition-all">
+                            <i class="fas fa-expand text-white text-4xl"></i>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="flex flex-col gap-2">
-                <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider"><i class="fas fa-camera text-indigo-500 mr-1"></i> Selfie de Seguridad</span>
-                <div class="bg-slate-200 rounded-xl overflow-hidden border border-slate-300 h-72 flex items-center justify-center cursor-zoom-in relative group shadow-inner" onclick="window.open(document.getElementById('kyc-img-selfie').src)">
-                    <img id="kyc-img-selfie" src="" alt="Selfie" class="w-full h-full object-contain">
-                    <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center transition-all">
-                        <i class="fas fa-expand text-white text-4xl"></i>
-                    </div>
-                </div>
+            <div class="p-5 bg-white border-t border-slate-100 flex gap-4 sticky bottom-0 z-10">
+                <form id="form-rechazar-kyc" action="" method="POST" class="flex-1" onsubmit="return confirm('¿Rechazar esta identidad? El técnico tendrá que subir sus fotos nuevamente.');">
+                    <button type="submit" class="w-full bg-white border-2 border-rose-200 hover:bg-rose-50 text-rose-600 font-black py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-sm flex justify-center items-center gap-2">
+                        <i class="fas fa-times"></i> Rechazar
+                    </button>
+                </form>
+                <form id="form-aprobar-kyc" action="" method="POST" class="flex-1" onsubmit="return confirm('¿Estás seguro de Aprobar? El técnico recibirá la insignia de Nivel Pro.');">
+                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex justify-center items-center gap-2">
+                        <i class="fas fa-shield-check"></i> Aprobar Identidad
+                    </button>
+                </form>
             </div>
-        </div>
-
-        <div class="p-5 bg-white border-t border-slate-100 flex gap-4 sticky bottom-0 z-10">
-            <form id="form-rechazar-kyc" action="" method="POST" class="flex-1" onsubmit="return confirm('¿Rechazar esta identidad? El técnico tendrá que subir sus fotos nuevamente.');">
-                <button type="submit" class="w-full bg-white border-2 border-rose-200 hover:bg-rose-50 text-rose-600 font-black py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-sm flex justify-center items-center gap-2">
-                    <i class="fas fa-times"></i> Rechazar
-                </button>
-            </form>
-            <form id="form-aprobar-kyc" action="" method="POST" class="flex-1" onsubmit="return confirm('¿Estás seguro de Aprobar? El técnico recibirá la insignia de Nivel Pro.');">
-                <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex justify-center items-center gap-2">
-                    <i class="fas fa-shield-check"></i> Aprobar Identidad
-                </button>
-            </form>
         </div>
     </div>
-</div>
+    <script>
+        function abrirModalKYC(id, nombre, cedula, imgCedula, imgSelfie) {
+            document.getElementById('kyc-modal-nombre').innerText = nombre;
+            document.getElementById('kyc-modal-cedula').innerText = cedula;
+            document.getElementById('kyc-img-cedula').src = imgCedula;
+            document.getElementById('kyc-img-selfie').src = imgSelfie;
+            document.getElementById('form-aprobar-kyc').action = '/admin/kyc/' + id + '/aprobar';
+            document.getElementById('form-rechazar-kyc').action = '/admin/kyc/' + id + '/rechazar';
+            document.getElementById('modalKYC').classList.remove('hidden');
+        }
+        function cerrarModalKYC() {
+            document.getElementById('modalKYC').classList.add('hidden');
+        }
+    </script>
 
-<script>
-    function abrirModalKYC(id, nombre, cedula, imgCedula, imgSelfie) {
-        document.getElementById('kyc-modal-nombre').innerText = nombre;
-        document.getElementById('kyc-modal-cedula').innerText = cedula;
-        document.getElementById('kyc-img-cedula').src = imgCedula;
-        document.getElementById('kyc-img-selfie').src = imgSelfie;
-        
-        // Asigna las rutas que conectarás en tu app.py
-        document.getElementById('form-aprobar-kyc').action = '/admin/kyc/' + id + '/aprobar';
-        document.getElementById('form-rechazar-kyc').action = '/admin/kyc/' + id + '/rechazar';
-        
-        document.getElementById('modalKYC').classList.remove('hidden');
-    }
-    function cerrarModalKYC() {
-        document.getElementById('modalKYC').classList.add('hidden');
-    }
-</script>
-<!-- ========================================== -->
+    <!-- ========================================== -->
     <!-- 🏢 FOOTER CORPORATIVO INWORKER -->
     <!-- ========================================== -->
-    <footer class="bg-white border-t border-slate-200 pt-12 pb-8 mt-12">
+    <footer class="bg-white border-t border-slate-200 pt-12 pb-8 mt-12 hidden md:block">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-between items-center md:items-start gap-8">
-                
-                <!-- Logo y Descripción -->
                 <div class="text-center md:text-left max-w-xs">
                     <span class="text-2xl font-black tracking-tight text-slate-900 leading-none block mb-3">
                         <span class="text-blue-600">in</span>Worker
@@ -885,30 +799,18 @@
                         La plataforma tecnológica que conecta el mejor talento con quienes lo necesitan. Servicios verificados, pagos seguros y respaldo total.
                     </p>
                 </div>
-
-                <!-- Redes Sociales y Contacto -->
-                    <div class="flex items-center space-x-4">
-                        
-                        <!-- Botón Facebook -->
-                        <a href="https://www.facebook.com/inworkeroficial" target="_blank" class="w-12 h-12 rounded-2xl bg-slate-50 text-slate-500 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-slate-200 hover:border-blue-600 group">
-                            <i class="fab fa-facebook-f text-xl group-hover:scale-110 transition-transform"></i>
-                        </a>
-
-                        <!-- Botón Instagram -->
-                        <a href="https://www.instagram.com/inworker.oficial" target="_blank" class="w-12 h-12 rounded-2xl bg-slate-50 text-slate-500 flex items-center justify-center hover:bg-pink-600 hover:text-white transition-all shadow-sm border border-slate-200 hover:border-pink-600 group">
-                            <i class="fab fa-instagram text-2xl group-hover:scale-110 transition-transform"></i>
-                        </a>
-
-                        <!-- Botón WhatsApp -->
-                        <a href="https://wa.me/573126427856" target="_blank" class="w-12 h-12 rounded-2xl bg-slate-50 text-slate-500 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all shadow-sm border border-slate-200 hover:border-emerald-500 group">
-                            <i class="fab fa-whatsapp text-2xl group-hover:scale-110 transition-transform"></i>
-                        </a>
-                        
-                    </div>
+                <div class="flex items-center space-x-4">
+                    <a href="https://www.facebook.com/inworkeroficial" target="_blank" class="w-12 h-12 rounded-2xl bg-slate-50 text-slate-500 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-slate-200 hover:border-blue-600 group">
+                        <i class="fab fa-facebook-f text-xl group-hover:scale-110 transition-transform"></i>
+                    </a>
+                    <a href="https://www.instagram.com/inworker.oficial" target="_blank" class="w-12 h-12 rounded-2xl bg-slate-50 text-slate-500 flex items-center justify-center hover:bg-pink-600 hover:text-white transition-all shadow-sm border border-slate-200 hover:border-pink-600 group">
+                        <i class="fab fa-instagram text-2xl group-hover:scale-110 transition-transform"></i>
+                    </a>
+                    <a href="https://wa.me/573126427856" target="_blank" class="w-12 h-12 rounded-2xl bg-slate-50 text-slate-500 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all shadow-sm border border-slate-200 hover:border-emerald-500 group">
+                        <i class="fab fa-whatsapp text-2xl group-hover:scale-110 transition-transform"></i>
+                    </a>
                 </div>
             </div>
-
-            <!-- Copyright -->
             <div class="border-t border-slate-100 mt-10 pt-6 text-center flex flex-col md:flex-row justify-between items-center gap-4">
                 <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                     &copy; 2026 inWorker Colombia. Todos los derechos reservados.
@@ -924,15 +826,12 @@
     <!-- ========================================== -->
     <!-- 🟢 BOTÓN FLOTANTE WHATSAPP PREMIUM -->
     <!-- ========================================== -->
-    <div class="fixed bottom-6 right-6 z-[100] group">
-        <!-- Reemplaza el 573000000000 por tu número -->
-        <a href="https://wa.me/573000000000?text=¡Hola!%20Vengo%20de%20inWorker.%20Necesito%20más%20información." 
+    <div class="fixed bottom-20 md:bottom-6 right-6 z-[80] group">
+        <a href="https://wa.me/573126427856?text=¡Hola!%20Vengo%20de%20inWorker.%20Necesito%20más%20información." 
            target="_blank" 
            class="flex items-center justify-center w-14 h-14 bg-emerald-500 text-white rounded-full shadow-2xl hover:bg-emerald-600 transition-all transform hover:scale-110 relative">
-            
             <i class="fab fa-whatsapp text-3xl z-10"></i>
             <div class="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75"></div>
-            
             <span class="absolute right-16 bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-md pointer-events-none">
                 Chatea con nosotros
             </span>
