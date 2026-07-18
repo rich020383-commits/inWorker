@@ -280,6 +280,11 @@ class BilleteraRetiro(db.Model):
     estado = db.Column(db.String(50), default='Pendiente')
     fecha_solicitud = db.Column(db.DateTime, default=db.func.current_timestamp())
     comprobante_pago = db.Column(db.String(255), nullable=True)
+    
+    # 🛡️ Nuevas columnas de blindaje contable DIAN que agregaste en Supabase
+    monto_bruto = db.Column(db.Numeric(12, 2), default=0.0)
+    comision_plataforma = db.Column(db.Numeric(12, 2), default=0.0)
+    costo_bancario = db.Column(db.Numeric(12, 2), default=0.0)
 
 class Recarga(db.Model):
     __tablename__ = 'recargas'
@@ -1460,18 +1465,23 @@ from datetime import datetime
 @app.route('/reportar_pago_nequi', methods=['POST'])
 def reportar_pago_nequi():
     if 'usuario_correo' not in session:
-        return redirect(url_for('index'))
+        return redirect(url_for('login')) # Mejor usar 'login' que 'index' por convención
 
     correo_logueado = session['usuario_correo']
     monto_transferido = request.form.get('monto_transferido', type=float)
     comprobante = request.files.get('comprobante_nequi')
 
-    if not monto_transferido or not comprobante or comprobante.filename == '':
-        flash("❌ Debes ingresar el monto y adjuntar la captura de pantalla.", "error")
+    # 🛡️ BLINDAJE EXTRA: Evitar montos vacíos, negativos o ceros
+    if not monto_transferido or monto_transferido <= 0:
+        flash("❌ El monto transferido debe ser mayor a cero.", "error")
+        return redirect(url_for('recargar_billetera'))
+
+    if not comprobante or comprobante.filename == '':
+        flash("❌ Debes adjuntar la captura de pantalla de la transferencia.", "error")
         return redirect(url_for('recargar_billetera'))
 
     try:
-        # 1. Guardamos la foto del comprobante
+        # 1. Guardamos la foto del comprobante de forma segura
         nombre_unico = f"nequi_{int(time.time())}_{secure_filename(comprobante.filename)}"
         ruta_guardado = os.path.join(app.config['UPLOAD_FOLDER'], nombre_unico)
         comprobante.save(ruta_guardado)
@@ -1480,7 +1490,7 @@ def reportar_pago_nequi():
         VALOR_CREDITO_COP = 10000
         creditos_comprados = round(monto_transferido / VALOR_CREDITO_COP, 2)
 
-        # 3. Creamos el registro en estado PENDIENTE (No inyectamos saldo aún)
+        # 3. Creamos el registro en estado PENDIENTE (Sin inyectar saldo aún)
         nueva_recarga = Recarga(
             usuario_correo=correo_logueado,
             monto_cop=monto_transferido,
@@ -1491,11 +1501,11 @@ def reportar_pago_nequi():
         db.session.add(nueva_recarga)
         db.session.commit()
 
-        # 🚨 ALERTA PARA TI
+        # 🚨 ALERTA PARA EL ADMIN
         print(f"🚨 ACCIÓN REQUERIDA: Verificar Nequi de {monto_transferido} COP. Usuario: {correo_logueado}.")
 
-        # 4. Mensaje psicológico al cliente igualando la experiencia Bold
-        flash("⏳ Hemos recibido tu comprobante. Tu recarga está siendo procesada y se reflejará en tu billetera en aproximadamente 5 a 10 minutos.", "info")
+        # 4. Mensaje psicológico de tranquilidad al cliente
+        flash("⏳ Hemos recibido tu comprobante. Tu recarga está siendo procesada y se reflejará en tu billetera en breve.", "info")
         return redirect(url_for('dashboard'))
 
     except Exception as e:
@@ -1504,12 +1514,13 @@ def reportar_pago_nequi():
         flash("❌ Ocurrió un error al enviar tu comprobante. Intenta de nuevo.", "error")
         return redirect(url_for('recargar_billetera'))
 
+
 # =====================================================================
 # 🛡️ ADMIN: LIBERACIÓN DE CRÉDITOS NEQUI (LOS BOTONES)
 # =====================================================================
 @app.route('/admin/auditar_recarga/<int:recarga_id>/<accion>', methods=['POST'])
 def auditar_recarga(recarga_id, accion):
-    # 🔒 Filtro de seguridad: Solo tú puedes presionar estos botones
+    # 🔒 Filtro de seguridad estricto
     if session.get('usuario_rol') != 'Admin':
         flash("🚫 Acceso denegado. Solo administradores.", "error")
         return redirect(url_for('home'))
@@ -1520,19 +1531,42 @@ def auditar_recarga(recarga_id, accion):
 
         if recarga.estado != 'Pendiente':
             flash("⚠️ Esta recarga ya fue procesada anteriormente.", "warning")
-            return redirect(url_for('home')) # 🎯 Te devuelve al Dashboard
+            return redirect(url_for('home'))
 
         if accion == 'aprobar':
             # ✅ VERIFICACIÓN EXITOSA: Inyectamos el dinero en la billetera
             usuario.saldo_creditos = round((usuario.saldo_creditos or 0.0) + recarga.creditos, 2)
             recarga.estado = 'Aprobada'
+            
+            # 🔔 NOTIFICACIÓN NATIVA: Alerta directa al Dashboard del cliente
+            aviso_sistema = Mensaje(
+                remitente_correo='baraka@inworker.com',
+                canal_trabajador=usuario.correo, # El destinatario
+                mensaje=f"⚡ ¡Recarga exitosa! Se han añadido {recarga.creditos} Créditos a tu billetera. Ya puedes usarlos en el Mercado de Servicios.",
+                tipo='sistema',
+                leido=0
+            )
+            db.session.add(aviso_sistema)
+
             flash(f"✅ Recarga aprobada. Se inyectaron {recarga.creditos} créditos a {usuario.correo}.", "success")
 
         elif accion == 'rechazar':
-            # 🚨 FRAUDE: Se rechaza sin tocar el saldo
+            # 🚨 FRAUDE O ERROR: Se rechaza sin tocar el saldo
             recarga.estado = 'Rechazada'
+            
+            # 🔔 NOTIFICACIÓN NATIVA: Explicación del rechazo
+            aviso_sistema = Mensaje(
+                remitente_correo='baraka@inworker.com',
+                canal_trabajador=usuario.correo,
+                mensaje="🚫 Tu reciente recarga ha sido rechazada debido a inconsistencias en el comprobante. Por favor, verifica e inténtalo de nuevo.",
+                tipo='sistema',
+                leido=0
+            )
+            db.session.add(aviso_sistema)
+
             flash(f"🚫 Recarga rechazada para {usuario.correo}. Comprobante inválido.", "error")
 
+        # ⚡ Un solo commit impacta el saldo, cambia el estado y lanza la notificación
         db.session.commit()
         
     except Exception as e:
@@ -1540,7 +1574,7 @@ def auditar_recarga(recarga_id, accion):
         print(f"❌ Error auditando recarga: {e}")
         flash("Error interno procesando la auditoría.", "error")
 
-    return redirect(url_for('home')) # 🎯 Te devuelve al Dashboard central
+    return redirect(url_for('home'))
 
 # --- CONTROL DEL TABLÓN DE ÓRDENES - OPTIMIZADO Y CON BUSCADOR ---
 @app.route('/tareas')
@@ -2974,87 +3008,82 @@ def liberar_fondos(tarea_id):
     try:
         tarea = Tarea.query.get_or_404(tarea_id)
         
-        # Validamos que esté en garantía y tenga un técnico asignado
         if tarea.estado != 'En Garantia' or not tarea.trabajador_correo:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'success': False, 'error': 'Esta orden no está en garantía.'}), 400
             flash("❌ Esta orden no está en garantía o no tiene un trabajador asignado.", "error")
             return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
             
-        # Buscamos al trabajador para pagarle
         trabajador = Usuario.query.filter_by(correo=tarea.trabajador_correo).first()
+        cliente = Usuario.query.filter_by(correo=tarea.cliente_correo).first()
+        
         if not trabajador:
             flash("❌ Error: No se encontró la cuenta del técnico.", "error")
             return redirect(url_for('ver_chat', tarea_id=tarea_id, trabajador_email=canal_sala))
-            
-        # Buscamos al cliente para validar el Bono de Doble Punta
-        cliente = Usuario.query.filter_by(correo=tarea.cliente_correo).first()
             
         # 💰 TRANSFERENCIA DE CRÉDITOS Y DIVISIÓN DE COMISIONES
         costo_servicio = tarea.costo_creditos or 0.0
         
         # 🧮 REGLA DE ORO INWORKER: El técnico recibe el 88% neto
         creditos_tecnico = round(costo_servicio * 0.88, 2)
-        saldo_tecnico_actual = trabajador.saldo_creditos or 0.0
-        trabajador.saldo_creditos = round(saldo_tecnico_actual + creditos_tecnico, 2)
+        trabajador.saldo_creditos = round((trabajador.saldo_creditos or 0.0) + creditos_tecnico, 2)
         
-        # 🕵️‍♂️ MOTOR DE EMBAJADORES (PROGRAMA DE CRECIMIENTO EN PILOTO AUTOMÁTICO)
-        if trabajador.referido_por:
-            padrino = Usuario.query.filter_by(codigo_embajador=trabajador.referido_por).first()
+        # 1. Calcular la retención total de inWorker (12%)
+        retencion_inworker = costo_servicio * 0.12
+
+        # 🕵️‍♂️ FUNCIÓN AUXILIAR PARA LIQUIDAR EMBAJADORES (PAGO SEPARADO)
+        def liquidar_comision_embajador(codigo_referido, tipo_comision):
+            if not codigo_referido:
+                return None
+                
+            embajador = Usuario.query.filter_by(codigo_embajador=codigo_referido).first()
+            if not embajador:
+                return None
+                
+            nivel = embajador.nivel_embajador or 1
             
-            if padrino:
-                # 1. Calcular la retención total de inWorker (12%)
-                retencion_inworker = costo_servicio * 0.12
+            # Repartición estratégica para igualar Landing Page (21%, 26%, 30%)
+            if tipo_comision == 'trabajador':
+                tasas = {1: 0.18, 2: 0.22, 3: 0.25} # Base por poner el talento
+            else: 
+                tasas = {1: 0.03, 2: 0.04, 3: 0.05} # Bono por traer al cliente/dinero
                 
-                # 2. Inicializar lógica de comisiones y bonos según el nivel del Padrino
-                nivel = padrino.nivel_embajador or 1
-                porcentaje_base = 0.18
-                porcentaje_bono = 0.03
+            porcentaje = tasas.get(nivel, 0.18)
+            comision = round(retencion_inworker * porcentaje, 2)
+            
+            if comision > 0:
+                embajador.saldo_creditos = round((embajador.saldo_creditos or 0.0) + comision, 2)
+                print(f"🎁 {tipo_comision.capitalize()}: {comision} Cr al Embajador {embajador.nombre}")
                 
-                if nivel == 2:    # Líder
-                    porcentaje_base = 0.22
-                    porcentaje_bono = 0.04
-                elif nivel == 3:  # Director Regional
-                    porcentaje_base = 0.25
-                    porcentaje_bono = 0.05
+            return embajador
+
+        # 2. Pagamos al que trajo al Trabajador
+        embajador_trabajador = liquidar_comision_embajador(trabajador.referido_por, 'trabajador')
+        
+        # 3. Pagamos al que trajo al Cliente (Bono Doble Punta reparado)
+        embajador_cliente = liquidar_comision_embajador(cliente.referido_por, 'cliente')
+
+        # 4. Actualizar métricas y ascensos (Unificando para no duplicar si es Doble Punta)
+        embajadores_a_actualizar = set(filter(None, [embajador_trabajador, embajador_cliente]))
+        
+        for emb in embajadores_a_actualizar:
+            emb.servicios_red = (emb.servicios_red or 0) + 1
+            
+            nuevo_nivel = emb.nivel_embajador
+            if emb.servicios_red >= 1000 and emb.nivel_embajador < 3:
+                nuevo_nivel = 3  # Asciende a Director Regional
+            elif emb.servicios_red >= 100 and emb.nivel_embajador < 2:
+                nuevo_nivel = 2  # Asciende a Líder
                 
-                # 3. ¿El cliente que pagó también fue referido por este mismo Padrino? (Bono de Doble Punta)
-                cliente_es_referido_propio = cliente and cliente.referido_por == padrino.codigo_embajador
-                
-                if cliente_es_referido_propio:
-                    porcentaje_final = porcentaje_base + porcentaje_bono
-                    print(f"🔥 ¡Bono de Doble Punta activado! {padrino.nombre} se lleva el {porcentaje_final * 100}%")
-                else:
-                    porcentaje_final = porcentaje_base
-                    print(f"💼 Comisión base asignada: {porcentaje_final * 100}%")
-                
-                # 4. Asignar Comisión en créditos al Embajador
-                comision_padrino = round(retencion_inworker * porcentaje_final, 2)
-                
-                if comision_padrino > 0:
-                    padrino.saldo_creditos = round((padrino.saldo_creditos or 0.0) + comision_padrino, 2)
-                    print(f"🎁 Comisión de {comision_padrino} Cr asignada al Embajador {padrino.nombre}")
-                
-                # 5. Sumar +1 servicio completado a la red de este Embajador
-                padrino.servicios_red = (padrino.servicios_red or 0) + 1
-                
-                # 6. Lógica de ascensos automáticos por mérito (Servicios Efectivos)
-                nuevo_nivel = padrino.nivel_embajador
-                if padrino.servicios_red >= 1000 and padrino.nivel_embajador < 3:
-                    nuevo_nivel = 3  # Asciende a Director Regional
-                elif padrino.servicios_red >= 100 and padrino.nivel_embajador < 2:
-                    nuevo_nivel = 2  # Asciende a Líder
-                
-                if nuevo_nivel != padrino.nivel_embajador:
-                    padrino.nivel_embajador = nuevo_nivel
-                    print(f"🏆 ¡EL EMBAJADOR {padrino.nombre} HA ASCENDIDO AL NIVEL {nuevo_nivel}! Servicios red: {padrino.servicios_red}")
+            if nuevo_nivel != emb.nivel_embajador:
+                emb.nivel_embajador = nuevo_nivel
+                print(f"🏆 ¡EL EMBAJADOR {emb.nombre} HA ASCENDIDO AL NIVEL {nuevo_nivel}!")
 
         # 💡 CIRUGÍA NINJA: Mantenemos el chat vivo y reseteamos el ciclo de pago
         tarea.estado = 'Cotización Pendiente'
         tarea.confirmacion_cliente = 0
         tarea.confirmacion_trabajador = 0
         
-        # Inyectamos el mensaje del sistema invitando a continuar
         mensaje_sistema = Mensaje(
             tarea_id=tarea_id,
             canal_trabajador=canal_sala,
@@ -3066,7 +3095,7 @@ def liberar_fondos(tarea_id):
         
         db.session.commit()
         
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type and 'multipart/form-data' in request.content_type:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or (request.content_type and 'multipart/form-data' in request.content_type):
             return jsonify({'success': True})
             
         flash("🎉 ¡Fondos liberados con éxito!", "success")

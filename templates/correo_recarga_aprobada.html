@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #0f172a; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; padding: 32px; border: 1px solid #e2e8f0; }
+        .header { text-align: center; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9; }
+        .logo { font-size: 24px; font-weight: 900; color: #0f172a; }
+        .logo span { color: #2563eb; }
+        .content { padding: 24px 0; line-height: 1.6; }
+        .success-banner { background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #059669; padding: 12px; border-radius: 12px; text-align: center; font-weight: bold; margin-bottom: 24px; }
+        .box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin: 20px 0; text-align: center; }
+        .legal { font-size: 11px; color: #64748b; margin-top: 32px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 16px; }
+        .btn { display: inline-block; background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; margin-top: 16px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo"><span>i</span>n<span>W</span>orker</div>
+        </div>
+        <div class="content">
+            <div class="success-banner">¡Tu pago ha sido verificado con éxito! ⚡</div>
+            
+            <p>Hola, <strong>{{ nombre_usuario }}</strong>.</p>
+            <p>Hemos confirmado la recepción de tu transferencia. Tu billetera virtual ha sido recargada y los fondos ya están disponibles para que contrates a los mejores especialistas.</p>
+            
+            <div class="box">
+                <p style="margin: 0 0 8px 0; font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: bold;">Detalles de la Recarga</p>
+                <p style="margin: 4px 0; font-size: 24px; font-weight: 900; color: #0f172a;">+{{ creditos }} <span style="font-size: 14px; color: #64748b;">Créditos inWorker</span></p>
+                <p style="margin: 4px 0; font-size: 12px; color: #475569;">Valor COP: ${{ "{:,.0f}".format(monto_cop) }}</p>
+            </div>
+            
+            <center>
+                <a href="{{ url_dashboard }}" class="btn">Ir a mi Billetera</a>
+            </center>
+        </div>
+        <div class="legal">
+            <p>Este comprobante certifica el ingreso de fondos en administración para el pago de servicios independientes a través de inWorker.</p>
+            <p>© 2026 inWorker Colombia. Barakah Tech Hub S.A.S.</p>
+        </div>
+    </div>
+</body>
+</html>
