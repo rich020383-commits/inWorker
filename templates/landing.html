@@ -12,13 +12,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>inWorker: Trabaja y contrata con total confianza</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
     <style>
+        /* Animación de la barra de carga inicial */
         @keyframes loading { 0% { transform: scaleX(0); } 100% { transform: scaleX(1); } }
+        
+        /* Animaciones para la IA */
+        @keyframes orbit { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .animate-orbit-slow { animation: orbit 20s linear infinite; }
+        .animate-orbit-fast { animation: orbit 8s linear infinite reverse; }
+        
+        /* Efecto 3D Interactivo Upward AI */
+        .perspective-card { perspective: 1000px; }
+        .tilt-element {
+            transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+            transform-style: preserve-3d;
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col overflow-x-hidden">
+<body class="bg-white text-slate-900 font-sans antialiased min-h-screen overflow-x-hidden">
 
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KMVS6XHL"
@@ -26,283 +53,447 @@
     <!-- End Google Tag Manager (noscript) -->
 
     <!-- ========================================== -->
-    <!-- 🚀 SPLASH SCREEN FINAL (RESPONSIVO NIVEL DIOS) -->
+    <!-- 🚀 SPLASH SCREEN FINAL (Tu lógica original) -->
     <!-- ========================================== -->
     <div id="splash-screen" class="fixed inset-0 z-[99999] flex flex-col items-center justify-end pb-28 text-white transition-opacity duration-1000 bg-slate-900 overflow-hidden">
         
-        <!-- 📱 FOTO MÓVIL (Apretón de manos): Se ve en celulares, se oculta en laptops -->
         <img src="{{ url_for('static', filename='img/bg-landing.webp') }}" 
              class="block md:hidden absolute inset-0 w-full h-full object-cover object-center" 
              alt="inWorker Móvil">
 
-        <!-- 💻 FOTO LAPTOP (Ecosistema con tarjetas): Oculta en celulares, visible en laptops -->
         <img src="{{ url_for('static', filename='img/bg-dashboard.webp') }}" 
              class="hidden md:block absolute inset-0 w-full h-full object-cover object-center" 
              alt="inWorker Desktop">
 
-        <!-- Barra de carga -->
         <div class="relative z-10 w-48 h-[4px] bg-black/20 rounded-full overflow-hidden border border-white/10 shadow-lg mb-6">
             <div class="h-full bg-blue-500 w-full animate-[loading_2s_ease-in-out] origin-left shadow-[0_0_15px_rgba(59,130,246,0.8)]"></div>
         </div>
         
-        <!-- Texto de carga -->
         <p class="relative z-10 text-[10px] md:text-xs font-black text-white uppercase tracking-[0.3em] drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
             <i class="fas fa-microchip mr-1"></i> Ecosistema Tech • Confianza
         </p>
     </div>
 
-    <header class="absolute top-0 w-full z-50 px-6 py-6 max-w-7xl mx-auto left-0 right-0 flex justify-between items-center">
-        <div class="flex items-center space-x-3">
-            <a href="#" class="flex items-center space-x-2 select-none group">
-                <div class="bg-white px-2 py-1.5 rounded-lg shadow-sm flex items-center justify-center transition-transform group-hover:scale-105">
-                    <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-6 w-auto object-contain">
-                </div>
-                <div class="flex flex-col border-l border-slate-700/30 pl-3 ml-1">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-800">
-                        Ecosistema <span class="text-blue-600">Tech</span>
-                    </span>
-                </div>
-            </a>
-        </div>
+    <!-- ========================================== -->
+    <!-- 🏢 NAVBAR -->
+    <!-- ========================================== -->
+    <nav class="absolute top-0 w-full z-50 px-6 py-6 max-w-7xl mx-auto left-0 right-0 flex justify-between items-center">
+        <a href="#" class="flex items-center space-x-2 select-none group">
+            <div class="bg-white px-2 py-1.5 rounded-lg shadow-sm flex items-center justify-center transition-transform group-hover:scale-105">
+                <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-6 w-auto object-contain">
+            </div>
+            <div class="flex flex-col border-l border-slate-300 pl-3 ml-1">
+                <span class="text-[10px] font-black uppercase tracking-widest text-slate-800">
+                    Ecosistema <span class="text-blue-600">Tech</span>
+                </span>
+            </div>
+        </a>
         <div>
-            <a href="{{ url_for('login') }}" class="bg-white/80 backdrop-blur-sm border border-slate-200 hover:bg-white text-slate-800 font-black text-xs px-5 py-2.5 rounded-xl transition shadow-sm flex items-center space-x-2 uppercase tracking-wide">
-                <i class="fas fa-user text-blue-600"></i>
+            <a href="{{ url_for('login') }}" class="bg-blue-50 border border-blue-100 hover:bg-blue-100 text-blue-700 font-black text-xs px-5 py-2.5 rounded-xl transition shadow-sm flex items-center space-x-2 uppercase tracking-wide">
+                <i class="fas fa-user-circle"></i>
                 <span>Ingresar al Panel</span>
             </a>
         </div>
-    </header>
+    </nav>
 
-    <main class="flex-grow">
+    <!-- ========================================== -->
+    <!-- 🌍 CONTENEDOR PRINCIPAL DOS COLUMNAS -->
+    <!-- ========================================== -->
+    <main class="max-w-7xl mx-auto px-6 pt-32 pb-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start relative">
         
-        <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-4 overflow-hidden">
-            <div class="absolute top-20 -right-20 w-96 h-96 bg-blue-100 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+        <!-- ========================================== -->
+        <!-- COLUMNA IZQUIERDA (7/12) -->
+        <!-- ========================================== -->
+        <div class="lg:col-span-7 space-y-16">
             
-            <div class="max-w-4xl mx-auto text-center space-y-6 relative z-10">
-                <span class="text-[10px] font-black uppercase tracking-widest bg-blue-50 text-blue-600 px-4 py-2 rounded-full border border-blue-100 inline-flex items-center gap-2 shadow-sm">
-                    <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span> Marketplace de Confianza Garantizada
-                </span>
-                
-                <h1 class="text-5xl md:text-7xl font-black text-slate-900 tracking-tight leading-[1.05]">
-    In<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">W</span>orker: Trabaja y contrata con <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">total confianza.</span>
-</h1>
-                
-                <p class="text-base md:text-lg text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
+            <!-- Hero principal -->
+            <div class="space-y-6 max-w-2xl relative z-10">
+                <div class="inline-flex items-center gap-1.5 text-blue-600 text-[10px] font-black uppercase tracking-widest bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100 shadow-sm">
+                    <i class="fas fa-shield-check"></i> Marketplace de confianza garantizada
+                </div>
+                <h1 class="text-4xl md:text-[3.5rem] font-black text-slate-900 tracking-tight leading-[1.05]">
+                    InWorker:<br>Trabaja y contrata con <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">total confianza.</span>
+                </h1>
+                <p class="text-base text-slate-500 font-medium leading-relaxed">
                     Conectamos talento técnico independiente con clientes bajo un sistema de pago 100% protegido. El dinero solo se libera cuando apruebas el servicio.
                 </p>
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <a href="{{ url_for('login', action='registro', rol='Cliente') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-lg shadow-blue-600/20 text-center transition flex items-center justify-center gap-2 active:scale-95">
+                        <i class="fas fa-search"></i> Buscar talento técnico
+                    </a>
+                    <a href="{{ url_for('login', action='registro', rol='Worker') }}" class="bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl text-center transition flex items-center justify-center gap-2 active:scale-95">
+                        <i class="fas fa-tools text-emerald-500"></i> Ofrecer mis servicios
+                    </a>
+                </div>
                 
-                <div class="flex flex-col sm:flex-row justify-center items-center gap-4 pt-6">
-                    <a href="{{ url_for('login', action='registro', rol='Cliente') }}" class="w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 hover:-translate-y-1 text-white font-black px-8 py-4 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-xl shadow-blue-600/20">
-                        <i class="fas fa-search mr-2"></i> Buscar Talento Técnico
-                    </a>
-                    <a href="{{ url_for('login', action='registro', rol='Worker') }}" class="w-full sm:w-auto text-center bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 hover:-translate-y-1 text-slate-700 font-black px-8 py-4 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-sm">
-                        <i class="fas fa-tools text-emerald-500 mr-2"></i> Ofrecer mis Servicios
-                    </a>
+                <!-- Beneficios rápidos en iconos -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-8">
+                    <div class="flex flex-col items-center p-3 bg-white/60 backdrop-blur-sm rounded-xl text-center border border-slate-200/60 shadow-sm transition hover:-translate-y-1">
+                        <i class="fas fa-lock text-blue-600 text-2xl mb-2"></i>
+                        <span class="text-[10px] font-black uppercase text-slate-700">Pagos en Escrow</span>
+                    </div>
+                    <div class="flex flex-col items-center p-3 bg-white/60 backdrop-blur-sm rounded-xl text-center border border-slate-200/60 shadow-sm transition hover:-translate-y-1">
+                        <i class="fas fa-id-card text-emerald-500 text-2xl mb-2"></i>
+                        <span class="text-[10px] font-black uppercase text-slate-700">Perfiles Verificados</span>
+                    </div>
+                    <div class="flex flex-col items-center p-3 bg-white/60 backdrop-blur-sm rounded-xl text-center border border-slate-200/60 shadow-sm transition hover:-translate-y-1">
+                        <i class="fas fa-briefcase text-amber-500 text-2xl mb-2"></i>
+                        <span class="text-[10px] font-black uppercase text-slate-700">Portafolios Reales</span>
+                    </div>
+                    <div class="flex flex-col items-center p-3 bg-white/60 backdrop-blur-sm rounded-xl text-center border border-slate-200/60 shadow-sm transition hover:-translate-y-1">
+                        <i class="fas fa-check-circle text-purple-500 text-2xl mb-2"></i>
+                        <span class="text-[10px] font-black uppercase text-slate-700">Garantía de Entrega</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto text-center relative z-10 group/cards">
-                <div class="bg-white/60 backdrop-blur-md p-6 rounded-2xl border border-slate-200/60 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-blue-500/20 hover:border-blue-200 cursor-default">
-                    <div class="text-blue-600 mb-3 transform transition-transform duration-300 hover:scale-110"><i class="fas fa-lock text-3xl"></i></div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-800">Pagos en Escrow</span>
-                </div>
-                <div class="bg-white/60 backdrop-blur-md p-6 rounded-2xl border border-slate-200/60 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-emerald-500/20 hover:border-emerald-200 cursor-default">
-                    <div class="text-emerald-500 mb-3 transform transition-transform duration-300 hover:scale-110"><i class="fas fa-id-card text-3xl"></i></div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-800">Perfiles Verificados</span>
-                </div>
-                <div class="bg-white/60 backdrop-blur-md p-6 rounded-2xl border border-slate-200/60 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-amber-500/20 hover:border-amber-200 cursor-default">
-                    <div class="text-amber-500 mb-3 transform transition-transform duration-300 hover:scale-110"><i class="fas fa-briefcase text-3xl"></i></div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-800">Portafolios Reales</span>
-                </div>
-                <div class="bg-white/60 backdrop-blur-md p-6 rounded-2xl border border-slate-200/60 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-purple-500/20 hover:border-purple-200 cursor-default">
-                    <div class="text-purple-500 mb-3 transform transition-transform duration-300 hover:scale-110"><i class="fas fa-check-circle text-3xl"></i></div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-800">Garantía de Entrega</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="bg-white py-24 px-4 border-t border-slate-100">
-            <div class="max-w-6xl mx-auto">
-                <div class="text-center space-y-3 mb-16">
-                    <h2 class="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Diseñado para tu seguridad</h2>
-                    <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">Adiós a los fraudes en contratación independiente</p>
+            <!-- Sección de Seguridad -->
+            <div class="space-y-8 pt-8">
+                <div class="space-y-2">
+                    <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest block">Diseñado para tu seguridad</span>
+                    <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">Adiós a los fraudes en contratación independiente</h2>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-slate-50 hover:bg-blue-50/50 border border-slate-200 p-8 rounded-3xl transition-colors">
-                        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-xl mb-6 shadow-sm"><i class="fas fa-user-tie"></i></div>
-                        <h3 class="text-lg font-black text-slate-900 tracking-wide mb-6">Para el Cliente: Cero Estafas</h3>
-                        <div class="space-y-6">
-                            <div class="flex gap-4">
-                                <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-md">1</div>
-                                <div><h4 class="text-xs font-black uppercase tracking-wider text-slate-800 mb-1">Publica tu necesidad</h4><p class="text-xs text-slate-500 leading-relaxed">Describe detalladamente el servicio técnico o proyecto que requieres.</p></div>
+                <div class="space-y-6">
+                    <!-- Tarjeta Cliente -->
+                    <div class="bg-slate-50 border border-slate-100 rounded-3xl p-6 relative overflow-hidden group hover:bg-blue-50/30 transition">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-sm shadow-inner"><i class="fas fa-user-shield"></i></div>
+                            <h3 class="font-extrabold text-slate-900 text-sm uppercase tracking-wide">Para el Cliente: Cero Estafas</h3>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <div class="flex sm:flex-col gap-3 sm:gap-1.5 items-start">
+                                <div class="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center shrink-0">1</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-[13px] mb-1">Publica tu necesidad</h4>
+                                    <p class="text-[11px] text-slate-500 font-medium">Describe detalladamente el servicio o proyecto que requieres.</p>
+                                </div>
                             </div>
-                            <div class="flex gap-4">
-                                <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-md">2</div>
-                                <div><h4 class="text-xs font-black uppercase tracking-wider text-slate-800 mb-1">Depósito seguro</h4><p class="text-xs text-slate-500 leading-relaxed">Tu pago queda retenido de forma segura mediante nuestro sistema Escrow.</p></div>
+                            <div class="flex sm:flex-col gap-3 sm:gap-1.5 items-start">
+                                <div class="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center shrink-0">2</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-[13px] mb-1">Depósito seguro</h4>
+                                    <p class="text-[11px] text-slate-500 font-medium">Tu pago queda retenido de forma segura mediante sistema Escrow.</p>
+                                </div>
                             </div>
-                            <div class="flex gap-4">
-                                <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-md">3</div>
-                                <div><h4 class="text-xs font-black uppercase tracking-wider text-slate-800 mb-1">Revisa y libera</h4><p class="text-xs text-slate-500 leading-relaxed">El especialista trabaja, tú verificas el resultado y solo entonces liberas los fondos.</p></div>
+                            <div class="flex sm:flex-col gap-3 sm:gap-1.5 items-start">
+                                <div class="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center shrink-0">3</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-[13px] mb-1">Revisa y libera</h4>
+                                    <p class="text-[11px] text-slate-500 font-medium">El especialista trabaja, verificas el resultado y liberas fondos.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-slate-50 hover:bg-emerald-50/50 border border-slate-200 p-8 rounded-3xl transition-colors">
-                        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-xl mb-6 shadow-sm"><i class="fas fa-tools"></i></div>
-                        <h3 class="text-lg font-black text-slate-900 tracking-wide mb-6">Para el Especialista: Cobro Seguro</h3>
-                        <div class="space-y-6">
-                            <div class="flex gap-4">
-                                <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-md">1</div>
-                                <div><h4 class="text-xs font-black uppercase tracking-wider text-slate-800 mb-1">Verifica tu identidad</h4><p class="text-xs text-slate-500 leading-relaxed">Sube tu cédula y realiza validación facial para ganar máxima credibilidad.</p></div>
+                    <!-- Tarjeta Especialista -->
+                    <div class="bg-slate-50 border border-slate-100 rounded-3xl p-6 relative overflow-hidden group hover:bg-emerald-50/30 transition">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm shadow-inner"><i class="fas fa-screwdriver-wrench"></i></div>
+                            <h3 class="font-extrabold text-slate-900 text-sm uppercase tracking-wide">Para el Especialista: Cobro Seguro</h3>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <div class="flex sm:flex-col gap-3 sm:gap-1.5 items-start">
+                                <div class="w-6 h-6 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center shrink-0">1</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-[13px] mb-1">Verifica tu identidad</h4>
+                                    <p class="text-[11px] text-slate-500 font-medium">Sube tu cédula y validación facial para ganar credibilidad.</p>
+                                </div>
                             </div>
-                            <div class="flex gap-4">
-                                <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-md">2</div>
-                                <div><h4 class="text-xs font-black uppercase tracking-wider text-slate-800 mb-1">Muestra tu portafolio</h4><p class="text-xs text-slate-500 leading-relaxed">Carga tus estudios y fotos de trabajos previos para atraer clientes premium.</p></div>
+                            <div class="flex sm:flex-col gap-3 sm:gap-1.5 items-start">
+                                <div class="w-6 h-6 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center shrink-0">2</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-[13px] mb-1">Muestra tu portafolio</h4>
+                                    <p class="text-[11px] text-slate-500 font-medium">Carga fotos de trabajos previos para atraer clientes premium.</p>
+                                </div>
                             </div>
-                            <div class="flex gap-4">
-                                <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-md">3</div>
-                                <div><h4 class="text-xs font-black uppercase tracking-wider text-slate-800 mb-1">Trabaja con garantía</h4><p class="text-xs text-slate-500 leading-relaxed">Inicia labores sabiendo que el pago ya está respaldado por la plataforma.</p></div>
+                            <div class="flex sm:flex-col gap-3 sm:gap-1.5 items-start">
+                                <div class="w-6 h-6 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center shrink-0">3</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-[13px] mb-1">Trabaja con garantía</h4>
+                                    <p class="text-[11px] text-slate-500 font-medium">Inicia labores sabiendo que el pago ya está respaldado.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
 
-        <section class="max-w-6xl mx-auto px-4 py-16">
-            <div class="bg-slate-900 rounded-[2.5rem] p-8 md:p-14 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-10">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-900/40 to-indigo-900/40"></div>
-                <div class="absolute -right-20 -top-20 text-blue-500/10 text-[12rem] font-black pointer-events-none"><i class="fas fa-brain"></i></div>
+            <!-- Métricas y Testimonios -->
+            <div class="space-y-8 bg-slate-50 border border-slate-100 rounded-3xl p-8">
+                <div class="space-y-1 text-center sm:text-left">
+                    <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block">Confianza que se demuestra</span>
+                    <h2 class="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Miles de proyectos completados con éxito en la plataforma</h2>
+                </div>
                 
-                <div class="space-y-4 max-w-2xl z-10 text-center md:text-left">
-                    <span class="text-[10px] font-black uppercase tracking-widest bg-blue-500/20 text-blue-400 px-4 py-2 rounded-lg border border-blue-500/30">
-                        Tecnología de Vanguardia
-                    </span>
-                    <h3 class="text-3xl md:text-5xl font-black tracking-tight text-white mt-4 mb-4">Potenciado por <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Upward AI</span></h3>
-                    <p class="text-sm text-slate-300 leading-relaxed font-medium">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center sm:text-left">
+                    <div>
+                        <div class="text-3xl font-black text-slate-900">12K+</div>
+                        <div class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wide">Proyectos Completados</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-black text-slate-900">7K+</div>
+                        <div class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wide">Profesionales Verificados</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-black text-slate-900">98%</div>
+                        <div class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wide">Clientes Satisfechos</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-black text-slate-900">100%</div>
+                        <div class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wide">Pagos Protegidos</div>
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-slate-200/80 flex items-start gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <img src="https://ui-avatars.com/api/?name=Juan+Esteban&background=0D8ABC&color=fff" class="w-10 h-10 rounded-full shrink-0" alt="Avatar">
+                    <div>
+                        <div class="flex gap-0.5 text-xs text-amber-400 mb-1">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                        <p class="text-xs text-slate-600 font-medium italic mb-2">
+                            "Encontré al desarrollador perfecto para mi proyecto en menos de 24 horas. El sistema Escrow me dio total tranquilidad."
+                        </p>
+                        <h4 class="text-[11px] font-black text-slate-900">Juan Esteban M. <span class="text-slate-400 font-normal">| CEO, StartupTech</span></h4>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- COLUMNA DERECHA (5/12) -->
+        <!-- ========================================== -->
+        <div class="lg:col-span-5 space-y-8">
+            
+            <!-- 🤖 SECCIÓN UPWARD AI (INTERACTIVA 3D) -->
+            <div class="space-y-6 lg:sticky lg:top-28">
+                <div class="space-y-2">
+                    <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block bg-blue-50 inline-block px-3 py-1 rounded-md border border-blue-100">Tecnología de vanguardia</span>
+                    <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Potenciado por <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Upward AI</span></h2>
+                    <p class="text-xs text-slate-500 font-medium leading-relaxed">
                         Nuestro sistema utiliza algoritmos avanzados de Inteligencia Artificial para ejecutar un matching automático inteligente. Analizamos las habilidades del técnico y los requerimientos exactos del cliente para conectarte con el perfil perfecto en segundos.
                     </p>
                 </div>
-                
-                <div class="shrink-0 z-10">
-                    <div class="bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-3xl p-6 shadow-xl text-center">
+
+                <!-- 🔮 Tarjeta Holográfica Interactiva -->
+                <div class="perspective-card w-full">
+                    <div id="upward-ai-card" class="tilt-element bg-slate-950 rounded-[2rem] p-6 shadow-2xl relative overflow-hidden border border-slate-800 grid grid-cols-1 sm:grid-cols-12 gap-6 cursor-crosshair">
                         
-                        <div class="relative inline-block mb-3">
-                            <div class="absolute inset-0 bg-amber-400 rounded-full blur-md opacity-60 animate-pulse"></div>
-                            <i class="fas fa-bolt text-3xl text-amber-400 relative z-10 animate-bounce" style="animation-duration: 2s;"></i>
+                        <!-- Capa de brillo dinámico controlada por JS -->
+                        <div id="card-glow" class="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-0 bg-[radial-gradient(circle_at_var(--x)_var(--y),rgba(59,130,246,0.25)_0%,transparent_50%)]"></div>
+                        
+                        <!-- Interfaz Gráfica de la IA -->
+                        <div class="sm:col-span-7 h-48 bg-slate-900/50 rounded-2xl border border-slate-800/80 flex items-center justify-center relative overflow-hidden shadow-inner">
+                            <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:16px_16px]"></div>
+                            
+                            <div class="animate-orbit-slow absolute w-36 h-36 border border-dashed border-blue-500/20 rounded-full flex items-center justify-center">
+                                <div class="w-2 h-2 bg-blue-400 rounded-full absolute -top-1 shadow-[0_0_8px_#3b82f6]"></div>
+                            </div>
+                            <div class="animate-orbit-fast absolute w-24 h-24 border border-dashed border-emerald-500/30 rounded-full flex items-center justify-center">
+                                <div class="w-1.5 h-1.5 bg-emerald-400 rounded-full absolute -bottom-1 shadow-[0_0_8px_#10b981]"></div>
+                            </div>
+                            
+                            <!-- Logotipo Reactivo Parallax -->
+                            <div id="ai-core-logo" class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-xl shadow-blue-500/30 border border-white/10 relative z-10 transition-transform duration-100 ease-out">
+                                <span class="text-white font-black text-2xl select-none filter drop-shadow">iw</span>
+                                <div class="absolute inset-0 rounded-2xl bg-blue-400/20 animate-pulse"></div>
+                            </div>
                         </div>
 
-                        <h4 class="text-xs font-black uppercase tracking-widest mb-1">Matching</h4>
-                        <p class="text-[10px] text-slate-300 font-bold uppercase">Automático</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ========================================== -->
-        <!-- 🚀 SECCIÓN: PROGRAMA FUNDADOR DE EXPANSIÓN -->
-        <!-- ========================================== -->
-        <section class="py-20 bg-gradient-to-br from-slate-900 to-[#1e1b4b] text-white relative overflow-hidden border-t border-b border-indigo-500/30" id="socios">
-            <!-- Efectos de luz de fondo -->
-            <div class="absolute top-0 right-0 w-64 h-64 bg-purple-500 rounded-full blur-[120px] opacity-20 pointer-events-none"></div>
-            <div class="absolute bottom-0 left-0 w-40 h-40 bg-blue-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
-
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                
-                <!-- Título Central y Transparencia -->
-                <div class="text-center max-w-3xl mx-auto mb-16">
-                    <span class="bg-indigo-600/30 text-indigo-300 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-indigo-500/50 inline-block mb-4">
-                        Convocatoria Limitada: 1er Año
-                    </span>
-                    <h2 class="text-3xl md:text-5xl font-black mt-2 mb-4 tracking-tight">
-                        Programa Fundador de <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Expansión</span>
-                    </h2>
-                    <p class="text-slate-300 text-lg md:text-xl max-w-2xl mx-auto mb-6">
-                        No seas solo un usuario. Conviértete en Socio de Crecimiento y gana hasta un 30% de comisiones por los servicios de tu red. 
-                    </p>
-                    <div class="inline-flex items-center gap-2 bg-emerald-900/40 border border-emerald-500/30 px-4 py-2 rounded-lg">
-                        <i class="fas fa-shield-check text-emerald-400"></i>
-                        <span class="text-xs font-bold text-emerald-100 tracking-wide">Economía Real • Cero esquemas piramidales</span>
+                        <!-- Estado del Matching -->
+                        <div class="sm:col-span-5 flex flex-col justify-center space-y-2 text-white relative z-10 select-none">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-lg shadow-lg shadow-amber-500/20 mb-2">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <h4 class="font-black text-xs uppercase tracking-widest text-slate-300">Matching Automático</h4>
+                            <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Preciso, rápido y confiable</p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Los 3 Niveles (Escalera de Crecimiento) -->
-                <div class="grid md:grid-cols-3 gap-6 mb-16">
-                    <!-- Nivel 1 -->
-                    <div class="bg-white/5 border border-white/10 rounded-2xl p-8 text-center backdrop-blur-sm hover:border-indigo-500/50 transition">
-                        <div class="text-5xl mb-4 transform hover:scale-110 transition duration-300">🌱</div>
-                        <h3 class="text-xl font-black text-white mb-2">1. Embajador</h3>
-                        <p class="text-indigo-200 font-bold mb-4">Hasta 21% de Comisión</p>
-                        <p class="text-sm text-slate-400">Comienza a construir tu red desde cero. Gana comisiones por los primeros 100 servicios efectivos que generen los técnicos que invites.</p>
-                    </div>
-                    <!-- Nivel 2 -->
-                    <div class="bg-white/5 border border-white/10 rounded-2xl p-8 text-center backdrop-blur-sm hover:border-indigo-500/50 transition scale-105 shadow-2xl shadow-indigo-500/20 relative">
-                        <div class="absolute -top-3 -right-3 bg-blue-600 text-white text-[9px] font-black uppercase px-2 py-1 rounded-full shadow-md">Más Popular</div>
-                        <div class="text-5xl mb-4 transform hover:scale-110 transition duration-300">🚀</div>
-                        <h3 class="text-xl font-black text-white mb-2">2. Líder inWorker</h3>
-                        <p class="text-indigo-200 font-bold mb-4">Hasta 26% de Comisión</p>
-                        <p class="text-sm text-slate-400">Asciende automáticamente al superar los 100 servicios en tu red. Accede a material publicitario oficial y multiplicadores de ganancias.</p>
-                    </div>
-                    <!-- Nivel 3 -->
-                    <div class="bg-white/5 border border-white/10 rounded-2xl p-8 text-center backdrop-blur-sm hover:border-indigo-500/50 transition">
-                        <div class="text-5xl mb-4 transform hover:scale-110 transition duration-300">👑</div>
-                        <h3 class="text-xl font-black text-white mb-2">3. Director Regional</h3>
-                        <p class="text-indigo-200 font-bold mb-4">Hasta 30% de Comisión</p>
-                        <p class="text-sm text-slate-400">El máximo nivel. Alcanza los 1.000 servicios y domina tu región con certificados de ingresos legales y la mayor rentabilidad del sistema.</p>
-                    </div>
-                </div>
+                <!-- 👑 SECCIÓN PROGRAMA FUNDADOR -->
+                <div class="bg-slate-900 border border-indigo-500/20 rounded-[2rem] p-6 text-white shadow-2xl relative overflow-hidden space-y-6 mt-8">
+                    <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-600/20 rounded-full blur-[80px] pointer-events-none"></div>
 
-                <!-- El Gatillo de Urgencia -->
-                <div class="bg-amber-900/40 border border-amber-500/30 rounded-2xl p-8 text-center max-w-4xl mx-auto backdrop-blur-md shadow-2xl">
-                    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div class="text-left md:w-2/3">
-                            <h4 class="text-amber-400 font-black uppercase tracking-widest text-sm mb-2"><i class="fas fa-hourglass-half mr-2 animate-pulse"></i>El tiempo corre, Fundador</h4>
-                            <p class="text-amber-100/90 text-sm leading-relaxed">
-                                El acceso a estos altos porcentajes y al estatus de "Programa Fundador" se clausurará permanentemente al finalizar nuestro primer año. <strong>Quienes ingresen ahora, conservarán sus códigos y comisiones vip de por vida.</strong>
+                    <div class="space-y-3 relative z-10">
+                        <div class="inline-block bg-indigo-500/20 border border-indigo-400/20 text-indigo-300 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
+                            Convocatoria Limitada: 1er Año
+                        </div>
+                        <h2 class="text-2xl font-black tracking-tight leading-tight">Programa Fundador de <span class="text-indigo-400">Expansión</span></h2>
+                        <p class="text-xs text-slate-400 font-medium leading-relaxed">
+                            No seas solo un usuario. Conviértete en Socio de Crecimiento y gana hasta un 30% de comisiones por los servicios de tu red.
+                        </p>
+                        <div class="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-bold px-3 py-1 rounded-full">
+                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span> Economía Real • Cero esquemas piramidales
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 pt-2 relative z-10">
+                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex gap-4 items-start">
+                            <div class="w-8 h-8 rounded-xl bg-slate-900 text-emerald-400 border border-slate-800 flex items-center justify-center shrink-0 shadow-inner">
+                                <i class="fas fa-seedling text-xs"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-black text-[13px] text-white">1. Embajador</h4>
+                                <span class="text-emerald-400 text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 21% de Comisión</span>
+                                <p class="text-[10px] text-slate-400 font-medium leading-relaxed">Construye tu red. Gana comisiones por los primeros 100 servicios de tus referidos.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 flex gap-4 items-start relative shadow-lg shadow-indigo-900/20">
+                            <span class="absolute -top-2 right-4 bg-blue-600 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full shadow-sm">Más Popular</span>
+                            <div class="w-8 h-8 rounded-xl bg-indigo-900 text-blue-400 border border-indigo-500/30 flex items-center justify-center shrink-0 shadow-inner">
+                                <i class="fas fa-rocket text-xs"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-black text-[13px] text-white">2. Líder inWorker</h4>
+                                <span class="text-blue-400 text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 26% de Comisión</span>
+                                <p class="text-[10px] text-slate-300 font-medium leading-relaxed">Supera los 100 servicios en tu red y accede a multiplicadores de ganancias.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex gap-4 items-start">
+                            <div class="w-8 h-8 rounded-xl bg-slate-900 text-amber-400 border border-slate-800 flex items-center justify-center shrink-0 shadow-inner">
+                                <i class="fas fa-crown text-xs"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-black text-[13px] text-white">3. Director Regional</h4>
+                                <span class="text-amber-400 text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 30% de Comisión</span>
+                                <p class="text-[10px] text-slate-400 font-medium leading-relaxed">Alcanza 1.000 servicios. Domina tu región con la mayor rentabilidad del sistema.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex gap-3 items-start relative z-10">
+                        <i class="fas fa-hourglass-half text-amber-500 text-sm mt-0.5"></i>
+                        <div>
+                            <h5 class="text-[10px] font-black text-amber-500 uppercase tracking-wide">El tiempo corre, fundador</h5>
+                            <p class="text-[10px] text-amber-100/70 font-medium leading-relaxed mt-1">
+                                El estatus de "Programa Fundador" se clausurará permanentemente al finalizar el primer año. Quienes ingresen ahora, conservarán sus comisiones VIP de por vida.
                             </p>
                         </div>
-                        <div class="md:w-1/3 w-full">
-                            <a href="{{ url_for('login', action='registro') }}" class="block w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-center font-black py-4 px-6 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95">
-                                Reclamar Código Hoy
-                            </a>
-                        </div>
+                    </div>
+
+                    <div class="pt-2 relative z-10">
+                        <a href="{{ url_for('login', action='registro') }}" class="block w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-[11px] uppercase tracking-widest py-4 rounded-xl shadow-lg shadow-orange-500/20 active:scale-95 transition text-center">
+                            Reclamar código hoy
+                        </a>
                     </div>
                 </div>
 
             </div>
-        </section>
-        <!-- ========================================== -->
-
+        </div>
     </main>
 
-    <footer class="bg-white border-t border-slate-200 px-4 py-12 text-center mt-10">
-    <div class="max-w-4xl mx-auto">
-        <div class="flex items-center justify-center space-x-2 mb-6">
-            <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-6 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer">
-        </div>
-        
-        <!-- Enlaces Legales Críticos para Google -->
-        <div class="flex flex-col sm:flex-row justify-center gap-4 text-[11px] font-bold text-blue-600 uppercase tracking-wider mb-8">
-            <a href="/privacidad" class="hover:underline">Política de Privacidad</a>
-            <span class="hidden sm:inline text-slate-300">|</span>
-            <a href="/terminos-y-condiciones" class="hover:underline">Términos y Condiciones</a>
+    <!-- ========================================== -->
+    <!-- 🏢 FOOTER -->
+    <!-- ========================================== -->
+    <footer class="bg-slate-50 border-t border-slate-200 mt-12 pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8 items-start">
+            
+            <div class="col-span-2 space-y-4">
+                <a href="#" class="flex items-center space-x-2 select-none">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-6 w-auto grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition duration-300">
+                    <span class="text-xl font-black text-slate-900 block"><span class="text-blue-600">in</span>Worker</span>
+                </a>
+                <p class="text-[11px] text-slate-500 font-medium max-w-xs leading-relaxed">
+                    Conectamos talento. Construimos confianza. La solución integral y transparente para contratación técnica independiente.
+                </p>
+                <div class="flex gap-3 text-slate-400 text-sm">
+                    <a href="https://www.facebook.com/inworkeroficial" class="hover:text-blue-600 transition"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.instagram.com/inworker.oficial" class="hover:text-pink-600 transition"><i class="fab fa-instagram"></i></a>
+                    <a href="https://wa.me/573126427856" class="hover:text-emerald-500 transition"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <h4 class="text-[10px] font-black uppercase tracking-wider text-slate-800">Plataforma</h4>
+                <ul class="text-[11px] text-slate-500 font-medium space-y-2">
+                    <li><a href="#" class="hover:text-blue-600 transition">Cómo funciona</a></li>
+                    <li><a href="#" class="hover:text-blue-600 transition">Seguridad</a></li>
+                    <li><a href="#" class="hover:text-blue-600 transition">Fees y precios</a></li>
+                </ul>
+            </div>
+
+            <div class="space-y-3">
+                <h4 class="text-[10px] font-black uppercase tracking-wider text-slate-800">Recursos</h4>
+                <ul class="text-[11px] text-slate-500 font-medium space-y-2">
+                    <li><a href="#" class="hover:text-blue-600 transition">Centro de ayuda</a></li>
+                    <li><a href="#" class="hover:text-blue-600 transition">Casos de éxito</a></li>
+                </ul>
+            </div>
+
+            <div class="space-y-3">
+                <h4 class="text-[10px] font-black uppercase tracking-wider text-slate-800">Empresa</h4>
+                <ul class="text-[11px] text-slate-500 font-medium space-y-2">
+                    <li><a href="/terminos-y-condiciones" class="hover:text-blue-600 transition">Términos Legales</a></li>
+                    <li><a href="/privacidad" class="hover:text-blue-600 transition">Privacidad</a></li>
+                    <li><a href="https://wa.me/573126427856" class="hover:text-blue-600 transition">Contacto Directo</a></li>
+                </ul>
+            </div>
         </div>
 
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">inWorker &copy; 2026 - Uniendo Tecnología y Confianza</p>
-        <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-2">
-            Una marca de <span class="text-slate-400">Barakah Tech Hub S.A.S.</span>
-        </p>
-    </div>
-</footer>
+        <div class="max-w-7xl mx-auto px-6 border-t border-slate-200/60 mt-12 pt-6 text-center">
+            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+                INWORKER © 2026 - UNIENDO TECNOLOGÍA Y CONFIANZA<br>
+                UNA MARCA DE BARAKAH TECH HUB S.A.S.
+            </p>
+        </div>
+    </footer>
 
+    <!-- ========================================== -->
+    <!-- 🛠 SCRIPTS (Carga inicial y Efecto 3D AI) -->
+    <!-- ========================================== -->
     <script>
+        // 1. Script original del Splash Screen
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
-                splash.classList.add('opacity-0');
-                setTimeout(() => splash.remove(), 1000); 
+                if (splash) {
+                    splash.classList.add('opacity-0');
+                    setTimeout(() => splash.remove(), 1000); 
+                }
             }, 2000); 
         });
+
+        // 2. Motor interactivo 3D para la tarjeta Upward AI
+        const aiCard = document.getElementById('upward-ai-card');
+        const glow = document.getElementById('card-glow');
+        const coreLogo = document.getElementById('ai-core-logo');
+
+        if (aiCard && glow) {
+            aiCard.addEventListener('mousemove', (e) => {
+                const rect = aiCard.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Mueve la luz al puntero
+                glow.style.setProperty('--x', `${x}px`);
+                glow.style.setProperty('--y', `${y}px`);
+                glow.style.opacity = '1';
+
+                // Calcula la inclinación 3D
+                const rotateX = ((y - rect.height / 2) / (rect.height / 2)) * -10; 
+                const rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 10;
+
+                aiCard.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+                aiCard.style.boxShadow = '0 25px 50px -12px rgba(59, 130, 246, 0.25)';
+                
+                // Efecto parallax en el núcleo
+                if (coreLogo) {
+                    coreLogo.style.transform = `translateZ(40px) translateX(${rotateY * 0.8}px) translateY(${rotateX * -0.8}px)`;
+                }
+            });
+
+            // Resetea a la normalidad al salir
+            aiCard.addEventListener('mouseleave', () => {
+                glow.style.opacity = '0';
+                aiCard.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
+                aiCard.style.boxShadow = 'none';
+                if (coreLogo) coreLogo.style.transform = 'translateZ(0px) translateX(0px) translateY(0px)';
+            });
+        }
     </script>
 </body>
 </html>
