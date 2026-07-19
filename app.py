@@ -1027,7 +1027,7 @@ def admin_desembolsar_retiro(retiro_id):
                 comision=retiro.comision_plataforma,
                 costo_banco=retiro.costo_bancario,
                 monto_neto=retiro.equivalente_pesos,
-                url_dashboard=url_for('dashboard', _external=True)
+                url_dashboard='https://inworker.co/'  # 🔥 ¡AQUÍ ESTÁ LA CORRECCIÓN MAESTRA! 🔥
             )
             
             mail.send(msg)
