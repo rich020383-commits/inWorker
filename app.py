@@ -2452,26 +2452,26 @@ def responder_cotizacion(tarea_id, mensaje_id):
             trabajador = Usuario.query.filter_by(correo=msg_cotizacion.remitente_correo).first()
             nombre_trabajador = trabajador.nombre if trabajador else "Técnico inWorker"
             
+            # 🚨 AQUÍ BUSCAMOS LA TAREA EN LA BASE DE DATOS (Vital)
             tarea_obj = Tarea.query.get(tarea_id)
-        if tarea_obj:
-            tarea_obj.estado = 'En Garantia'
-            tarea_obj.trabajador_correo = msg_cotizacion.remitente_correo
-            tarea_obj.trabajador_nombre = nombre_trabajador
-            
-            # --- AQUÍ ESTÁ LA SUMA ACUMULADA (NO SE PIERDE NADA, AL CONTRARIO: SE SUMA) ---
-            # Obtenemos lo que ya había en la base de datos (o 0.0 si es la primera vez)
-            pago_actual = float(tarea_obj.pago) if tarea_obj.pago else 0.0
-            costo_actual_creditos = tarea_obj.costo_creditos if tarea_obj.costo_creditos else 0.0
-            
-            # Guardamos el total: lo anterior + lo nuevo
-            tarea_obj.pago = str(pago_actual + monto_pesos)
-            tarea_obj.costo_creditos = round(costo_actual_creditos + monto_creditos_flotante, 2)
-            # ----------------------------------------------------------------------------
-            
-            # Estas líneas que te preocupaban, las mantenemos para que el sistema pida re-confirmación
-            tarea_obj.confirmacion_cliente = 0
-            tarea_obj.confirmacion_trabajador = 0
-            
+
+            if tarea_obj:
+                tarea_obj.estado = 'En Garantia'
+                tarea_obj.trabajador_correo = msg_cotizacion.remitente_correo
+                tarea_obj.trabajador_nombre = nombre_trabajador
+                
+                # 💡 CORRECCIÓN: ACUMULADOR (SUMAR EN LUGAR DE REEMPLAZAR)
+                # Obtenemos lo que ya había en la tarea antes de este nuevo hito
+                pago_anterior = float(tarea_obj.pago) if tarea_obj.pago else 0.0
+                creditos_anteriores = float(tarea_obj.costo_creditos) if tarea_obj.costo_creditos else 0.0
+                
+                # Sumamos el nuevo hito al total histórico de la tarea
+                tarea_obj.pago = str(pago_anterior + monto_pesos)
+                tarea_obj.costo_creditos = round(creditos_anteriores + monto_creditos_flotante, 2)
+                
+                tarea_obj.confirmacion_cliente = 0
+                tarea_obj.confirmacion_trabajador = 0
+                
             # 🚨 Sincronización de estados en los mensajes del chat
             msg_cotizacion.tipo = 'cotizacion_aceptada'  
             
