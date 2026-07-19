@@ -2018,39 +2018,6 @@ def ver_perfil():
         return redirect(url_for('home'))
 
 # =====================================================================
-# 🛡️ RUTA SECRETA DE INSTALACIÓN (Solo se usa una vez)
-# =====================================================================
-@app.route('/instalar_admin_secreto')
-def instalar_admin():
-    admin_email = 'baraka@inworker.com'
-    admin_pass = os.environ.get('ADMIN_PASS')
-
-    if not admin_pass:
-        return "⚠️ ¡ERROR: La variable de entorno ADMIN_PASS no está configurada en Render!"
-    
-    try:
-        admin_existe = Usuario.query.filter_by(correo=admin_email).first()
-        if not admin_existe:
-            nuevo_admin = Usuario(
-                nombre='baraka',
-                cedula='99999999',
-                correo=admin_email,
-                contrasena=generate_password_hash(admin_pass),
-                rol='Admin',
-                profesion='Administrador Principal',
-                telefono='3000000000',
-                verificado=1,
-                saldo_creditos=999.0
-            )
-            db.session.add(nuevo_admin)
-            db.session.commit()
-            return "✅ ¡ÉXITO! Administrador registrado de forma segura. Ya puedes iniciar sesión."
-        else:
-            return "✅ Todo en orden: El Administrador principal ya estaba operativo."
-    except Exception as e:
-        return f"❌ Error de base de datos: {e}"
-
-# =====================================================================
 # 💬 MÓDULO DE COMUNICACIÓN API HTTP (PROCESAMIENTO ASÍNCRONO) - BLINDADO
 # =====================================================================
 @app.route('/chat/<int:tarea_id>', methods=['GET', 'POST'])
