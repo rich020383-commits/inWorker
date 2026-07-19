@@ -325,34 +325,7 @@ with app.app_context():
         pass # Si falla, significa que la columna ya existe, lo ignoramos
     # ⚡ FIN DEL PARCHE
     
-    # Asegúrate de poner esto justo después de que 'app' y 'db' estén definidos
-with app.app_context():
-    # 2. Sembrado automático del Administrador Principal (BLINDADO)
-    admin_email = 'baraka@inworker.com'
-    admin_pass = os.environ.get('ADMIN_PASS')
-
-    if not admin_pass:
-        print("⚠️ ¡ERROR: La variable de entorno ADMIN_PASS no está configurada en Render!")
-    else:
-        admin_existe = Usuario.query.filter_by(correo=admin_email).first()
-        if not admin_existe:
-            print("Creando administrador con cifrado de seguridad...")
-            nuevo_admin = Usuario(
-                nombre='baraka',
-                cedula='99999999',
-                correo=admin_email,
-                contrasena=generate_password_hash(admin_pass),
-                rol='Admin',
-                profesion='Administrador Principal',
-                telefono='3000000000',
-                verificado=1,
-                saldo_creditos=999.0
-            )
-            db.session.add(nuevo_admin)
-            db.session.commit()
-            print("¡Administrador registrado de forma segura!")
-        else:
-            print("El Administrador principal ya está operativo.")
+    
 
 # =========================================================================
 # ENDPOINT API PARA POLLEO ASÍNCRONO DE NOTIFICACIONES GLOBALES
@@ -2043,6 +2016,39 @@ def ver_perfil():
         print(f"⚠️ ERROR CRÍTICO EN GET PERFIL: {e}")
         flash("Ocurrió un error al intentar cargar los datos del perfil.", "error")
         return redirect(url_for('home'))
+
+# =====================================================================
+# 🛡️ RUTA SECRETA DE INSTALACIÓN (Solo se usa una vez)
+# =====================================================================
+@app.route('/instalar_admin_secreto')
+def instalar_admin():
+    admin_email = 'baraka@inworker.com'
+    admin_pass = os.environ.get('ADMIN_PASS')
+
+    if not admin_pass:
+        return "⚠️ ¡ERROR: La variable de entorno ADMIN_PASS no está configurada en Render!"
+    
+    try:
+        admin_existe = Usuario.query.filter_by(correo=admin_email).first()
+        if not admin_existe:
+            nuevo_admin = Usuario(
+                nombre='baraka',
+                cedula='99999999',
+                correo=admin_email,
+                contrasena=generate_password_hash(admin_pass),
+                rol='Admin',
+                profesion='Administrador Principal',
+                telefono='3000000000',
+                verificado=1,
+                saldo_creditos=999.0
+            )
+            db.session.add(nuevo_admin)
+            db.session.commit()
+            return "✅ ¡ÉXITO! Administrador registrado de forma segura. Ya puedes iniciar sesión."
+        else:
+            return "✅ Todo en orden: El Administrador principal ya estaba operativo."
+    except Exception as e:
+        return f"❌ Error de base de datos: {e}"
 
 # =====================================================================
 # 💬 MÓDULO DE COMUNICACIÓN API HTTP (PROCESAMIENTO ASÍNCRONO) - BLINDADO
