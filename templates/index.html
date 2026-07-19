@@ -64,7 +64,7 @@
                 </a>
                 <div class="hidden md:flex flex-col text-right">
                     <span class="text-xs text-slate-500 font-medium">Hola, <strong class="text-slate-900">{{ nombre_usuario | default('Usuario') }}</strong></span>
-                    <span class="text-[9px] font-black uppercase tracking-wider text-blue-600">{{ session['usuario_role'] if 'usuario_role' in session else session['usuario_rol'] }}</span>
+                    <span class="text-[9px] font-black uppercase tracking-wider text-blue-600">{{ session.get('usuario_role', session.get('usuario_rol', '')) }}</span>
                 </div>
                 <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200 overflow-hidden">
                     {% if usuario and usuario.foto %}
@@ -85,7 +85,7 @@
         <!-- ========================================== -->
         <!-- BANNER HERO SOLO PARA ADMIN -->
         <!-- ========================================== -->
-        {% if session['usuario_rol'] == 'Admin' %}
+        {% if session.get('usuario_rol') == 'Admin' %}
         <div class="relative w-full h-48 md:h-64 rounded-2xl overflow-hidden shadow-lg mb-8 group">
             <img src="{{ url_for('static', filename='img/bg-dashboard.webp') }}" 
                  alt="Ecosistema inWorker" 
@@ -206,7 +206,7 @@
         <!-- ========================================== -->
         <!-- MÓDULO DEL ADMINISTRADOR -->
         <!-- ========================================== -->
-        {% if session['usuario_rol'] == 'Admin' %}
+        {% if session.get('usuario_rol') == 'Admin' %}
         <div class="bg-slate-900 rounded-2xl p-6 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 border border-slate-800">
             <div class="flex items-center space-x-4 text-white">
                 <div class="bg-blue-600/20 p-3 rounded-xl border border-blue-500/30 text-blue-400"><i class="fas fa-shield-alt text-xl"></i></div>
@@ -410,32 +410,35 @@
         <!-- ========================================== -->
         <!-- 📱 DASHBOARD DEL USUARIO / TÉCNICO (DISEÑO PREMIUM) -->
         <!-- ========================================== -->
-        {% if session['usuario_rol'] != 'Admin' %}
+        {% if session.get('usuario_rol') != 'Admin' %}
             
             <div class="mb-6 mt-2">
-                <h1 class="text-2xl font-bold text-slate-800">Hola, {{ session['usuario_nombre'].split(' ')[0] if session['usuario_nombre'] else 'Usuario' }} 👋</h1>
+                <h1 class="text-2xl font-bold text-slate-800">Hola, {{ session.get('usuario_nombre', 'Usuario').split(' ')[0] }} 👋</h1>
                 <p class="text-slate-500 text-sm mt-1">Qué bueno verte de nuevo</p>
             </div>
 
             <!-- Tarjeta Wallet -->
             <div class="bg-slate-900 rounded-3xl p-6 mb-6 shadow-lg shadow-blue-900/20 relative overflow-hidden">
                 <div class="flex items-center gap-2 text-slate-300 text-sm mb-2">
-                    <span>Saldo disponible</span>
-                    <i class="fas fa-eye"></i>
+                    <span>Tu Billetera (Wallet)</span>
+                    <i class="fas fa-wallet"></i>
                 </div>
                 <div class="text-4xl font-bold text-white mb-3 tracking-tight">${{ "{:,.0f}".format((saldo | default(0) | float) * 10000) }} <span class="text-lg font-normal text-slate-400">COP</span></div>
                 <div class="inline-block bg-emerald-500/20 text-emerald-400 text-xs font-semibold px-3 py-1 rounded-full mb-6 border border-emerald-500/30">
                     {{ saldo | default(0) | float }} Créditos InWorker
                 </div>
                 <div class="flex justify-between items-center mt-2">
-                    <span class="text-slate-400 text-sm hidden md:block">Disponible para retirar</span>
-                    <span class="text-slate-400 text-xs md:hidden">Disponible</span>
-                    
-                    {% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}
+                    {% if session.get('usuario_rol', '')|lower in ['trabajador', 'worker'] %}
+                        <span class="text-slate-400 text-sm hidden md:block">Disponible para retirar</span>
+                        <span class="text-slate-400 text-xs md:hidden">Para retiro</span>
+                        
                         <button onclick="abrirModalRetiro()" class="bg-white text-slate-900 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-gray-100 transition active:scale-95 shadow-sm">
                             Retirar fondos <span>&rarr;</span>
                         </button>
                     {% else %}
+                        <span class="text-slate-400 text-sm hidden md:block">Saldo para contratar</span>
+                        <span class="text-slate-400 text-xs md:hidden">Para contratar</span>
+                        
                         <a href="/recargar_billetera" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-blue-700 transition active:scale-95 shadow-sm shadow-blue-600/30">
                             Recargar saldo <span>&rarr;</span>
                         </a>
@@ -516,11 +519,11 @@
                         </div>
                         <span class="text-[10px] text-slate-600 font-medium text-center leading-tight">Copilot</span>
                     </a>
-                    <button onclick="{% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}abrirModalRetiro(){% else %}window.location.href='/recargar_billetera'{% endif %}" class="flex flex-col items-center gap-2 active:scale-95 transition">
+                    <button onclick="{% if session.get('usuario_rol', '')|lower in ['trabajador', 'worker'] %}abrirModalRetiro(){% else %}window.location.href='/recargar_billetera'{% endif %}" class="flex flex-col items-center gap-2 active:scale-95 transition">
                         <div class="w-14 h-14 bg-white border border-gray-100 rounded-2xl shadow-sm flex justify-center items-center text-emerald-600">
                             <i class="fas fa-dollar-sign text-xl"></i>
                         </div>
-                        <span class="text-[10px] text-slate-600 font-medium text-center leading-tight">{% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}Retirar<br>fondos{% else %}Recargar<br>saldo{% endif %}</span>
+                        <span class="text-[10px] text-slate-600 font-medium text-center leading-tight">{% if session.get('usuario_rol', '')|lower in ['trabajador', 'worker'] %}Retirar<br>fondos{% else %}Recargar<br>saldo{% endif %}</span>
                     </button>
                 </div>
             </div>
@@ -624,7 +627,7 @@
     <!-- ========================================== -->
     <!-- MENÚ DE NAVEGACIÓN INFERIOR (Mobile App Style) -->
     <!-- ========================================== -->
-    {% if session['usuario_rol'] != 'Admin' %}
+    {% if session.get('usuario_rol') != 'Admin' %}
     <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 flex justify-between px-6 py-3 pb-safe md:hidden z-[90]">
         <a href="{{ url_for('home') }}" class="flex flex-col items-center gap-1 text-blue-600">
             <i class="fas fa-home text-xl"></i>
@@ -641,7 +644,7 @@
             {% endif %}
             <span class="text-[10px] font-medium">Bandeja</span>
         </a>
-        <a href="#" onclick="{% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}abrirModalRetiro(){% else %}window.location.href='/recargar_billetera'{% endif %}" class="flex flex-col items-center gap-1 text-gray-400 hover:text-blue-600 transition">
+        <a href="#" onclick="{% if session.get('usuario_rol', '')|lower in ['trabajador', 'worker'] %}abrirModalRetiro(){% else %}window.location.href='/recargar_billetera'{% endif %}" class="flex flex-col items-center gap-1 text-gray-400 hover:text-blue-600 transition">
             <i class="fas fa-wallet text-xl"></i>
             <span class="text-[10px] font-medium">Wallet</span>
         </a>
