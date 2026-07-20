@@ -996,19 +996,15 @@ def admin_desembolsar_retiro(retiro_id):
     file = request.files['comprobante_pago']
     
     if file and archivo_permitido(file.filename):
-        # 1. Guardamos la imagen
         filename = secure_filename(f"desembolso_retiro_{retiro.id}_{int(time.time())}.{file.filename.rsplit('.', 1)[1].lower()}")
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         
-        # 2. Actualizamos la BD
         retiro.comprobante_pago = filename
         retiro.estado = 'Desembolsado'
         db.session.commit()
         
-        # 📧 3. DISPARAMOS EL CORREO BLINDADO AL TÉCNICO
         try:
-            # Buscamos al usuario para personalizar el correo con su nombre
             tecnico = Usuario.query.filter_by(correo=retiro.usuario_correo).first()
             nombre_tecnico = tecnico.nombre if tecnico else "Especialista"
 
@@ -1017,24 +1013,23 @@ def admin_desembolsar_retiro(retiro_id):
                 recipients=[retiro.usuario_correo]
             )
             
-            # Conectamos con el archivo HTML premium y le pasamos los datos financieros exactos
+            # 🚀 LEEMOS LOS DATOS DIRECTAMENTE DE TUS COLUMNAS EN SUPABASE
             msg.html = render_template(
                 'correo_retiro_exitoso.html',
                 nombre_tecnico=nombre_tecnico,
                 metodo_pago=retiro.metodo_pago,
-                cuenta_destino=retiro.detalles_cuenta,
-                monto_bruto=retiro.monto_bruto,
+                cuenta_destino=retiro.detalles_cuenta, # Como ahora es solo el número, el HTML lo recorta a 4 dígitos sin problema
+                monto_bruto=retiro.monto_bruto, 
                 comision=retiro.comision_plataforma,
                 costo_banco=retiro.costo_bancario,
                 monto_neto=retiro.equivalente_pesos,
-                url_dashboard='https://inworker.co/'  # 🔥 ¡AQUÍ ESTÁ LA CORRECCIÓN MAESTRA! 🔥
+                url_dashboard='https://inworker.co/'
             )
             
             mail.send(msg)
         except Exception as e:
             print(f"⚠️ El desembolso se hizo, pero falló el envío de correo: {e}")
         
-        # Corrección de término legal (Nunca usar "Nómina")
         flash(f"✅ ¡Fondos desembolsados! Soporte guardado y correo enviado a {retiro.usuario_correo}.", "success")
     else:
         flash("❌ Archivo no permitido o dañado. Usa JPG, PNG o PDF.", "error")
@@ -1094,16 +1089,16 @@ def solicitar_retiro():
             # Descontamos el saldo
             usuario.saldo_creditos = nuevo_saldo
             
-            # Armamos el desglose para la BD del Admin
-            desglose_admin = f"{detalles} | Bruto: ${monto_bruto_cop} | Com 12%: ${comision_plataforma} | Transf: ${costo_bancario}"
-            
-            # Registramos en la tabla BilleteraRetiro
+            # 🔥 REGISTRAMOS EN LA TABLA GUARDANDO CADA VALOR EN SU COLUMNA REAL 🔥
             nuevo_retiro = BilleteraRetiro(
                 usuario_correo=correo_logueado,
                 monto_creditos=creditos_retiro,
                 equivalente_pesos=monto_neto, 
                 metodo_pago=metodo,
-                detalles_cuenta=desglose_admin, 
+                detalles_cuenta=detalles,                # Guarda SOLO el número de Nequi/Cuenta limpio
+                monto_bruto=monto_bruto_cop,             # 🚀 DATO A SU COLUMNA
+                comision_plataforma=comision_plataforma, # 🚀 DATO A SU COLUMNA
+                costo_bancario=costo_bancario,           # 🚀 DATO A SU COLUMNA
                 estado='Pendiente'
             )
             db.session.add(nuevo_retiro)
@@ -3043,11 +3038,10 @@ def liberar_fondos(tarea_id):
                 
             nivel = embajador.nivel_embajador or 1
             
-            # Repartición estratégica para igualar Landing Page (21%, 26%, 30%)
             if tipo_comision == 'trabajador':
-                tasas = {1: 0.18, 2: 0.22, 3: 0.25} # Base por poner el talento
+                tasas = {1: 0.18, 2: 0.22, 3: 0.25} 
             else: 
-                tasas = {1: 0.03, 2: 0.04, 3: 0.05} # Bono por traer al cliente/dinero
+                tasas = {1: 0.03, 2: 0.04, 3: 0.05} 
                 
             porcentaje = tasas.get(nivel, 0.18)
             comision = round(retencion_inworker * porcentaje, 2)
@@ -3061,29 +3055,29 @@ def liberar_fondos(tarea_id):
         # 2. Pagamos al que trajo al Trabajador
         embajador_trabajador = liquidar_comision_embajador(trabajador.referido_por, 'trabajador')
         
-        # 3. Pagamos al que trajo al Cliente (Bono Doble Punta reparado)
+        # 3. Pagamos al que trajo al Cliente
         embajador_cliente = liquidar_comision_embajador(cliente.referido_por, 'cliente')
 
-        # 4. Actualizar métricas y ascensos (Unificando para no duplicar si es Doble Punta)
         embajadores_a_actualizar = set(filter(None, [embajador_trabajador, embajador_cliente]))
-        
         for emb in embajadores_a_actualizar:
             emb.servicios_red = (emb.servicios_red or 0) + 1
-            
             nuevo_nivel = emb.nivel_embajador
             if emb.servicios_red >= 1000 and emb.nivel_embajador < 3:
-                nuevo_nivel = 3  # Asciende a Director Regional
+                nuevo_nivel = 3
             elif emb.servicios_red >= 100 and emb.nivel_embajador < 2:
-                nuevo_nivel = 2  # Asciende a Líder
+                nuevo_nivel = 2
                 
             if nuevo_nivel != emb.nivel_embajador:
                 emb.nivel_embajador = nuevo_nivel
-                print(f"🏆 ¡EL EMBAJADOR {emb.nombre} HA ASCENDIDO AL NIVEL {nuevo_nivel}!")
 
-        # 💡 CIRUGÍA NINJA: Mantenemos el chat vivo y reseteamos el ciclo de pago
+        # 💡 CIRUGÍA NINJA RESTAURADA: Mantenemos la tarea viva
         tarea.estado = 'Cotización Pendiente'
         tarea.confirmacion_cliente = 0
         tarea.confirmacion_trabajador = 0
+        
+        # 🔥 EL SECRETO: Vaciamos la cubeta de créditos actuales.
+        # Así el próximo hito arranca en 0 y solo se le paga la nueva cuota al trabajador.
+        tarea.costo_creditos = 0.0
         
         mensaje_sistema = Mensaje(
             tarea_id=tarea_id,
@@ -3093,7 +3087,6 @@ def liberar_fondos(tarea_id):
             tipo='sistema'
         )
         db.session.add(mensaje_sistema)
-        
         db.session.commit()
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or (request.content_type and 'multipart/form-data' in request.content_type):
