@@ -94,22 +94,29 @@
                 Conecta con especialistas, negocia precios justos y asegura tu dinero con nuestro sistema Escrow.
             </p>
 
-            <!-- Banner de Confianza Escrow -->
-            <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 sm:p-5 flex items-center gap-4 shadow-sm mb-6 max-w-3xl">
-                <div class="bg-emerald-100 text-emerald-600 p-2.5 rounded-full shrink-0">
-                    <i class="fas fa-shield-check text-lg"></i>
+            <!-- 🚀 REEMPLAZAS TU BANNER ANTERIOR POR ESTE NUEVO Y CENTRADO -->
+            <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 sm:p-6 flex flex-col items-center text-center shadow-sm mb-6 max-w-3xl mx-auto relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 text-emerald-200/50 pointer-events-none hidden sm:block">
+                    <i class="fas fa-user-shield text-7xl"></i>
                 </div>
-                <div>
-                    <h4 class="text-emerald-800 font-black text-sm">Todos los pagos están protegidos por Escrow</h4>
-                    <p class="text-emerald-600/80 text-xs font-bold mt-0.5">El dinero solo se libera cuando apruebas el trabajo.</p>
+                
+                <div class="bg-emerald-100 text-emerald-600 p-3 rounded-full mb-3 relative z-10 shadow-inner">
+                    <i class="fas fa-user-shield text-xl"></i>
                 </div>
-                <div class="ml-auto text-emerald-200 hidden sm:block">
-                    <i class="fas fa-shield-alt text-4xl opacity-50"></i>
+                
+                <div class="relative z-10">
+                    <h4 class="text-emerald-800 font-black text-sm sm:text-base leading-tight">
+                        Todos los especialistas y profesionales están verificados
+                    </h4>
+                    <p class="text-emerald-600/90 text-xs sm:text-sm font-bold mt-1.5">
+                        Todos los servicios están asegurados con Escrow, ambas partes están protegidas.
+                    </p>
                 </div>
             </div>
+            <!-- ------------------------------------------------------------- -->
 
             <!-- Fila de Estadísticas Rápidas -->
-            <div class="grid grid-cols-3 gap-2 sm:gap-4 max-w-3xl bg-white border border-slate-100 rounded-[1.5rem] p-4 shadow-sm">
+            <div class="grid grid-cols-3 gap-2 sm:gap-4 max-w-3xl bg-white border border-slate-100 rounded-[1.5rem] p-4 shadow-sm mx-auto">
                 <div class="text-center">
                     <p class="text-sm sm:text-lg font-black text-slate-800 flex items-center justify-center gap-1.5">
                         <i class="fas fa-check-square text-blue-500 text-sm"></i> {{ total_servicios_activos | default('127') }}
@@ -131,8 +138,8 @@
             </div>
             
             {% if session.get('usuario_rol') == 'Cliente' %}
-            <!-- BOTONES DUALES OPTIMIZADOS PARA CELULAR Y DESKTOP -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-3xl mt-6">
+            <!-- BOTONES DUALES OPTIMIZADOS PARA CELULAR -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-3xl mt-6 mx-auto">
                 <a href="/tecnicos" class="w-full py-4 bg-white border-2 border-slate-200 text-slate-800 font-black rounded-2xl hover:bg-slate-50 hover:text-blue-600 hover:border-blue-300 transition shadow-sm flex items-center justify-center gap-2 text-xs uppercase tracking-wider active:scale-95">
                     <i class="fas fa-search text-blue-600 text-sm"></i> Buscar Especialista
                 </a>
