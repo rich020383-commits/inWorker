@@ -1408,6 +1408,55 @@ def admin_retiros():
                            fondos_escrow=fondos_escrow)
 
 import os
+from werkzeug.utils import secure_filename
+import uuid
+
+# =====================================================================
+# ⚖️ RUTA DEL USUARIO: ABRIR DISPUTA Y SUBIR EVIDENCIA
+# =====================================================================
+@app.route('/abrir_disputa/<int:tarea_id>', methods=['POST'])
+def abrir_disputa(tarea_id):
+    if 'usuario_correo' not in session:
+        return redirect(url_for('login'))
+
+    tarea = Tarea.query.get(tarea_id)
+    if not tarea:
+        flash("La orden de servicio no existe.", "error")
+        return redirect(url_for('home')) # O la ruta de tu tablero de usuario
+
+    # Seguridad: Solo los involucrados en esta tarea pueden disputarla
+    correo_actual = session['usuario_correo']
+    if correo_actual not in [tarea.cliente_correo, tarea.trabajador_correo]:
+        flash("🔒 No tienes permiso para abrir una disputa en esta orden.", "error")
+        return redirect(url_for('home'))
+
+    # Atrapamos los datos del modal (Texto y Foto)
+    alegato = request.form.get('alegato')
+    archivo = request.files.get('evidencia')
+
+    if archivo and archivo.filename != '':
+        # 1. Aseguramos el nombre y guardamos la imagen
+        ext = archivo.filename.rsplit('.', 1)[1].lower() if '.' in archivo.filename else 'jpg'
+        nombre_archivo = f"evidencia_{tarea.id}_{uuid.uuid4().hex[:8]}.{ext}"
+        
+        ruta_guardado = os.path.join(app.root_path, 'static', 'uploads', nombre_archivo)
+        archivo.save(ruta_guardado)
+        
+        # 2. Actualizamos la Base de Datos con los campos nuevos
+        tarea.evidencia_disputa = nombre_archivo
+        tarea.alegato_disputa = alegato
+        
+        # 🚀 AQUÍ ESTÁ LA MAGIA: Usamos el estado exacto que lee tu panel de Admin
+        tarea.estado = 'En Arbitraje Admin'
+        
+        db.session.commit()
+        flash("🚨 Disputa abierta oficialmente. La evidencia fue enviada a soporte.", "error")
+    else:
+        flash("⚠️ Es obligatorio subir una foto de evidencia para iniciar el arbitraje.", "error")
+
+    return redirect(url_for('home')) # Cambia 'home' por la ruta donde el usuario ve sus tareas
+
+import os
 import time
 
 # =====================================================================
@@ -3176,10 +3225,15 @@ def analizar_disputa_admin(tarea_id):
     # Importamos el módulo e invocamos a Gemini
     from disputas_ia import analizar_disputa_chat
     
-    # Armamos el diccionario para la IA
+    # Armamos el diccionario completo para la IA (Parche Ninja aplicado 🛡️)
     tarea_dict = {
-        "id": tarea.id, "titulo": tarea.titulo, "estado": tarea.estado, 
-        "cliente_correo": tarea.cliente_correo, "trabajador_correo": tarea.trabajador_correo
+        "id": tarea.id, 
+        "titulo": tarea.titulo, 
+        "descripcion": getattr(tarea, 'descripcion', 'Sin descripción detallada'), # 🚀 Nueva
+        "estado": tarea.estado, 
+        "cliente_correo": tarea.cliente_correo, 
+        "trabajador_correo": tarea.trabajador_correo,
+        "costo_creditos": getattr(tarea, 'costo_creditos', 0.0) # 🚀 Nueva
     }
     
     reporte_ia = analizar_disputa_chat(mensajes, tarea_dict)

@@ -494,6 +494,60 @@
         </div>
     </main>
 
+</div>
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- ⚖️ PEGA ESTE MODAL OFICIAL DE CONTROVERSIA AQUÍ -->
+    <!-- ========================================================= -->
+    <div id="modalControversia" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[110] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white border border-slate-200 rounded-[2rem] max-w-md w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 relative" id="modalControversiaContent">
+            
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-rose-400 to-rose-600"></div>
+
+            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-rose-50 mt-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shadow-inner">
+                        <i class="fas fa-balance-scale text-sm"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-black text-rose-900 uppercase tracking-widest leading-tight">Escalar a Soporte</h2>
+                        <p class="text-[9px] text-rose-500 font-bold uppercase tracking-wider mt-0.5">Arbitraje inWorker</p>
+                    </div>
+                </div>
+                <button type="button" onclick="cerrarModalControversia()" class="text-slate-400 hover:text-rose-500 transition-colors bg-white p-2 rounded-full border border-slate-200 shadow-sm active:scale-90">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form action="/abrir_disputa/{{ tarea.id }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
+                
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-600 font-medium leading-relaxed">
+                    Estás a punto de congelar los fondos y escalar este caso a la administración. Por favor, sé claro y objetivo.
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Motivo de la disputa</label>
+                    <textarea name="alegato" rows="3" required placeholder="Ej: El especialista dejó la tubería con fugas y se niega a repararla..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-900 focus:outline-none focus:border-rose-500 transition shadow-inner resize-none"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Foto de Evidencia (Obligatorio)</label>
+                    <input type="file" name="evidencia" required accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-rose-50 file:text-rose-600 hover:file:bg-rose-100 cursor-pointer border border-slate-200 rounded-xl transition shadow-inner bg-slate-50">
+                </div>
+
+                <div class="pt-4 border-t border-slate-100">
+                    <button type="submit" onclick="this.innerHTML='<i class=\'fas fa-spinner fa-spin mr-2\'></i>Procesando...';" class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black uppercase tracking-widest rounded-xl transition-all shadow-lg hover:shadow-rose-600/30 flex items-center justify-center gap-2 text-xs active:scale-[0.98]">
+                        Iniciar Arbitraje Oficial <i class="fas fa-gavel ml-1"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- ========================================================= -->
+
+    <div id="modalNuevoHito" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
+
     <div id="modalNuevoHito" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white border border-slate-200 rounded-[2rem] max-w-sm w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="modalNuevoHitoContent">
             
@@ -725,6 +779,44 @@
                 setTimeout(() => { modal.classList.add('hidden'); }, 300);
             }
         }
+
+function cerrarModalHito() {
+            const modal = document.getElementById('modalNuevoHito');
+            const content = document.getElementById('modalNuevoHitoContent');
+            if(modal) {
+                modal.classList.add('opacity-0');
+                content.classList.add('scale-95');
+                setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            }
+        }
+
+        // --- PEGA ESTAS DOS FUNCIONES AQUÍ ---
+        function abrirModalControversia() {
+            const modal = document.getElementById('modalControversia');
+            const content = document.getElementById('modalControversiaContent');
+            if(modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
+                }, 10);
+            }
+        }
+
+        function cerrarModalControversia() {
+            const modal = document.getElementById('modalControversia');
+            const content = document.getElementById('modalControversiaContent');
+            if(modal) {
+                modal.classList.add('opacity-0');
+                content.classList.add('scale-95');
+                setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            }
+        }
+        // -------------------------------------
+
+        function procesarLiberacion(form) {
+            const btn = form.querySelector('button');
+            const oldHtml = btn.innerHTML;
 
         function procesarLiberacion(form) {
             const btn = form.querySelector('button');
