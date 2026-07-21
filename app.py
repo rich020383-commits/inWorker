@@ -44,6 +44,53 @@ app.config['MAIL_DEFAULT_SENDER'] = ('inWorker Soporte', app.config['MAIL_USERNA
 
 mail = Mail(app)
 serializer = URLSafeTimedSerializer(app.secret_key)
+from flask_mail import Message
+# Asumimos que la variable 'mail' ya está inicializada en tu app: mail = Mail(app)
+
+def notificar_resolucion_disputa(tarea, tipo_resolucion):
+    """
+    Construye y envía el correo oficial del veredicto a ambas partes usando Flask-Mail.
+    """
+    # 1. Definimos el texto exacto según la decisión que tomó el administrador
+    if tipo_resolucion == 'reembolso_total':
+        dictamen = "inWorker ha fallado a favor del CLIENTE. Se ha procesado el reembolso total de los fondos a su billetera."
+    elif tipo_resolucion == 'pago_total':
+        dictamen = "inWorker ha fallado a favor del ESPECIALISTA. Se han liberado los fondos en su totalidad a su billetera."
+    elif tipo_resolucion == 'mitad_mitad':
+        dictamen = "inWorker ha dictaminado una resolución dividida (50/50). Los fondos han sido distribuidos equitativamente."
+    else:
+        dictamen = "El caso ha sido cerrado y los fondos distribuidos según el arbitraje."
+
+    # 2. Armamos el cuerpo del correo corporativo
+    cuerpo = f"""Hola,
+
+Te informamos que el proceso de arbitraje para la orden de servicio '{tarea.titulo}' (ID: #{tarea.id}) ha concluido oficialmente.
+
+⚖️ VEREDICTO OFICIAL:
+{dictamen}
+
+Este dictamen ha sido emitido tras una revisión detallada de la evidencia y el historial de negociación en la plataforma, siendo final y vinculante según los Términos de inWorker.
+
+Puedes ingresar a la plataforma en tu sección de Historial para revisar el chat y los detalles de la orden.
+
+Atentamente,
+Soporte Técnico & Mediación
+BARAKAH TECH HUB S.A.S. / inWorker
+"""
+
+    try:
+        # 3. Enviamos el correo a ambas partes
+        # Usamos BCC (Copia Oculta) para que el técnico no vea el correo del cliente y viceversa, protegiendo la privacidad.
+        msg = Message(
+            subject=f"⚖️ Dictamen Oficial - Disputa Resuelta (Orden #{tarea.id})",
+            recipients=["soporte@inworker.co"], # Tu correo de control
+            bcc=[tarea.cliente_correo, tarea.trabajador_correo], 
+            body=cuerpo
+        )
+        mail.send(msg)
+        print(f"✅ Correo de resolución enviado para la tarea #{tarea.id}")
+    except Exception as e:
+        print(f"⚠️ Error enviando correo de resolución de disputa #{tarea.id}: {e}")
 
 # 📸 CONFIGURACIÓN Y VALIDACIÓN DE IMÁGENES PERMITIDAS
 EXTENSIONES_PERMITIDAS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
@@ -3318,6 +3365,9 @@ def admin_resolver_disputa(tarea_id):
 
         # 3. Sacamos la tarea de la sección de arbitraje
         tarea.estado = 'Finalizada'
+        
+        # 🚀 INYECCIÓN: Disparamos los correos de notificación del veredicto
+        notificar_resolucion_disputa(tarea, resolucion)
         
         # ⚡ Un solo commit asienta toda la resolución
         db.session.commit()

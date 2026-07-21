@@ -46,24 +46,46 @@
             color: #fbbf24;
             transform: scale(1.1);
         }
+        /* 🛡️ Oculta el marcador por defecto del acordeón de Escrow */
+        summary::-webkit-details-marker { display: none; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans antialiased flex flex-col min-h-screen">
 
     <header class="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-50 shadow-sm flex flex-wrap justify-between items-center gap-3">
-        <div class="flex items-center space-x-3">
-            <a href="/tareas" class="text-slate-400 hover:text-blue-600 transition p-2 rounded-lg hover:bg-blue-50" title="Volver">
+        <div class="flex items-center space-x-3 w-full sm:w-auto">
+            <a href="/tareas" class="text-slate-400 hover:text-blue-600 transition p-2 rounded-lg hover:bg-blue-50 shrink-0" title="Volver">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <div class="flex flex-col">
+            
+            <!-- 💎 MEJORA 2: HEADER VIVO DE LA NEGOCIACIÓN -->
+            <div class="flex flex-col mt-1 sm:mt-0 w-full overflow-hidden">
                 <h2 class="text-sm font-black text-slate-800 uppercase tracking-wide flex items-center">
-                    Sala de Negociación <i class="fas fa-check-circle text-blue-500 ml-1.5 text-xs"></i>
+                    Sala de Negociación <span class="text-slate-400 font-bold ml-2 normal-case text-xs">#{{ tarea.id if tarea.id else '---' }}</span>
                 </h2>
-                <h1 class="text-xs font-medium text-slate-500 truncate max-w-[250px]">{{ tarea.titulo }}</h1>
+                <h1 class="text-xs font-medium text-slate-500 truncate max-w-[300px] mb-1.5">{{ tarea.titulo }}</h1>
+                
+                <div class="flex flex-wrap items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider">
+                    <span class="bg-emerald-50 border border-emerald-200 text-emerald-600 px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
+                        <i class="fas fa-circle text-[6px] {% if tarea.estado != 'Finalizada' %}animate-pulse{% endif %}"></i> {{ 'Cerrada' if tarea.estado == 'Finalizada' else 'Activa' }}
+                    </span>
+                    
+                    {% if tarea.estado in ['En Garantia', 'Finalizada'] and tarea.costo_creditos %}
+                    <span class="bg-blue-50 border border-blue-200 text-blue-600 px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
+                        <i class="fas fa-lock"></i> Escrow: ${{ "{:,.0f}".format(tarea.costo_creditos|float) }}
+                    </span>
+                    {% endif %}
+                    
+                    {% if trabajador_perfil and trabajador_perfil.verificado == 1 %}
+                    <span class="bg-amber-50 border border-amber-200 text-amber-600 px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
+                        <i class="fas fa-star text-[8px]"></i> Verificado
+                    </span>
+                    {% endif %}
+                </div>
             </div>
         </div>
         
-        <div class="flex items-center space-x-3">
+        <div class="flex items-center space-x-3 ml-auto">
             {% if tarea.estado == 'En Garantia' %}
             <button type="button" onclick="abrirModalControversia()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition flex items-center space-x-1 uppercase shadow-sm active:scale-95">
                 <i class="fas fa-shield-alt"></i> <span class="hidden sm:inline">Mediación</span>
@@ -98,62 +120,83 @@
             <div class="lg:col-span-4 space-y-5">
                 
                 <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Estado de la Orden</h3>
-                    <div class="flex flex-col gap-3">
-                        <span class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide w-max
-                            {% if tarea.estado == 'Disponible' %} bg-blue-50 text-blue-600 border border-blue-100
-                            {% elif tarea.estado == 'Cotización Pendiente' %} bg-purple-50 text-purple-600 border border-purple-100
-                            {% elif tarea.estado == 'En Garantia' %} bg-amber-50 text-amber-600 border border-amber-100
-                            {% else %} bg-emerald-50 text-emerald-600 border border-emerald-100 {% endif %}">
-                            <i class="fas fa-circle text-[8px] mr-2 {{"animate-pulse" if tarea.estado != 'Finalizada' else ""}}"></i>{{ tarea.estado }}
-                        </span>
-                        
-                        <div class="text-xs font-medium mt-2">
-                            {% if tarea.estado == 'En Garantia' %}
-                                {% if session['usuario_correo'] == tarea.cliente_correo %}
-                                    <form id="formLiberarFondos" action="/chat/{{ tarea.id }}/liberar_fondos" method="POST" onsubmit="event.preventDefault(); procesarLiberacion(this);">
-                                        <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
-                                        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl transition shadow-md font-black text-[11px] uppercase tracking-widest flex items-center justify-center active:scale-95">
-                                            <i class="fas fa-hand-holding-dollar mr-2 text-lg"></i> Liberar Fondos al Técnico
+                    <!-- 💎 MEJORA 1: TIMELINE DE ESTADOS -->
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Progreso del Servicio</h3>
+                    
+                    <div class="relative space-y-5 mb-5 px-1">
+                        <!-- Línea vertical conectora -->
+                        <div class="absolute left-[5px] top-2 bottom-2 w-0.5 bg-slate-100"></div>
+
+                        <!-- Paso 1: Solicitud -->
+                        <div class="relative flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full z-10 flex-shrink-0 transition-colors {% if tarea.estado in ['Disponible', 'Cotización Pendiente', 'En Garantia', 'Finalizada'] %}bg-blue-500 shadow-[0_0_0_3px_rgba(59,130,246,0.2)]{% else %}bg-slate-200{% endif %}"></div>
+                            <span class="text-xs font-bold transition-colors {% if tarea.estado in ['Disponible', 'Cotización Pendiente', 'En Garantia', 'Finalizada'] %}text-slate-800{% else %}text-slate-400{% endif %}">Solicitud Creada</span>
+                        </div>
+
+                        <!-- Paso 2: Oferta -->
+                        <div class="relative flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full z-10 flex-shrink-0 transition-colors {% if tarea.estado in ['Cotización Pendiente', 'En Garantia', 'Finalizada'] %}bg-purple-500 shadow-[0_0_0_3px_rgba(168,85,247,0.2)]{% else %}bg-slate-200{% endif %}"></div>
+                            <span class="text-xs font-bold transition-colors {% if tarea.estado in ['Cotización Pendiente', 'En Garantia', 'Finalizada'] %}text-slate-800{% else %}text-slate-400{% endif %}">Oferta / Cotización</span>
+                        </div>
+
+                        <!-- Paso 3: Escrow / Proceso -->
+                        <div class="relative flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full z-10 flex-shrink-0 transition-colors {% if tarea.estado in ['En Garantia', 'Finalizada'] %}bg-amber-500 shadow-[0_0_0_3px_rgba(245,158,11,0.2)]{% else %}bg-slate-200{% endif %}"></div>
+                            <span class="text-xs font-bold transition-colors {% if tarea.estado in ['En Garantia', 'Finalizada'] %}text-slate-800{% else %}text-slate-400{% endif %}">Pago Escrow & Proceso</span>
+                        </div>
+
+                        <!-- Paso 4: Finalizado -->
+                        <div class="relative flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full z-10 flex-shrink-0 transition-colors {% if tarea.estado == 'Finalizada' %}bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.2)]{% else %}bg-slate-200{% endif %}"></div>
+                            <span class="text-xs font-bold transition-colors {% if tarea.estado == 'Finalizada' %}text-slate-800{% else %}text-slate-400{% endif %}">Finalizado</span>
+                        </div>
+                    </div>
+                    
+                    <div class="text-xs font-medium border-t border-slate-100 pt-4">
+                        {% if tarea.estado == 'En Garantia' %}
+                            {% if session['usuario_correo'] == tarea.cliente_correo %}
+                                <form id="formLiberarFondos" action="/chat/{{ tarea.id }}/liberar_fondos" method="POST" onsubmit="event.preventDefault(); procesarLiberacion(this);">
+                                    <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
+                                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl transition shadow-md font-black text-[11px] uppercase tracking-widest flex items-center justify-center active:scale-95">
+                                        <i class="fas fa-hand-holding-dollar mr-2 text-lg"></i> Liberar Fondos al Técnico
+                                    </button>
+                                    <p class="text-[9px] text-slate-400 mt-2 text-center leading-tight">Presiona aquí para pagarle al especialista. Luego podrás elegir si continuas o finalizas.</p>
+                                </form>
+                            {% elif session['usuario_correo'] == tarea.trabajador_correo %}
+                                <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 shadow-sm mt-2">
+                                    <h4 class="text-[10px] font-black text-indigo-700 uppercase tracking-widest mb-2 flex items-center">
+                                        <i class="fas fa-camera-retro mr-1.5"></i> Protocolo de Evidencia
+                                    </h4>
+                                    <p class="text-[10px] text-indigo-600 mb-3 leading-tight">Sube una foto del daño inicial y otra del trabajo terminado para garantizar tu pago.</p>
+                                    
+                                    <form action="/confirmar_entrega/{{ tarea.id }}" method="POST" enctype="multipart/form-data" class="space-y-2">
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <label class="border-2 border-dashed border-indigo-300 bg-white rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-100 transition group">
+                                                <i class="fas fa-image text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
+                                                <span class="text-[9px] font-bold text-indigo-700">Foto "Antes"</span>
+                                                <input type="file" name="foto_antes" required class="hidden" accept="image/*" capture="environment" onchange="this.previousElementSibling.innerText = '✅ Lista'; this.parentElement.classList.add('bg-indigo-100');">
+                                            </label>
+                                            <label class="border-2 border-dashed border-indigo-300 bg-white rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-100 transition group">
+                                                <i class="fas fa-check-double text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
+                                                <span class="text-[9px] font-bold text-indigo-700">Foto "Después"</span>
+                                                <input type="file" name="foto_despues" required class="hidden" accept="image/*" capture="environment" onchange="this.previousElementSibling.innerText = '✅ Lista'; this.parentElement.classList.add('bg-indigo-100');">
+                                            </label>
+                                        </div>
+                                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg transition shadow font-bold text-xs uppercase tracking-wide mt-2">
+                                            Enviar Evidencia y Cobrar <i class="fas fa-flag-checkered ml-1"></i>
                                         </button>
-                                        <p class="text-[9px] text-slate-400 mt-2 text-center leading-tight">Presiona aquí para pagarle al especialista. Luego podrás elegir si continuas o finalizas.</p>
                                     </form>
-                                {% elif session['usuario_correo'] == tarea.trabajador_correo %}
-                                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 shadow-sm mt-2">
-                                        <h4 class="text-[10px] font-black text-indigo-700 uppercase tracking-widest mb-2 flex items-center">
-                                            <i class="fas fa-camera-retro mr-1.5"></i> Protocolo de Evidencia
-                                        </h4>
-                                        <p class="text-[10px] text-indigo-600 mb-3 leading-tight">Sube una foto del daño inicial y otra del trabajo terminado para garantizar tu pago.</p>
-                                        
-                                        <form action="/confirmar_entrega/{{ tarea.id }}" method="POST" enctype="multipart/form-data" class="space-y-2">
-                                            <div class="grid grid-cols-2 gap-2">
-                                                <label class="border-2 border-dashed border-indigo-300 bg-white rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-100 transition group">
-                                                    <i class="fas fa-image text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                                                    <span class="text-[9px] font-bold text-indigo-700">Foto "Antes"</span>
-                                                    <input type="file" name="foto_antes" required class="hidden" accept="image/*" capture="environment" onchange="this.previousElementSibling.innerText = '✅ Lista'; this.parentElement.classList.add('bg-indigo-100');">
-                                                </label>
-                                                <label class="border-2 border-dashed border-indigo-300 bg-white rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-100 transition group">
-                                                    <i class="fas fa-check-double text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                                                    <span class="text-[9px] font-bold text-indigo-700">Foto "Después"</span>
-                                                    <input type="file" name="foto_despues" required class="hidden" accept="image/*" capture="environment" onchange="this.previousElementSibling.innerText = '✅ Lista'; this.parentElement.classList.add('bg-indigo-100');">
-                                                </label>
-                                            </div>
-                                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg transition shadow font-bold text-xs uppercase tracking-wide mt-2">
-                                                Enviar Evidencia y Cobrar <i class="fas fa-flag-checkered ml-1"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                {% endif %}
-                            {% elif tarea.estado == 'Cotización Pendiente' %}
-                                <div class="bg-slate-50 text-slate-500 p-2 rounded-lg border border-slate-200 text-center font-bold text-[10px] uppercase tracking-widest mt-2">
-                                    <i class="fas fa-hourglass-half animate-spin mr-1"></i> Esperando confirmación
-                                </div>
-                            {% elif tarea.estado == 'Finalizada' %}
-                                <div class="bg-emerald-50 text-emerald-700 p-3 rounded-xl border border-emerald-200 flex items-center justify-center font-black uppercase tracking-widest text-[10px] mt-2">
-                                    <i class="fas fa-handshake mr-2 text-lg"></i> Transacción Completada
                                 </div>
                             {% endif %}
-                        </div>
+                        {% elif tarea.estado == 'Cotización Pendiente' %}
+                            <div class="bg-slate-50 text-slate-500 p-3 rounded-lg border border-slate-200 text-center font-bold text-[10px] uppercase tracking-widest mt-2 flex items-center justify-center gap-2">
+                                <i class="fas fa-hourglass-half animate-spin text-purple-500"></i> Esperando confirmación
+                            </div>
+                        {% elif tarea.estado == 'Finalizada' %}
+                            <div class="bg-emerald-50 text-emerald-700 p-3 rounded-xl border border-emerald-200 flex items-center justify-center font-black uppercase tracking-widest text-[10px] mt-2 shadow-sm">
+                                <i class="fas fa-handshake mr-2 text-lg"></i> Transacción Completada
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -267,12 +310,23 @@
             <div class="lg:col-span-8 flex flex-col h-full">
                 <div class="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col overflow-hidden relative">
                     
-                    <div class="bg-emerald-50 border-b border-emerald-100 px-4 py-3 flex items-start sm:items-center space-x-3 text-xs">
-                        <i class="fas fa-shield-check text-2xl text-emerald-500 mt-0.5 sm:mt-0"></i>
-                        <p class="text-emerald-800 leading-relaxed">
-                            <strong class="font-black uppercase">Garantía inWorker:</strong> El pago se congela en la plataforma y se libera únicamente cuando el cliente confirma que el servicio se realizó exitosamente.
-                        </p>
-                    </div>
+                    <!-- 💎 MEJORA 3: MENSAJE DE GARANTÍA COMPACTO -->
+                    <details class="bg-emerald-50/50 border-b border-emerald-100 text-xs group cursor-pointer transition-colors hover:bg-emerald-50">
+                        <summary class="px-4 py-3 flex items-center justify-between font-bold text-emerald-800 select-none outline-none">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-shield-check text-emerald-500 text-lg"></i>
+                                <span class="uppercase tracking-wide text-[10px]">Pago protegido por Escrow</span>
+                            </div>
+                            <div class="text-[10px] text-emerald-600 font-medium flex items-center gap-1 bg-emerald-100/50 px-2 py-1 rounded-md">
+                                <span class="group-open:hidden">Ver cómo funciona</span>
+                                <span class="hidden group-open:inline">Ocultar</span>
+                                <i class="fas fa-chevron-down transition-transform group-open:rotate-180"></i>
+                            </div>
+                        </summary>
+                        <div class="px-4 pb-4 pt-1 text-emerald-700/80 leading-relaxed text-[11px] font-medium border-t border-emerald-100/30 mx-2">
+                            Tu dinero está a salvo. El pago se congela en la plataforma y se libera únicamente cuando confirmas que el servicio se realizó exitosamente.
+                        </div>
+                    </details>
 
                     <div id="cajaMensajes" class="mensajes-box p-4 sm:p-6 space-y-4">
                         
@@ -438,8 +492,9 @@
                         <div class="p-3 sm:p-4 bg-white border-t border-slate-200">
                             {% if session.get('usuario_rol') in ['Trabajador', 'Worker'] and tarea.estado != 'Finalizada' %}
                             <div class="flex justify-start mb-3">
-                                <button type="button" onclick="abrirModalHito()" class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black px-4 py-2 rounded-xl text-[10px] uppercase tracking-widest shadow-md shadow-indigo-500/30 transition-all active:scale-95 flex items-center gap-2 border border-indigo-500">
-                                    <i class="fas fa-file-invoice-dollar text-sm"></i> Generar Cobro Adicional o Hito
+                                <!-- 💎 MEJORA 4: BOTÓN DE CREAR HITO LIMPIO -->
+                                <button type="button" onclick="abrirModalHito()" class="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black px-4 py-2 rounded-xl text-[10px] uppercase tracking-widest shadow-md shadow-indigo-500/30 transition-all active:scale-95 flex items-center gap-2 border border-indigo-500 w-max">
+                                    <i class="fas fa-plus"></i> Crear Hito
                                 </button>
                             </div>
                             {% endif %}
@@ -489,9 +544,6 @@
         </div>
     </main>
 
-    <!-- ========================================================= -->
-    <!-- ⚖️ MODAL OFICIAL DE CONTROVERSIA / MEDIACIÓN INYECTADO -->
-    <!-- ========================================================= -->
     <div id="modalControversia" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[110] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white border border-slate-200 rounded-[2rem] max-w-md w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 relative" id="modalControversiaContent">
             
@@ -536,7 +588,6 @@
             </form>
         </div>
     </div>
-    <!-- ========================================================= -->
 
     <div id="modalNuevoHito" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white border border-slate-200 rounded-[2rem] max-w-sm w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="modalNuevoHitoContent">
@@ -883,7 +934,6 @@
 
                             let html = "";
                             
-                            // 🛡️ BLINDAJE: Verificamos tipo y mensaje de forma segura para evitar crashes
                             if (msg.tipo && typeof msg.tipo === 'string' && msg.tipo.includes('cotizacion')) {
                                 let bordeColor = msg.tipo === 'cotizacion_pendiente' ? 'border-purple-200' : (msg.tipo === 'cotizacion_aceptada' ? 'border-emerald-200' : 'border-slate-200');
                                 
