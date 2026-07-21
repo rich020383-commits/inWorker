@@ -73,7 +73,7 @@
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full">
+    <main class="max-w-4xl mx-auto px-4 py-8 pb-24 flex-grow w-full">
         
         <!-- HEADER TEXTOS -->
         <div class="mb-6">
@@ -103,25 +103,25 @@
 
             <!-- Botones de Acción Principales -->
             {% if session.get('usuario_rol') == 'Cliente' %}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div class="grid grid-cols-2 gap-2 sm:gap-4 mb-6">
                 <!-- Card Publicar -->
-                <div onclick="abrirModal()" class="bg-brand-light/50 border border-brand-blue/10 rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:bg-brand-light transition group">
-                    <div class="w-10 h-10 rounded-xl bg-brand-blue text-white flex items-center justify-center shadow-sm shrink-0">
-                        <i class="fas fa-plus text-sm"></i>
+                <div onclick="abrirModal()" class="bg-brand-light/50 border border-brand-blue/10 rounded-2xl p-2.5 sm:p-4 flex items-center gap-2 sm:gap-4 cursor-pointer hover:bg-brand-light transition group">
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-brand-blue text-white flex items-center justify-center shadow-sm shrink-0">
+                        <i class="fas fa-plus text-xs sm:text-sm"></i>
                     </div>
-                    <div>
-                        <h3 class="text-brand-blue font-black text-sm">Publicar servicio</h3>
-                        <p class="text-slate-500 text-[11px] font-medium">Publica lo que necesitas</p>
+                    <div class="overflow-hidden">
+                        <h3 class="text-brand-blue font-black text-[11px] sm:text-sm truncate">Publicar servicio</h3>
+                        <p class="text-slate-500 text-[9px] sm:text-[11px] font-medium truncate hidden sm:block">Publica lo que necesitas</p>
                     </div>
                 </div>
                 <!-- Card Buscar -->
-                <a href="/tecnicos" class="bg-emerald-50/80 border border-emerald-100/50 rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:bg-emerald-50 transition block group">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-sm shrink-0">
-                        <i class="fas fa-user-friends text-sm"></i>
+                <a href="/tecnicos" class="bg-emerald-50/80 border border-emerald-100/50 rounded-2xl p-2.5 sm:p-4 flex items-center gap-2 sm:gap-4 cursor-pointer hover:bg-emerald-50 transition group">
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-sm shrink-0">
+                        <i class="fas fa-user-friends text-xs sm:text-sm"></i>
                     </div>
-                    <div>
-                        <h3 class="text-emerald-700 font-black text-sm">Buscar especialista</h3>
-                        <p class="text-emerald-600/70 text-[11px] font-medium">Encuentra el profesional ideal</p>
+                    <div class="overflow-hidden">
+                        <h3 class="text-emerald-700 font-black text-[11px] sm:text-sm truncate">Buscar experto</h3>
+                        <p class="text-emerald-600/70 text-[9px] sm:text-[11px] font-medium truncate hidden sm:block">Encuentra el profesional</p>
                     </div>
                 </a>
             </div>
@@ -138,7 +138,6 @@
                         <option value="Soporte Técnico" {% if request.args.get('categoria_filtro') == 'Soporte Técnico' %}selected{% endif %}>Soporte Técnico</option>
                         <option value="Limpieza y Aseo General" {% if request.args.get('categoria_filtro') == 'Limpieza y Aseo General' %}selected{% endif %}>Limpieza</option>
                         <option value="Desarrollo Web" {% if request.args.get('categoria_filtro') == 'Desarrollo Web' %}selected{% endif %}>Desarrollo Web</option>
-                        <!-- Aquí puedes agregar las demás categorías resumidas si deseas -->
                     </select>
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                         <i class="fas fa-chevron-down text-slate-400 text-[10px]"></i>
@@ -175,9 +174,6 @@
                 <button type="submit" name="estado_filtro" value="Urgente" class="shrink-0 px-4 py-2 rounded-full text-[11px] font-black tracking-wide transition-all flex items-center gap-1.5 {% if request.args.get('estado_filtro') == 'Urgente' %}bg-rose-50 text-rose-600 border border-rose-200{% else %}bg-white border border-slate-200 text-rose-500 hover:bg-slate-50{% endif %}">
                     <i class="fas fa-fire text-[10px]"></i> Urgentes
                 </button>
-                <button type="submit" name="estado_filtro" value="En Garantia" class="shrink-0 px-4 py-2 rounded-full text-[11px] font-black tracking-wide transition-all flex items-center gap-1.5 {% if request.args.get('estado_filtro') == 'En Garantia' %}bg-emerald-50 text-emerald-600 border border-emerald-200{% else %}bg-white border border-slate-200 text-emerald-600 hover:bg-slate-50{% endif %}">
-                    <i class="fas fa-shield-alt text-[10px]"></i> Escrow activo
-                </button>
             </div>
         </form>
 
@@ -210,12 +206,12 @@
 
                 <!-- Contenido Principal -->
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <!-- Info Textual y Avatar -->
+                    <!-- Info Textual y Avatar Arreglado -->
                     <div class="flex flex-1 gap-3 sm:gap-4">
                         <div class="relative shrink-0">
-                            <!-- Avatar Placeholder -->
-                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-slate-200 rounded-full border border-slate-100 flex items-center justify-center text-slate-400 font-bold overflow-hidden shadow-sm">
-                                <img src="{{ url_for('static', filename='img/default_avatar.png') }}" alt="Usuario" class="w-full h-full object-cover">
+                            <!-- Avatar con ícono por defecto -->
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-slate-100 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden shadow-sm">
+                                <i class="fas fa-user text-xl"></i>
                             </div>
                             <div class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
                         </div>
