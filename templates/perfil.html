@@ -120,6 +120,31 @@
                     </div>
 
                     {% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}
+                    
+                    <!-- 🚀 NUEVOS CAMPOS: Ciudad, Experiencia y Tarifa -->
+                    <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-5 border-y border-slate-100 py-4 my-2">
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Ciudad de Operación</label>
+                            <input type="text" name="ciudad" value="{{ usuario['ciudad'] if usuario['ciudad'] else '' }}" placeholder="Ej: Bogotá, Colombia" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Años de Experiencia</label>
+                            <div class="relative">
+                                <input type="number" name="anos_experiencia" min="0" max="50" value="{{ usuario['anos_experiencia'] if usuario['anos_experiencia'] else '0' }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 text-xs font-bold">Años</div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Tarifa Base por Hora</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-500 font-bold">$</div>
+                                <input type="number" name="tarifa_hora" min="0" placeholder="0" value="{{ usuario['tarifa_hora'] if usuario['tarifa_hora'] else '' }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-7 pr-12 py-2.5 text-sm font-black text-emerald-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 text-[9px] font-bold">COP/h</div>
+                            </div>
+                            <p class="text-[9px] text-slate-400 mt-1 font-medium">Déjalo en 0 para mostrar "A convenir".</p>
+                        </div>
+                    </div>
+
                     <div class="md:col-span-2 mt-4">
                         {% if usuario['verificado'] == 1 %}
                             <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex items-center justify-between shadow-sm">
@@ -321,22 +346,48 @@
                         </div>
                     </div>
 
+                    <!-- 🚀 NUEVO: BIO SEPARADA DE SKILLS -->
                     <div class="md:col-span-2">
-                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Resumen Profesional (Optimizable con IA)</label>
-                        <textarea id="field-habilidades" name="habilidades" rows="3" placeholder="Describe brevemente tu experiencia..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition resize-none">{{ usuario['habilidades'] if usuario['habilidades'] and usuario['habilidades'] != 'Sin especificar' else '' }}</textarea>
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Resumen Profesional (Biografía optimizable con IA)</label>
+                        <textarea id="field-descripcion_perfil" name="descripcion_perfil" rows="3" placeholder="Describe brevemente tu experiencia y por qué deberían contratarte..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition resize-none">{{ usuario['descripcion_perfil'] if usuario['descripcion_perfil'] else '' }}</textarea>
                     </div>
 
-                    <div class="md:col-span-2 bg-slate-50 p-5 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div>
-                            <label class="block text-xs font-black uppercase tracking-wider text-slate-800 mb-1"><i class="fas fa-images text-blue-500 mr-1"></i> Portafolio de Trabajos</label>
-                            <p class="text-[10px] text-slate-500">Carga fotos de tus últimos trabajos para generar confianza.</p>
+                    <!-- 🚀 NUEVO: CAMPO DE HABILIDADES TIPO ETIQUETAS -->
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Habilidades Clave (Separadas por comas)</label>
+                        <input type="text" name="habilidades" value="{{ usuario['habilidades'] if usuario['habilidades'] and usuario['habilidades'] != 'Sin especificar' else '' }}" placeholder="Ej: React, Node.js, Limpieza Profunda, Fontanería" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                        <p class="text-[9px] text-slate-400 mt-1 font-medium">Estas palabras aparecerán como etiquetas visuales en tu perfil público.</p>
+                    </div>
+
+                    <!-- 🚀 MEJORADO: VISUALIZACIÓN DEL PORTAFOLIO -->
+                    <div class="md:col-span-2 bg-slate-50 p-5 border border-slate-200 rounded-xl">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs font-black uppercase tracking-wider text-slate-800 mb-1"><i class="fas fa-images text-blue-500 mr-1"></i> Portafolio de Trabajos</label>
+                                <p class="text-[10px] text-slate-500">Sube fotos de tus mejores proyectos para generar confianza.</p>
+                            </div>
+                            <input type="file" name="trabajos_previos" multiple accept="image/*" class="block text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-white file:border file:border-blue-200 file:text-blue-600 hover:file:bg-blue-50 hover:file:border-blue-300 cursor-pointer shadow-sm transition">
                         </div>
-                        <input type="file" name="trabajos_previos" multiple accept="image/*" class="block text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-white file:border file:border-blue-200 file:text-blue-600 hover:file:bg-blue-50 hover:file:border-blue-300 cursor-pointer shadow-sm transition">
+                        
+                        <!-- Cuadrícula de fotos subidas -->
+                        {% if usuario['proyectos'] and usuario['proyectos']|length > 0 %}
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-200/60 mt-2">
+                            {% for proyecto in usuario['proyectos'] %}
+                            <div class="relative group rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-md transition">
+                                <img src="{{ url_for('static', filename='uploads/' + proyecto.imagen_ruta) }}" class="w-full h-24 object-cover">
+                                <button type="button" onclick="eliminarProyectoNinja('{{ proyecto.id }}')" class="absolute top-1.5 right-1.5 bg-rose-500 hover:bg-rose-600 text-white w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg transform translate-y-2 group-hover:translate-y-0" title="Eliminar imagen">
+                                    <i class="fas fa-trash-alt text-[10px]"></i>
+                                </button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                     </div>
 
                     {% else %}
                     <input type="hidden" name="profesion" value="Cliente General">
-                    <input type="hidden" name="habilidades" value="Cuenta de Cliente">
+                    <input type="hidden" name="descripcion_perfil" value="Cuenta de Cliente">
+                    <input type="hidden" name="habilidades" value="">
                     {% endif %}
 
                 </div>
@@ -375,14 +426,14 @@
             <div class="bg-white border border-indigo-100 rounded-2xl rounded-tl-none p-4 text-sm text-slate-700 leading-relaxed shadow-sm relative">
                 <div class="absolute -left-2 -top-2 w-4 h-4 bg-indigo-500 rounded-full border-2 border-white"></div>
                 <p class="font-black text-indigo-900 mb-2 uppercase tracking-wide text-xs">¡Hola, {{ usuario['nombre'] }}!</p>
-                Analicé tu perfil y estoy listo para redactar una descripción ultra-profesional que resalte tus habilidades técnicas.
+                Analicé tu perfil y estoy listo para redactar una biografía ultra-profesional que resalte tus habilidades para conseguir más clientes.
             </div>
         </div>
 
         <div class="p-4 bg-white border-t border-slate-200 flex flex-col space-y-3">
             <button onclick="optimizarTextoPerfil()" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition flex items-center justify-center space-x-2 shadow-md">
                 <i class="fas fa-wand-magic-sparkles"></i>
-                <span>Crear Resumen Profesional Mágico</span>
+                <span>Crear Biografía Mágica</span>
             </button>
             
             <div class="flex items-center space-x-2 border-t border-slate-100 pt-3">
@@ -395,40 +446,63 @@
     </div>
 
     <script>
-// 🚀 FUNCIÓN NINJA PARA INYECTAR LA IA EN EL FORMULARIO
+// 🚀 FUNCIÓN NINJA PARA INYECTAR LA IA EN EL FORMULARIO DE BIOGRAFÍA
         function aplicarTextoIA(texto) {
-            const txtAreaHabilidades = document.getElementById('field-habilidades');
+            // Actualizado para apuntar al nuevo campo de biografía
+            const txtAreaBio = document.getElementById('field-descripcion_perfil');
             
-            if (txtAreaHabilidades) {
+            if (txtAreaBio) {
                 // 1. Pegamos el texto en la caja del formulario
-                txtAreaHabilidades.value = texto;
+                txtAreaBio.value = texto;
                 
                 // 2. Le damos un efecto visual verde para que el usuario note el cambio
-                txtAreaHabilidades.classList.remove('bg-slate-50', 'border-slate-200');
-                txtAreaHabilidades.classList.add('bg-emerald-50', 'border-emerald-500', 'ring-2', 'ring-emerald-200');
+                txtAreaBio.classList.remove('bg-slate-50', 'border-slate-200');
+                txtAreaBio.classList.add('bg-emerald-50', 'border-emerald-500', 'ring-2', 'ring-emerald-200');
                 
                 setTimeout(() => {
-                    txtAreaHabilidades.classList.add('bg-slate-50', 'border-slate-200');
-                    txtAreaHabilidades.classList.remove('bg-emerald-50', 'border-emerald-500', 'ring-2', 'ring-emerald-200');
+                    txtAreaBio.classList.add('bg-slate-50', 'border-slate-200');
+                    txtAreaBio.classList.remove('bg-emerald-50', 'border-emerald-500', 'ring-2', 'ring-emerald-200');
                 }, 2000);
 
-                // 3. Ocultamos el panel lateral de Gemini para que la pantalla quede limpia
+                // 3. Ocultamos el panel lateral de Gemini
                 toggleCopilot();
 
-                // 4. Mostramos una alerta bonita recordando guardar
+                // 4. Mostramos alerta de éxito
                 Swal.fire({
                     toast: true,
                     position: 'top-end',
                     icon: 'success',
-                    title: '¡Texto optimizado aplicado! Recuerda hacer clic en "Actualizar Perfil" para guardar.',
+                    title: '¡Biografía optimizada! Haz clic en "Actualizar Perfil" para guardar.',
                     showConfirmButton: false,
                     timer: 4000,
                     timerProgressBar: true,
-                    customClass: {
-                        popup: 'rounded-xl shadow-md border border-emerald-100'
-                    }
+                    customClass: { popup: 'rounded-xl shadow-md border border-emerald-100' }
                 });
             }
+        }
+
+        // 🚀 NUEVA FUNCIÓN: ELIMINAR IMAGEN DEL PORTAFOLIO CON ALERTA
+        function eliminarProyectoNinja(idProyecto) {
+            Swal.fire({
+                title: '¿Eliminar imagen?',
+                text: "Esta acción quitará la imagen de tu portafolio público.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e11d48',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    popup: 'rounded-2xl',
+                    confirmButton: 'font-black uppercase tracking-wider text-xs rounded-xl px-4 py-2',
+                    cancelButton: 'font-black uppercase tracking-wider text-xs rounded-xl px-4 py-2'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirige a la ruta de tu backend para borrar (Asegúrate de crear esta ruta en Python)
+                    window.location.href = `/eliminar_proyecto/${idProyecto}`;
+                }
+            });
         }
 
         function previewKycNinja(event, campo) {
@@ -466,7 +540,6 @@
             "Ingeniería civil": "<strong>Matrícula Profesional:</strong> Debes contar con matrícula expedida por el COPNIA. Cualquier aval estructural o daño en la obra es de tu entera responsabilidad civil y legal.",
             "Arquitectura": "<strong>Matrícula Profesional:</strong> Debes contar con matrícula expedida por el CPNAA. Eres responsable de asegurar que el proyecto cumpla con las normativas de curaduría urbana.",
             "Techos y cubiertas": "<strong>Trabajo en Alturas:</strong> Por normativa nacional (MinTrabajo), toda labor a más de 1.5 metros exige certificado vigente de Trabajo en Alturas y uso estricto de arnés y línea de vida.",
-            // 🛡️ NUEVAS ADVERTENCIAS AÑADIDAS
             "Abogado Penal": "<strong>Matrícula Vigente:</strong> Para ejercer o dar asesoría oficial, debes contar con tu Tarjeta Profesional de Abogado vigente expedida por el Consejo Superior de la Judicatura.",
             "Abogado Laboral": "<strong>Matrícula Vigente:</strong> Para ejercer o dar asesoría oficial, debes contar con tu Tarjeta Profesional de Abogado vigente expedida por el Consejo Superior de la Judicatura.",
             "Abogado de Familia": "<strong>Matrícula Vigente:</strong> Para ejercer o dar asesoría oficial, debes contar con tu Tarjeta Profesional de Abogado vigente expedida por el Consejo Superior de la Judicatura.",
@@ -477,12 +550,10 @@
             const selectProf = document.getElementById('field-profesion');
             const contenedorAlerta = document.getElementById('alerta-seguridad');
             const textoAlerta = document.getElementById('alerta-texto-seguridad');
-            
             const contenedorSugerencia = document.getElementById('contenedor-sugerencia');
             const inputSugerencia = document.getElementById('field-sugerencia');
             
             if (!selectProf) return;
-
             const profesionSeleccionada = selectProf.value;
 
             if (contenedorAlerta && textoAlerta) {
@@ -545,15 +616,15 @@
         function optimizarTextoPerfil() {
             const box = document.getElementById('copilot-chat-box');
             const selectProf = document.getElementById('field-profesion');
-            const txtAreaHabilidades = document.getElementById('field-habilidades');
+            const txtAreaBio = document.getElementById('field-descripcion_perfil');
             
-            let profesionActual = selectProf ? selectProf.value : "Soporte Técnico";
-            let habilidadesActuales = txtAreaHabilidades ? txtAreaHabilidades.value : "";
+            let profesionActual = selectProf ? selectProf.value : "Profesional";
+            let bioActual = txtAreaBio ? txtAreaBio.value : "";
 
             box.innerHTML += `
                 <div class="flex flex-col items-end mt-4">
                     <div class="bg-slate-200 text-slate-800 rounded-2xl rounded-tr-none px-4 py-3 text-xs font-bold shadow-sm">
-                        ¡Optimiza mi perfil de ${profesionActual} con IA! 🤖
+                        ¡Optimiza mi biografía de ${profesionActual} con IA! 🤖
                     </div>
                 </div>`;
             box.scrollTop = box.scrollHeight;
@@ -568,23 +639,18 @@
             fetch('/api/optimizar_perfil', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ profesion: profesionActual, habilidades: habilidadesActuales })
+                body: JSON.stringify({ profesion: profesionActual, habilidades: bioActual })
             })
             .then(response => response.json())
             .then(data => {
                 document.getElementById(loaderId)?.remove();
                 
-                // 1. Limpiamos el texto que manda Gemini (quitamos los ** de negritas)
                 let sugerenciaLimpia = data.sugerencia.replace(/\*\*/g, '');
-                
-                // 2. Para mostrarlo bonito en el chat, convertimos los saltos de línea reales en etiquetas <br>
                 let htmlParaElChat = sugerenciaLimpia.replace(/\n/g, '<br>');
 
-                // Creamos el contenedor de la respuesta
                 const divRespuesta = document.createElement('div');
                 divRespuesta.className = 'bg-white border border-emerald-200 text-slate-800 p-4 rounded-2xl rounded-tl-none shadow-sm mt-4 text-sm relative';
                 
-                // Inyectamos el HTML de la tarjeta
                 divRespuesta.innerHTML = `
                     <div class="absolute -left-2 -top-2 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white"></div>
                     <p class="font-black text-emerald-700 uppercase tracking-wide text-[10px] mb-2"><i class="fas fa-check-circle mr-1"></i> Sugerencia Optimizada</p>
@@ -594,10 +660,8 @@
                     </button>
                 `;
                 
-                // Añadimos el bloque al chat
                 box.appendChild(divRespuesta);
                 
-                // 3. LA MAGIA: Le asignamos la función al botón por código puro, pasando el texto original limpio
                 document.getElementById(`btn-aplicar-ia-${loaderId}`).addEventListener('click', function() {
                     aplicarTextoIA(sugerenciaLimpia);
                 });
@@ -610,7 +674,7 @@
             });
         }
 
-        // 🛑 FUNCIÓN NINJA PARA ELIMINACIÓN SEGURA (VERSIÓN PREMIUM)
+        // 🛑 FUNCIÓN NINJA PARA ELIMINACIÓN SEGURA
         function confirmarEliminarCuentaNinja() {
             Swal.fire({
                 title: '⚠️ ¿Estás seguro?',
@@ -635,9 +699,7 @@
                         title: 'Auditando cuenta...',
                         html: '<span class="text-xs text-slate-500">Verificando saldos y servicios en garantía</span>',
                         allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
+                        didOpen: () => { Swal.showLoading(); }
                     });
 
                     fetch('/api/usuario/eliminar_cuenta', {
@@ -653,13 +715,8 @@
                                 icon: 'success',
                                 confirmButtonColor: '#2563eb',
                                 confirmButtonText: 'Entendido',
-                                customClass: {
-                                    popup: 'rounded-2xl',
-                                    confirmButton: 'font-black uppercase tracking-wider text-xs rounded-xl px-5 py-3'
-                                }
-                            }).then(() => {
-                                window.location.href = '/'; 
-                            });
+                                customClass: { popup: 'rounded-2xl', confirmButton: 'font-black uppercase tracking-wider text-xs rounded-xl px-5 py-3' }
+                            }).then(() => { window.location.href = '/'; });
                         } else {
                             Swal.fire({
                                 title: 'Operación Denegada',
@@ -668,21 +725,13 @@
                                 confirmButtonColor: '#2563eb',
                                 confirmButtonText: 'Entendido',
                                 footer: '<span class="text-[10px] text-slate-400 font-bold uppercase"><i class="fas fa-shield-alt text-emerald-500 mr-1"></i> Protocolo de seguridad inWorker activo</span>',
-                                customClass: {
-                                    popup: 'rounded-2xl border-t-4 border-t-rose-500',
-                                    confirmButton: 'font-black uppercase tracking-wider text-xs rounded-xl px-5 py-3'
-                                }
+                                customClass: { popup: 'rounded-2xl border-t-4 border-t-rose-500', confirmButton: 'font-black uppercase tracking-wider text-xs rounded-xl px-5 py-3' }
                             });
                         }
                     })
                     .catch(error => {
                         console.error("Error al procesar la baja:", error);
-                        Swal.fire({
-                            title: 'Error de conexión',
-                            text: 'No pudimos conectar con el servidor. Inténtalo de nuevo.',
-                            icon: 'error',
-                            confirmButtonColor: '#2563eb'
-                        });
+                        Swal.fire({ title: 'Error de conexión', text: 'No pudimos conectar con el servidor.', icon: 'error', confirmButtonColor: '#2563eb' });
                     });
                 }
             });
