@@ -622,6 +622,52 @@ def registrar():
         print(f"⚠️ Error crítico en el registro: {e}")
         flash("❌ Ocurrió un error interno. Por favor, inténtalo de nuevo.", "error")
         return redirect(url_for('login', action='registro'))
+import os
+from flask import redirect, url_for, flash, session
+
+@app.route('/eliminar_proyecto/<nombre_imagen>')
+def eliminar_proyecto(nombre_imagen):
+    # 1. Verificamos que el usuario tenga sesión
+    if 'usuario_correo' not in session:
+        flash('Debes iniciar sesión para realizar esta acción.', 'error')
+        return redirect(url_for('login')) 
+
+    correo = session['usuario_correo']
+
+    try:
+        # 2. Traemos el texto actual del portafolio desde la tabla usuarios
+        respuesta = supabase.table('usuarios').select('portafolio').eq('correo', correo).execute()
+        
+        if respuesta.data:
+            portafolio_actual = respuesta.data[0].get('portafolio', '')
+            
+            if portafolio_actual and nombre_imagen in portafolio_actual:
+                # 3. Convertimos el texto en una lista, removemos la imagen y volvemos a unir
+                lista_imagenes = [img.strip() for img in portafolio_actual.split(',') if img.strip() != '']
+                
+                if nombre_imagen in lista_imagenes:
+                    lista_imagenes.remove(nombre_imagen)
+                
+                nuevo_portafolio = ','.join(lista_imagenes)
+                
+                # 4. Actualizamos el registro en Supabase
+                supabase.table('usuarios').update({'portafolio': nuevo_portafolio}).eq('correo', correo).execute()
+                
+                # 5. Borramos el archivo físico de tu carpeta uploads para no llenar el servidor
+                ruta_fisica = os.path.join(app.config['UPLOAD_FOLDER'], nombre_imagen)
+                if os.path.exists(ruta_fisica):
+                    os.remove(ruta_fisica)
+                    
+                flash('Imagen eliminada de tu portafolio exitosamente.', 'success')
+            else:
+                flash('La imagen no se encontró en tu perfil.', 'error')
+                
+    except Exception as e:
+        print(f"Error eliminando imagen del portafolio: {e}")
+        flash('Hubo un error al intentar eliminar la imagen.', 'error')
+
+    return redirect(url_for('perfil'))
+
 # =====================================================================
 # 🌉 4. PUENTE PARA LOGIN CON GOOGLE
 # =====================================================================
