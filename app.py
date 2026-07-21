@@ -1887,22 +1887,14 @@ def ver_perfil():
             telefono = request.form.get('telefono', 'Sin especificar')
             profesion = request.form.get('profesion', 'Técnico General')
             habilidades = request.form.get('habilidades', 'Sin especificar')
+            descripcion = request.form.get('descripcion_perfil', '')
             
-            # 🚀 NUEVOS CAMPOS INYECTADOS
-            # Mapeamos 'descripcion_perfil' del HTML a la columna 'descripcion' de tu BD
-            descripcion = request.form.get('descripcion_perfil', '') 
+            # 🚀 1. ATRAPA LOS DATOS NUEVOS AQUÍ
             ciudad = request.form.get('ciudad', '')
             anos_experiencia = request.form.get('anos_experiencia', 0)
             tarifa_hora = request.form.get('tarifa_hora', 0)
             
-            # 💡 MAGIA BACKEND: Capturamos la sugerencia y la fusionamos si aplica
-            sugerencia = request.form.get('sugerencia_profesion')
-            if profesion == 'Otra' and sugerencia:
-                # Se guarda en la DB exactamente como "Otra: [texto del usuario]"
-                profesion = f"Otra: {sugerencia.strip()}"
-            
             try:
-                # ⚡ Buscamos al usuario de forma directa
                 usuario = Usuario.query.filter_by(correo=correo_logueado).first()
                 
                 if not usuario:
@@ -1915,14 +1907,13 @@ def ver_perfil():
                 usuario.habilidades = habilidades
                 usuario.descripcion = descripcion
                 
-                # 🚀 ASIGNAMOS LOS NUEVOS VALORES (Con validación numérica)
-                # Si las columnas aún no existen en tu modelo SQLAlchemy, asegúrate de añadirlas
+                # 🚀 2. GUÁRDALOS EN LA BASE DE DATOS
+                usuario.ciudad = ciudad
                 try:
-                    usuario.ciudad = ciudad
                     usuario.anos_experiencia = int(anos_experiencia)
                     usuario.tarifa_hora = float(tarifa_hora)
                 except ValueError:
-                    pass # Evita crashes si mandan letras en vez de números
+                    pass # Por si envían un texto en vez de un número
                 
                 # 1. PROCESAR FOTO DE AVATAR PRINCIPAL
                 archivo_foto = request.files.get('foto_perfil')
@@ -1988,16 +1979,12 @@ def ver_perfil():
         elif accion_perfil == 'solicitar_retiro':
             return redirect(url_for('home'))
 
-    # =====================================================================
-    # 👤 FLUJO GET: RENDERIZAR VISTA DEL PERFIL (UNIFICADO)
+   # =====================================================================
+    # 👤 FLUJO GET: RENDERIZAR VISTA DEL PERFIL
     # =====================================================================
     try:
         usuario_info = Usuario.query.filter_by(correo=correo_logueado).first()
         
-        if not usuario_info:
-            flash("❌ El perfil solicitado no se encuentra registrado.", "error")
-            return redirect(url_for('home'))
-            
         # Reconstruimos el diccionario del usuario para la vista
         usuario = {
             'nombre': usuario_info.nombre,
@@ -2009,11 +1996,12 @@ def ver_perfil():
             'foto': usuario_info.foto,
             'telefono': usuario_info.telefono,
             'verificado': usuario_info.verificado,
-            'descripcion_perfil': usuario_info.descripcion, # Conectado al nuevo campo HTML
+            'descripcion_perfil': usuario_info.descripcion,
             'puntuacion_total': usuario_info.puntuacion_total or 0.0,
             'total_calificaciones': usuario_info.total_calificaciones or 0,
             'saldo_creditos': round(usuario_info.saldo_creditos or 0.0, 2),
-            # 🚀 MAPEAMOS LOS NUEVOS CAMPOS AL DICCIONARIO
+            
+            # 🚀 3. ENVÍA LOS DATOS AL HTML
             'ciudad': getattr(usuario_info, 'ciudad', ''),
             'anos_experiencia': getattr(usuario_info, 'anos_experiencia', 0),
             'tarifa_hora': getattr(usuario_info, 'tarifa_hora', 0)
