@@ -168,12 +168,9 @@
                             data-foto="{% if tecnico.foto %}/static/uploads/{{ tecnico.foto }}{% else %}None{% endif %}"
                             data-habilidades="{{ tecnico.habilidades }}"
                             data-portafolio='{{ tecnico.proyectos | tojson | safe if tecnico.proyectos else "[]" }}'
-                            
-                            <!-- 🚀 AQUÍ ESTÁN LOS 3 DATOS NUEVOS -->
                             data-ciudad="{{ tecnico.ciudad if tecnico.ciudad else 'Colombia' }}"
                             data-experiencia="{{ tecnico.anos_experiencia if tecnico.anos_experiencia else '0' }}"
                             data-tarifa="{{ tecnico.tarifa_hora if tecnico.tarifa_hora else '0' }}"
-
                             class="w-full bg-slate-900 hover:bg-brand-blue text-white font-black py-3.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center justify-center gap-2">
                         <span>Ver Perfil Completo</span>
                         <i class="fas fa-arrow-right text-[10px]"></i>
