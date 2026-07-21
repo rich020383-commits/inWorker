@@ -369,21 +369,20 @@
                             <input type="file" name="trabajos_previos" multiple accept="image/*" class="block text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-white file:border file:border-blue-200 file:text-blue-600 hover:file:bg-blue-50 hover:file:border-blue-300 cursor-pointer shadow-sm transition">
                         </div>
                         
-                        <!-- Cuadrícula de fotos subidas (Ahora lee el texto separado por comas) -->
-                        {% if usuario['portafolio'] %}
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-200/60 mt-2">
-                            {% for imagen in usuario['portafolio'].split(',') %}
-                                {% if imagen.strip() != '' %}
-                                <div class="relative group rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-md transition">
-                                    <img src="{{ url_for('static', filename='uploads/' + imagen.strip()) }}" class="w-full h-24 object-cover">
-                                    <button type="button" onclick="eliminarProyectoNinja('{{ imagen.strip() }}')" class="absolute top-1.5 right-1.5 bg-rose-500 hover:bg-rose-600 text-white w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg transform translate-y-2 group-hover:translate-y-0" title="Eliminar imagen">
-                                        <i class="fas fa-trash-alt text-[10px]"></i>
-                                    </button>
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                        <!-- Cuadrícula de fotos subidas -->
+{% if proyectos and proyectos|length > 0 %}
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-200/60 mt-4">
+    {% for proyecto in proyectos %}
+    <div class="relative group rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-md transition">
+        <img src="{{ url_for('static', filename='uploads/' + proyecto.imagen_ruta) }}" class="w-full h-24 object-cover">
+        
+        <button type="button" onclick="eliminarProyectoNinja('{{ proyecto.id }}')" class="absolute top-1.5 right-1.5 bg-rose-500 hover:bg-rose-600 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-md border border-white" title="Eliminar imagen">
+            <i class="fas fa-trash-alt text-[10px]"></i>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
                     </div>
 
                     {% else %}

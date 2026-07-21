@@ -625,48 +625,38 @@ def registrar():
 import os
 from flask import redirect, url_for, flash, session
 
-@app.route('/eliminar_proyecto/<nombre_imagen>')
-def eliminar_proyecto(nombre_imagen):
-    # 1. Verificamos que el usuario tenga sesión
+@app.route('/eliminar_proyecto/<int:id_proyecto>')
+def eliminar_proyecto(id_proyecto):
     if 'usuario_correo' not in session:
-        flash('Debes iniciar sesión para realizar esta acción.', 'error')
-        return redirect(url_for('login')) 
+        flash("Por favor inicia sesión para realizar esta acción.", "error")
+        return redirect(url_for('ver_perfil'))
 
-    correo = session['usuario_correo']
+    correo_logueado = session['usuario_correo'].strip().lower()
 
     try:
-        # 2. Traemos el texto actual del portafolio desde la tabla usuarios
-        respuesta = supabase.table('usuarios').select('portafolio').eq('correo', correo).execute()
+        # Buscamos la imagen asegurándonos de que le pertenezca a quien la intenta borrar
+        proyecto = Portafolio.query.filter_by(id=id_proyecto, usuario_correo=correo_logueado).first()
         
-        if respuesta.data:
-            portafolio_actual = respuesta.data[0].get('portafolio', '')
-            
-            if portafolio_actual and nombre_imagen in portafolio_actual:
-                # 3. Convertimos el texto en una lista, removemos la imagen y volvemos a unir
-                lista_imagenes = [img.strip() for img in portafolio_actual.split(',') if img.strip() != '']
-                
-                if nombre_imagen in lista_imagenes:
-                    lista_imagenes.remove(nombre_imagen)
-                
-                nuevo_portafolio = ','.join(lista_imagenes)
-                
-                # 4. Actualizamos el registro en Supabase
-                supabase.table('usuarios').update({'portafolio': nuevo_portafolio}).eq('correo', correo).execute()
-                
-                # 5. Borramos el archivo físico de tu carpeta uploads para no llenar el servidor
-                ruta_fisica = os.path.join(app.config['UPLOAD_FOLDER'], nombre_imagen)
-                if os.path.exists(ruta_fisica):
-                    os.remove(ruta_fisica)
-                    
-                flash('Imagen eliminada de tu portafolio exitosamente.', 'success')
-            else:
-                flash('La imagen no se encontró en tu perfil.', 'error')
-                
-    except Exception as e:
-        print(f"Error eliminando imagen del portafolio: {e}")
-        flash('Hubo un error al intentar eliminar la imagen.', 'error')
+        if proyecto:
+            # 1. Eliminar el archivo físico del servidor
+            ruta_fisica = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.imagen_ruta)
+            if os.path.exists(ruta_fisica):
+                os.remove(ruta_fisica)
 
-    return redirect(url_for('perfil'))
+            # 2. Eliminar el registro de la base de datos
+            db.session.delete(proyecto)
+            db.session.commit()
+            
+            flash("Imagen eliminada de tu portafolio exitosamente.", "success")
+        else:
+            flash("No se encontró la imagen o no tienes permisos para eliminarla.", "error")
+            
+    except Exception as e:
+        db.session.rollback()
+        print(f"⚠️ Error eliminando proyecto: {e}")
+        flash("Hubo un error al intentar eliminar la imagen.", "error")
+
+    return redirect(url_for('ver_perfil'))
 
 # =====================================================================
 # 🌉 4. PUENTE PARA LOGIN CON GOOGLE
@@ -1892,7 +1882,13 @@ def ver_perfil():
             telefono = request.form.get('telefono', 'Sin especificar')
             profesion = request.form.get('profesion', 'Técnico General')
             habilidades = request.form.get('habilidades', 'Sin especificar')
-            descripcion = request.form.get('descripcion', '')
+            
+            # 🚀 NUEVOS CAMPOS INYECTADOS
+            # Mapeamos 'descripcion_perfil' del HTML a la columna 'descripcion' de tu BD
+            descripcion = request.form.get('descripcion_perfil', '') 
+            ciudad = request.form.get('ciudad', '')
+            anos_experiencia = request.form.get('anos_experiencia', 0)
+            tarifa_hora = request.form.get('tarifa_hora', 0)
             
             # 💡 MAGIA BACKEND: Capturamos la sugerencia y la fusionamos si aplica
             sugerencia = request.form.get('sugerencia_profesion')
@@ -1913,6 +1909,15 @@ def ver_perfil():
                 usuario.profesion = profesion
                 usuario.habilidades = habilidades
                 usuario.descripcion = descripcion
+                
+                # 🚀 ASIGNAMOS LOS NUEVOS VALORES (Con validación numérica)
+                # Si las columnas aún no existen en tu modelo SQLAlchemy, asegúrate de añadirlas
+                try:
+                    usuario.ciudad = ciudad
+                    usuario.anos_experiencia = int(anos_experiencia)
+                    usuario.tarifa_hora = float(tarifa_hora)
+                except ValueError:
+                    pass # Evita crashes si mandan letras en vez de números
                 
                 # 1. PROCESAR FOTO DE AVATAR PRINCIPAL
                 archivo_foto = request.files.get('foto_perfil')
@@ -1999,10 +2004,14 @@ def ver_perfil():
             'foto': usuario_info.foto,
             'telefono': usuario_info.telefono,
             'verificado': usuario_info.verificado,
-            'descripcion': usuario_info.descripcion,
+            'descripcion_perfil': usuario_info.descripcion, # Conectado al nuevo campo HTML
             'puntuacion_total': usuario_info.puntuacion_total or 0.0,
             'total_calificaciones': usuario_info.total_calificaciones or 0,
-            'saldo_creditos': round(usuario_info.saldo_creditos or 0.0, 2)
+            'saldo_creditos': round(usuario_info.saldo_creditos or 0.0, 2),
+            # 🚀 MAPEAMOS LOS NUEVOS CAMPOS AL DICCIONARIO
+            'ciudad': getattr(usuario_info, 'ciudad', ''),
+            'anos_experiencia': getattr(usuario_info, 'anos_experiencia', 0),
+            'tarifa_hora': getattr(usuario_info, 'tarifa_hora', 0)
         }
         
         # Cálculo preciso del promedio de estrellas
