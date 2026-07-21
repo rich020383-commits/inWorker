@@ -217,6 +217,11 @@ class Usuario(db.Model):
     total_calificaciones = db.Column(db.Integer, default=0)
     descripcion = db.Column(db.Text, default='')
     
+    # 🚀 NUEVOS CAMPOS AÑADIDOS PARA EL PERFIL NINJA
+    ciudad = db.Column(db.String(100), default='Colombia')
+    anos_experiencia = db.Column(db.Integer, default=0)
+    tarifa_hora = db.Column(db.Numeric(10, 2), default=0)
+    
     # 🤝 SISTEMA DE EMBAJADORES Y REFERIDOS (PROGRAMA DE CRECIMIENTO)
     codigo_embajador = db.Column(db.String(50), unique=True, nullable=True) 
     referido_por = db.Column(db.String(50), nullable=True) 

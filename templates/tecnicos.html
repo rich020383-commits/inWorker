@@ -157,20 +157,28 @@
                         <div class="sm:hidden">
                             <span class="text-sm font-black text-slate-700">A convenir</span>
                         </div>
-                        <!-- ESTE BOTÓN ABRE EL PERFIL MODAL -->
-                        <button onclick="prepararYAbrirModal(this)" 
-                            data-nombre="{{ tecnico.nombre }}"
-                            data-profesion="{{ tecnico.profesion or 'Especialista General' }}"
-                            data-descripcion="{{ tecnico.descripcion or 'Especialista verificado en la plataforma inWorker. Dispuesto a ofrecerte el mejor servicio garantizado con escrow.' }}"
-                            data-habilidades="{{ tecnico.habilidades or 'Soporte, Mantenimiento, Reparación' }}"
-                            data-foto="{% if tecnico.foto %}/static/uploads/{{ tecnico.foto }}{% endif %}"
-                            data-estrellas="{{ "%.1f"|format(tecnico.promedio_estrellas) }}"
-                            data-portafolio="{% if tecnico.proyectos %}{% for p in tecnico.proyectos %}/static/uploads/{{ p.imagen_ruta }}|{{ p.descripcion or 'Trabajo Realizado' }}{% if not loop.last %},{% endif %}{% endfor %}{% endif %}"
+                        <!-- Botón para abrir el Modal (AQUÍ ESTÁN LOS DATA- ATTRIBUTES) -->
+                <div class="mt-5 relative z-10">
+                    <button onclick="prepararYAbrirModal(this)" 
                             data-correo="{{ tecnico.correo }}"
-                            class="bg-brand-dark hover:bg-slate-800 text-white text-[11px] font-black px-5 py-2.5 rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-2">
-                            Ver perfil <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
+                            data-nombre="{{ tecnico.nombre }}"
+                            data-profesion="{{ tecnico.profesion }}"
+                            data-descripcion="{{ tecnico.descripcion }}"
+                            data-estrellas="{{ '%.1f'|format(tecnico.promedio_estrellas) }}"
+                            data-foto="{% if tecnico.foto %}/static/uploads/{{ tecnico.foto }}{% else %}None{% endif %}"
+                            data-habilidades="{{ tecnico.habilidades }}"
+                            data-portafolio='{{ tecnico.proyectos | tojson | safe if tecnico.proyectos else "[]" }}'
+                            
+                            <!-- 🚀 AQUÍ ESTÁN LOS 3 DATOS NUEVOS -->
+                            data-ciudad="{{ tecnico.ciudad if tecnico.ciudad else 'Colombia' }}"
+                            data-experiencia="{{ tecnico.anos_experiencia if tecnico.anos_experiencia else '0' }}"
+                            data-tarifa="{{ tecnico.tarifa_hora if tecnico.tarifa_hora else '0' }}"
+
+                            class="w-full bg-slate-900 hover:bg-brand-blue text-white font-black py-3.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center justify-center gap-2">
+                        <span>Ver Perfil Completo</span>
+                        <i class="fas fa-arrow-right text-[10px]"></i>
+                    </button>
+                </div>
                 </div>
             </div>
             {% else %}
@@ -191,22 +199,29 @@
             <!-- CONTENIDO CON SCROLL -->
             <div class="overflow-y-auto pb-24 h-full relative">
                 
-                <!-- HEADER OSCURO CON FOTO INTEGRADA -->
-                <header class="bg-brand-dark text-white relative pt-8 pb-16 px-6 sm:px-8 overflow-hidden rounded-t-[2rem]">
-                    <div class="absolute inset-0 bg-gradient-to-tr from-brand-dark via-slate-800/50 to-brand-blue/20 pointer-events-none"></div>
+                <!-- HEADER OSCURO CON FOTO DE FONDO GIGANTE -->
+                <header class="bg-brand-dark text-white relative pt-8 pb-16 px-6 sm:px-8 overflow-hidden rounded-t-[2rem] min-h-[280px] flex flex-col justify-end">
                     
-                    <div class="relative z-20 flex justify-between items-center mb-6">
-                        <button onclick="cerrarModal()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm hover:bg-white/20 transition">
+                    <!-- 🚀 LA MAGIA NINJA: Foto de fondo gigante con degradado -->
+                    <div class="absolute inset-0 z-0">
+                        <img id="modalFotoFondo" src="" class="w-full h-full object-cover opacity-30 mix-blend-overlay hidden">
+                        <div class="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/90 to-transparent"></div>
+                    </div>
+                    
+                    <!-- Botones superiores -->
+                    <div class="absolute top-8 left-6 right-6 z-20 flex justify-between items-center">
+                        <button onclick="cerrarModal()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/10 hover:bg-white/20 transition">
                             <i class="fas fa-arrow-left"></i>
                         </button>
-                        <button class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm hover:bg-rose-500 hover:text-white transition">
+                        <button class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/10 hover:bg-rose-500 hover:text-white transition">
                             <i class="far fa-heart"></i>
                         </button>
                     </div>
 
-                    <div class="relative z-20 flex">
+                    <!-- Contenido Frontal -->
+                    <div class="relative z-20 mt-12 flex items-end justify-between">
                         <div class="flex-1">
-                            <span class="bg-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-emerald-500/30 flex items-center gap-1.5 w-max mb-3">
+                            <span class="bg-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-emerald-500/30 flex items-center gap-1.5 w-max mb-3 backdrop-blur-sm">
                                 <i class="fas fa-shield-check"></i> VERIFICADO
                             </span>
                             
@@ -214,23 +229,20 @@
                                 <i class="fas fa-star text-amber-400"></i> <span id="modalEstrellas">5.0</span> <span class="text-slate-400 font-medium text-xs">(Reseñas)</span>
                             </div>
                             
-                            <h2 id="modalNombre" class="text-2xl sm:text-3xl font-black leading-tight mb-1 truncate pr-20">Nombre</h2>
-                            <p id="modalProfesion" class="text-brand-blue font-bold text-xs sm:text-sm mb-3">Profesión</p>
+                            <h2 id="modalNombre" class="text-3xl sm:text-4xl font-black leading-none mb-2 tracking-tight drop-shadow-md">Nombre</h2>
+                            <p id="modalProfesion" class="text-brand-blue font-bold text-sm sm:text-base mb-4 drop-shadow">Profesión</p>
                             
-                            <div class="space-y-1.5 text-[10px] sm:text-xs text-slate-300 font-medium mb-4">
-                                <p class="flex items-center gap-2"><i class="far fa-map text-slate-400"></i> Colombia</p>
-                                <p class="flex items-center gap-2"><i class="far fa-clock text-slate-400"></i> GMT-5</p>
+                            <div class="flex flex-wrap gap-x-4 gap-y-2 text-[10px] sm:text-xs text-slate-300 font-medium">
+                                <p class="flex items-center gap-1.5 bg-brand-dark/50 px-2 py-1 rounded-md backdrop-blur-sm"><i class="far fa-map text-slate-400"></i> <span id="modalCiudad">Colombia</span></p>
+                                <p class="flex items-center gap-1.5 bg-brand-dark/50 px-2 py-1 rounded-md backdrop-blur-sm"><i class="fas fa-briefcase text-slate-400"></i> <span id="modalExperiencia">0 Años</span></p>
                             </div>
-                            <span class="bg-brand-blue/20 text-brand-blue text-[9px] font-black uppercase px-2.5 py-1 rounded flex items-center gap-1.5 w-max border border-brand-blue/30">
-                                <i class="fas fa-gem"></i> TOP RATED
-                            </span>
                         </div>
 
-                        <!-- Foto Especialista superpuesta -->
-                        <div class="absolute right-0 bottom-[-20px] w-32 h-40 sm:w-48 sm:h-56">
-                            <img id="modalFoto" src="" class="w-full h-full object-cover object-top mask-image-bottom drop-shadow-2xl hidden rounded-lg">
-                            <div id="modalIcono" class="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center text-slate-500 absolute bottom-10 right-4 border-4 border-brand-dark">
-                                <i class="fas fa-user text-4xl"></i>
+                        <!-- 🚀 Opcional: Mantengo el avatar pequeño a la derecha por si quieres la doble foto -->
+                        <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-brand-dark border-2 border-white/10 overflow-hidden shadow-2xl relative shrink-0">
+                            <img id="modalFoto" src="" class="w-full h-full object-cover hidden">
+                            <div id="modalIcono" class="w-full h-full flex items-center justify-center text-slate-500">
+                                <i class="fas fa-user text-3xl"></i>
                             </div>
                         </div>
                     </div>
@@ -281,9 +293,9 @@
             <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.05)] rounded-b-[2rem]">
                 <div class="flex justify-between items-center">
                     <div class="flex flex-col pr-2">
-                        <span class="text-[9px] text-slate-400 font-bold mb-0.5">Tarifa</span>
-                        <span class="text-sm font-black text-slate-800 leading-none">A convenir</span>
-                    </div>
+    <span class="text-[9px] text-slate-400 font-bold mb-0.5">Tarifa</span>
+    <span id="modalTarifa" class="text-sm font-black text-slate-800 leading-none">A convenir</span>
+</div>
                     <button onclick="activarFlujoCotizacion()" class="bg-brand-dark hover:bg-slate-800 text-white font-black px-6 py-3.5 rounded-xl shadow-md transition-all flex items-center gap-2 text-xs flex-1 justify-center active:scale-95">
                         <i class="far fa-comment-dots text-sm"></i> Contactar ahora
                     </button>
@@ -340,59 +352,87 @@
         function prepararYAbrirModal(boton) {
             tecnicoActivoCorreo = boton.getAttribute('data-correo');
             
-            // Inyectar Textos
+            // Inyectar Textos Básicos
             document.getElementById('modalNombre').innerText = boton.getAttribute('data-nombre');
             document.getElementById('modalProfesion').innerText = boton.getAttribute('data-profesion');
             document.getElementById('modalDescripcion').innerText = boton.getAttribute('data-descripcion');
             document.getElementById('modalEstrellas').innerText = boton.getAttribute('data-estrellas');
             document.getElementById('modalEstrellasMini').innerText = boton.getAttribute('data-estrellas');
             
-            // Habilidades
-            const habilidadesRaw = boton.getAttribute('data-habilidades');
-            const contHabilidades = document.getElementById('modalHabilidades');
-            contHabilidades.innerHTML = '';
-            if(habilidadesRaw) {
-                habilidadesRaw.split(',').forEach(hab => {
-                    contHabilidades.innerHTML += `<span class="bg-white border border-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1.5 rounded-xl shadow-sm">${hab.trim()}</span>`;
+            // INYECTAR NUEVOS DATOS (Ciudad, Experiencia, Tarifa)
+            document.getElementById('modalCiudad').innerText = boton.getAttribute('data-ciudad');
+            document.getElementById('modalExperiencia').innerText = boton.getAttribute('data-experiencia') + ' Años Exp.';
+            
+            // Lógica para formatear la tarifa
+            const tarifa = parseFloat(boton.getAttribute('data-tarifa'));
+            const txtTarifa = document.getElementById('modalTarifa'); 
+            if (txtTarifa) {
+                if(tarifa > 0) {
+                    txtTarifa.innerText = "$" + tarifa.toLocaleString('es-CO') + " COP/h";
+                } else {
+                    txtTarifa.innerText = "A convenir";
+                }
+            }
+
+            // 🚀 RESTAURADO: LÓGICA DE HABILIDADES
+            const contenedorHab = document.getElementById('modalHabilidades');
+            contenedorHab.innerHTML = '';
+            const habilidades = boton.getAttribute('data-habilidades');
+            if (habilidades && habilidades !== 'None' && habilidades !== '') {
+                habilidades.split(',').forEach(hab => {
+                    if (hab.trim() !== '') {
+                        contenedorHab.innerHTML += `<span class="bg-white border border-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-sm">${hab.trim()}</span>`;
+                    }
                 });
+            } else {
+                contenedorHab.innerHTML = `<span class="bg-white border border-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-sm">Mantenimiento General</span>`;
+            }
+
+            // 🚀 RESTAURADO: LÓGICA DE PORTAFOLIO
+            const contenedorGaleria = document.getElementById('modalGaleria');
+            contenedorGaleria.innerHTML = '';
+            try {
+                const portafolioRaw = boton.getAttribute('data-portafolio');
+                const portafolio = JSON.parse(portafolioRaw);
+                
+                if (portafolio && portafolio.length > 0) {
+                    portafolio.forEach(item => {
+                        contenedorGaleria.innerHTML += `
+                        <div class="rounded-xl overflow-hidden shadow-sm border border-slate-200 h-24">
+                            <img src="/static/uploads/${item.imagen_ruta}" class="w-full h-full object-cover">
+                        </div>`;
+                    });
+                } else {
+                    contenedorGaleria.innerHTML = `<p class="text-xs text-slate-400 font-medium italic col-span-2">No hay trabajos en la galería.</p>`;
+                }
+            } catch (e) {
+                console.log("Error parseando portafolio", e);
+                contenedorGaleria.innerHTML = `<p class="text-xs text-slate-400 font-medium italic col-span-2">No hay trabajos en la galería.</p>`;
             }
             
-            // Foto
+            // LA MAGIA DE LA FOTO (Fondo Gigante + Avatar)
+            const imgFondo = document.getElementById('modalFotoFondo');
             const imgFoto = document.getElementById('modalFoto');
             const iconFoto = document.getElementById('modalIcono');
             let foto = boton.getAttribute('data-foto');
+            
             if(foto && foto !== 'None' && foto !== '') { 
+                // Activamos la foto gigante de fondo
+                imgFondo.src = foto;
+                imgFondo.classList.remove('hidden');
+                
+                // Activamos el avatar pequeño
                 imgFoto.src = foto; 
                 imgFoto.classList.remove('hidden'); 
                 iconFoto.classList.add('hidden'); 
             } else { 
+                imgFondo.classList.add('hidden');
                 imgFoto.classList.add('hidden'); 
                 iconFoto.classList.remove('hidden'); 
             }
             
-            // Portafolio
-            const galeria = document.getElementById('modalGaleria');
-            galeria.innerHTML = '';
-            let fotosPortafolio = boton.getAttribute('data-portafolio');
-            if(fotosPortafolio && fotosPortafolio.trim() !== 'None' && fotosPortafolio.trim() !== '') {
-                fotosPortafolio.split(',').forEach(p => {
-                    const parts = p.split('|');
-                    if(parts[0].trim() !== '') {
-                        galeria.innerHTML += `
-                        <div class="group relative bg-white rounded-xl overflow-hidden border border-slate-100 shadow-sm">
-                            <div class="h-24 overflow-hidden"><img src="${parts[0].trim()}" class="w-full h-full object-cover"></div>
-                            <div class="p-2">
-                                <p class="text-[9px] font-black text-brand-dark uppercase tracking-wider truncate">${parts[1] || 'Caso de Éxito'}</p>
-                            </div>
-                        </div>`;
-                    }
-                });
-            } else {
-                galeria.innerHTML = `<div class="col-span-full bg-slate-50 border border-slate-200 border-dashed rounded-xl p-6 text-center"><p class="text-xs font-bold text-slate-400">Sin imágenes de portafolio.</p></div>`;
-            }
-            
             // Mostrar Modal
-            document.body.style.overflow = 'hidden'; // Evita scroll de fondo
+            document.body.style.overflow = 'hidden';
             document.getElementById('modalPerfil').classList.remove('hidden');
             document.getElementById('modalPerfil').classList.add('flex');
         }
