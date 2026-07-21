@@ -37,14 +37,13 @@
             border: 1px solid #e2e8f0;
         }
         
-        /* 💡 NUEVO: Estilos Ninja para el Sistema de Estrellas */
         .estrellas-box { display: flex; flex-direction: row-reverse; justify-content: center; }
         .estrellas-box input { display: none; }
         .estrellas-box label { font-size: 2.5rem; color: #e2e8f0; cursor: pointer; transition: color 0.2s ease-in-out, transform 0.2s; margin: 0 0.3rem; }
         .estrellas-box label:hover,
         .estrellas-box label:hover ~ label,
         .estrellas-box input:checked ~ label {
-            color: #fbbf24; /* Color Ambar/Dorado */
+            color: #fbbf24;
             transform: scale(1.1);
         }
     </style>
@@ -66,7 +65,7 @@
         
         <div class="flex items-center space-x-3">
             {% if tarea.estado == 'En Garantia' %}
-            <button type="button" onclick="abrirModalControversia()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition flex items-center space-x-1 uppercase">
+            <button type="button" onclick="abrirModalControversia()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition flex items-center space-x-1 uppercase shadow-sm active:scale-95">
                 <i class="fas fa-shield-alt"></i> <span class="hidden sm:inline">Mediación</span>
             </button>
             {% endif %}
@@ -165,7 +164,6 @@
 
                 <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
                     
-                    <!-- PERFIL CONTRATANTE -->
                     <div class="flex items-center space-x-3 pb-4 border-b border-slate-100">
                         <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold border border-blue-100 shrink-0">
                             {{ cliente_perfil.nombre[0]|upper }}
@@ -174,7 +172,6 @@
                             <p class="text-[10px] font-bold text-slate-400 uppercase">Contratante</p>
                             <p class="text-sm font-bold text-slate-800">{{ cliente_perfil.nombre }}</p>
                             
-                            <!-- 🔓 LÓGICA DE DESBLOQUEO DE DATOS -->
                             {% if tarea.estado in ['En Garantia', 'Finalizada'] %}
                                 <div class="mt-1 space-y-0.5 animate-fade-in">
                                     <p class="text-[11px] text-slate-600 font-medium flex items-center"><i class="fas fa-phone-alt text-emerald-500 w-4"></i> {{ cliente_perfil.celular if cliente_perfil.celular else cliente_perfil.telefono }}</p>
@@ -188,7 +185,6 @@
                         </div>
                     </div>
 
-                    <!-- PERFIL ESPECIALISTA -->
                     <div class="flex items-center space-x-3 pt-1">
                         {% if trabajador_perfil %}
                             <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold border border-slate-200 shrink-0">
@@ -207,7 +203,6 @@
                                 {% endif %}
                                 </p>
                                 
-                                <!-- 🔓 LÓGICA DE DESBLOQUEO DE DATOS -->
                                 {% if tarea.estado in ['En Garantia', 'Finalizada'] %}
                                     <div class="mt-1 space-y-0.5 animate-fade-in">
                                         <p class="text-[11px] text-slate-600 font-medium flex items-center"><i class="fas fa-phone-alt text-emerald-500 w-4"></i> {{ trabajador_perfil.celular if trabajador_perfil.celular else trabajador_perfil.telefono }}</p>
@@ -494,11 +489,8 @@
         </div>
     </main>
 
-</div>
-    </main>
-
     <!-- ========================================================= -->
-    <!-- ⚖️ PEGA ESTE MODAL OFICIAL DE CONTROVERSIA AQUÍ -->
+    <!-- ⚖️ MODAL OFICIAL DE CONTROVERSIA / MEDIACIÓN INYECTADO -->
     <!-- ========================================================= -->
     <div id="modalControversia" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[110] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white border border-slate-200 rounded-[2rem] max-w-md w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 relative" id="modalControversiaContent">
@@ -545,8 +537,6 @@
         </div>
     </div>
     <!-- ========================================================= -->
-
-    <div id="modalNuevoHito" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
 
     <div id="modalNuevoHito" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white border border-slate-200 rounded-[2rem] max-w-sm w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="modalNuevoHitoContent">
@@ -757,6 +747,29 @@
             });
         }
 
+        // --- LÓGICA DEL MODAL DE CONTROVERSIA / MEDIACIÓN ---
+        function abrirModalControversia() {
+            const modal = document.getElementById('modalControversia');
+            const content = document.getElementById('modalControversiaContent');
+            if(modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
+                }, 10);
+            }
+        }
+
+        function cerrarModalControversia() {
+            const modal = document.getElementById('modalControversia');
+            const content = document.getElementById('modalControversiaContent');
+            if(modal) {
+                modal.classList.add('opacity-0');
+                content.classList.add('scale-95');
+                setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            }
+        }
+
         // --- LÓGICA DE HITOS Y MODALES FINANCIEROS ---
         function abrirModalHito() {
             const modal = document.getElementById('modalNuevoHito');
@@ -779,44 +792,6 @@
                 setTimeout(() => { modal.classList.add('hidden'); }, 300);
             }
         }
-
-function cerrarModalHito() {
-            const modal = document.getElementById('modalNuevoHito');
-            const content = document.getElementById('modalNuevoHitoContent');
-            if(modal) {
-                modal.classList.add('opacity-0');
-                content.classList.add('scale-95');
-                setTimeout(() => { modal.classList.add('hidden'); }, 300);
-            }
-        }
-
-        // --- PEGA ESTAS DOS FUNCIONES AQUÍ ---
-        function abrirModalControversia() {
-            const modal = document.getElementById('modalControversia');
-            const content = document.getElementById('modalControversiaContent');
-            if(modal) {
-                modal.classList.remove('hidden');
-                setTimeout(() => {
-                    modal.classList.remove('opacity-0');
-                    content.classList.remove('scale-95');
-                }, 10);
-            }
-        }
-
-        function cerrarModalControversia() {
-            const modal = document.getElementById('modalControversia');
-            const content = document.getElementById('modalControversiaContent');
-            if(modal) {
-                modal.classList.add('opacity-0');
-                content.classList.add('scale-95');
-                setTimeout(() => { modal.classList.add('hidden'); }, 300);
-            }
-        }
-        // -------------------------------------
-
-        function procesarLiberacion(form) {
-            const btn = form.querySelector('button');
-            const oldHtml = btn.innerHTML;
 
         function procesarLiberacion(form) {
             const btn = form.querySelector('button');
@@ -851,13 +826,10 @@ function cerrarModalHito() {
             window.location.reload(); 
         }
 
-        // 🚀 TRANSICIÓN FLUIDA AL MODAL DE CALIFICACIÓN
         function finalizarYCalificar() {
-            // 1. Ocultar el modal de la encrucijada
             const modalEncrucijada = document.getElementById('modalDecisionCierre');
             if(modalEncrucijada) modalEncrucijada.classList.add('hidden');
             
-            // 2. Mostrar el nuevo modal de las estrellas
             const modal = document.getElementById('modalCalificar');
             const content = document.getElementById('modalCalificarContent');
             if(modal) {
@@ -878,8 +850,8 @@ function cerrarModalHito() {
                 setTimeout(() => { modal.classList.add('hidden'); }, 300);
             }
         }
-        // ------------------------------------------------
 
+        // --- SISTEMA DE CARGA EN VIVO (POLLING BLINDADO) ---
         const URL_API_MENSAGES = `/api/chat/{{ tarea.id if tarea.id else tarea['id'] }}/{{ canal_actual }}`;
         const usuarioSesion = "{{ session['usuario_correo'] }}";
         const nombreUsuarioActual = "{{ nombre_usuario }}";
@@ -892,109 +864,115 @@ function cerrarModalHito() {
             fetch(`${URL_API_MENSAGES}?ultimo_id=${ultimoIdMensaje}`)
             .then(res => res.json())
             .then(data => {
-                if (data.success && data.mensajes.length > 0) {
+                if (data.success && data.mensajes && data.mensajes.length > 0) {
                     document.getElementById('chat-vacio')?.remove();
                     
                     data.mensajes.forEach(msg => {
-                        if (msg.id > ultimoIdMensaje) ultimoIdMensaje = msg.id;
-                        if (document.getElementById(`msg-${msg.id}`)) return;
+                        try {
+                            if (msg.id > ultimoIdMensaje) ultimoIdMensaje = msg.id;
+                            if (document.getElementById(`msg-${msg.id}`)) return;
 
-                        const esPropio = (msg.remitente_correo === usuarioSesion || msg.remitente === nombreUsuarioActual);
-                        const alineacion = esPropio ? 'items-end' : 'items-start';
-                        const burbujaNormal = esPropio ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none';
-                        const colorHora = esPropio ? 'text-blue-200' : 'text-slate-400';
-                        const avatarInfo = esPropio ? '' : `<div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold border border-slate-300 flex-shrink-0">${msg.remitente ? msg.remitente.charAt(0).toUpperCase() : '?'}</div>`;
-                        
-                        let f_str = String(msg.fecha_envio);
-                        let horaCorta = f_str.includes('GMT') ? f_str.substring(17, 22) : (f_str.length >= 16 ? f_str.substring(11, 16) : f_str);
-
-                        let html = "";
-                        
-                        if (msg.tipo && msg.tipo.includes('cotizacion')) {
-                            let bordeColor = msg.tipo === 'cotizacion_pendiente' ? 'border-purple-200' : (msg.tipo === 'cotizacion_aceptada' ? 'border-emerald-200' : 'border-slate-200');
+                            const esPropio = (msg.remitente_correo === usuarioSesion || msg.remitente === nombreUsuarioActual);
+                            const alineacion = esPropio ? 'items-end' : 'items-start';
+                            const burbujaNormal = esPropio ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none';
+                            const colorHora = esPropio ? 'text-blue-200' : 'text-slate-400';
+                            const avatarInfo = esPropio ? '' : `<div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold border border-slate-300 flex-shrink-0">${msg.remitente ? msg.remitente.charAt(0).toUpperCase() : '?'}</div>`;
                             
-                            let monto = 0;
-                            let concepto = "";
-                            if (msg.mensaje && msg.mensaje.includes('|')) {
-                                monto = parseFloat(msg.mensaje.split('|')[0]);
-                                concepto = msg.mensaje.split('|')[1];
-                            } else {
-                                monto = msg.monto_pesos ? parseFloat(msg.monto_pesos) : parseFloat(msg.cotizacion_pesos || 0);
-                                concepto = msg.cotizacion_concepto || msg.mensaje;
-                            }
+                            let f_str = String(msg.fecha_envio || "");
+                            let horaCorta = f_str.includes('GMT') ? f_str.substring(17, 22) : (f_str.length >= 16 ? f_str.substring(11, 16) : f_str);
 
-                            let botonesHTML = "";
-                            if (msg.tipo === 'cotizacion_pendiente') {
-                                if (usuarioSesion === clienteCorreoTarea) {
-                                    botonesHTML = `
-                                    <form action="/chat/{{ tarea.id }}/responder_cotizacion/${msg.id}" method="POST" class="flex flex-col sm:flex-row gap-2 mt-4">
-                                        <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
-                                        <button type="submit" name="accion" value="Aceptar" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs transition shadow-sm active:scale-95">
-                                            <i class="fas fa-check mr-1"></i> Aceptar y Pagar
-                                        </button>
-                                        <button type="submit" name="accion" value="Rechazar" class="bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 font-bold px-4 py-2 rounded-xl text-xs transition">
-                                            Rechazar
-                                        </button>
-                                    </form>`;
-                                } else {
-                                    botonesHTML = `
-                                    <div class="bg-purple-50 text-purple-600 text-xs font-bold py-2 rounded-xl animate-pulse mt-4">
-                                        <i class="fas fa-clock mr-1"></i> Esperando al cliente...
-                                    </div>`;
-                                }
-                            } else if (msg.tipo === 'cotizacion_aceptada') {
-                                botonesHTML = `
-                                <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold py-2 rounded-xl flex justify-center items-center mt-4">
-                                    <i class="fas fa-lock mr-1.5"></i> Pago Asegurado en Garantía
-                                </div>`;
-                            } else {
-                                botonesHTML = `<div class="bg-slate-50 text-slate-400 text-xs font-bold py-2 rounded-xl mt-4">Cotización Declinada</div>`;
-                            }
+                            let html = "";
                             
-                            html = `
-                            <div id="msg-${msg.id}" class="flex flex-col items-center my-6 w-full">
-                                <div class="bg-white border shadow-sm rounded-2xl p-5 max-w-sm w-full text-center ${bordeColor}">
-                                    <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Cotización</div>
-                                    <div class="text-3xl font-black text-slate-800 mb-2">$${monto.toLocaleString('es-CO')} <span class="text-xs font-medium text-slate-400">COP</span></div>
-                                    <p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">${concepto}</p>
-                                    ${botonesHTML}
-                                </div>
-                                <span class="text-[9px] font-medium text-slate-400 mt-1.5">${horaCorta}</span>
-                            </div>`;
-                        
-                        } else if (msg.tipo === 'sistema' || (msg.mensaje && msg.mensaje.startsWith('SISTEMA:'))) {
-                            let textoLimpio = msg.mensaje.replace('SISTEMA:', '').trim();
-                            html = `
-                            <div id="msg-${msg.id}" class="flex flex-col items-center my-4 w-full">
-                                <div class="bg-slate-900 text-white rounded-xl shadow-md border border-slate-700 text-center text-xs px-4 py-3 max-w-[90%] sm:max-w-[70%]">
-                                    <p class="leading-relaxed whitespace-pre-wrap font-bold"><i class="fas fa-robot text-blue-400 mr-1.5"></i> ${textoLimpio}</p>
-                                </div>
-                                <span class="text-[9px] font-medium text-slate-400 mt-1">${horaCorta}</span>
-                            </div>`;
-
-                        } else {
-                            let contenidoHtml = msg.tipo === 'imagen' 
-                                ? `<div class="rounded-lg overflow-hidden my-1"><img src="/static/uploads/${msg.mensaje}" class="max-w-full h-auto object-cover max-h-60 rounded cursor-zoom-in" onclick="window.open(this.src)"></div>` 
-                                : `<p class="leading-relaxed whitespace-pre-wrap pr-8">${msg.mensaje}</p>`;
+                            // 🛡️ BLINDAJE: Verificamos tipo y mensaje de forma segura para evitar crashes
+                            if (msg.tipo && typeof msg.tipo === 'string' && msg.tipo.includes('cotizacion')) {
+                                let bordeColor = msg.tipo === 'cotizacion_pendiente' ? 'border-purple-200' : (msg.tipo === 'cotizacion_aceptada' ? 'border-emerald-200' : 'border-slate-200');
                                 
-                            html = `
-                            <div id="msg-${msg.id}" class="flex flex-col w-full ${alineacion} my-1">
-                                <div class="flex items-end max-w-[85%] md:max-w-[70%] gap-2">
-                                    ${avatarInfo}
-                                    <div class="relative px-4 py-2.5 text-sm shadow-sm rounded-2xl ${burbujaNormal}">
-                                        ${contenidoHtml}
-                                        <span class="absolute bottom-1 right-2 text-[9px] font-medium ${colorHora}">${horaCorta}</span>
+                                let monto = 0;
+                                let concepto = "";
+                                if (msg.mensaje && typeof msg.mensaje === 'string' && msg.mensaje.includes('|')) {
+                                    monto = parseFloat(msg.mensaje.split('|')[0]) || 0;
+                                    concepto = msg.mensaje.split('|')[1] || "";
+                                } else {
+                                    monto = msg.monto_pesos ? parseFloat(msg.monto_pesos) : parseFloat(msg.cotizacion_pesos || 0);
+                                    concepto = msg.cotizacion_concepto || (msg.mensaje ? msg.mensaje : "Cotización sin detalles");
+                                }
+
+                                let botonesHTML = "";
+                                if (msg.tipo === 'cotizacion_pendiente') {
+                                    if (usuarioSesion === clienteCorreoTarea) {
+                                        botonesHTML = `
+                                        <form action="/chat/{{ tarea.id }}/responder_cotizacion/${msg.id}" method="POST" class="flex flex-col sm:flex-row gap-2 mt-4">
+                                            <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
+                                            <button type="submit" name="accion" value="Aceptar" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs transition shadow-sm active:scale-95">
+                                                <i class="fas fa-check mr-1"></i> Aceptar y Pagar
+                                            </button>
+                                            <button type="submit" name="accion" value="Rechazar" class="bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 font-bold px-4 py-2 rounded-xl text-xs transition">
+                                                Rechazar
+                                            </button>
+                                        </form>`;
+                                    } else {
+                                        botonesHTML = `
+                                        <div class="bg-purple-50 text-purple-600 text-xs font-bold py-2 rounded-xl animate-pulse mt-4">
+                                            <i class="fas fa-clock mr-1"></i> Esperando al cliente...
+                                        </div>`;
+                                    }
+                                } else if (msg.tipo === 'cotizacion_aceptada') {
+                                    botonesHTML = `
+                                    <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold py-2 rounded-xl flex justify-center items-center mt-4">
+                                        <i class="fas fa-lock mr-1.5"></i> Pago Asegurado en Garantía
+                                    </div>`;
+                                } else {
+                                    botonesHTML = `<div class="bg-slate-50 text-slate-400 text-xs font-bold py-2 rounded-xl mt-4">Cotización Declinada</div>`;
+                                }
+                                
+                                html = `
+                                <div id="msg-${msg.id}" class="flex flex-col items-center my-6 w-full">
+                                    <div class="bg-white border shadow-sm rounded-2xl p-5 max-w-sm w-full text-center ${bordeColor}">
+                                        <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Cotización</div>
+                                        <div class="text-3xl font-black text-slate-800 mb-2">$${monto.toLocaleString('es-CO')} <span class="text-xs font-medium text-slate-400">COP</span></div>
+                                        <p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">${concepto}</p>
+                                        ${botonesHTML}
                                     </div>
-                                </div>
-                            </div>`;
+                                    <span class="text-[9px] font-medium text-slate-400 mt-1.5">${horaCorta}</span>
+                                </div>`;
+                            
+                            } else if (msg.tipo === 'sistema' || (msg.mensaje && typeof msg.mensaje === 'string' && msg.mensaje.startsWith('SISTEMA:'))) {
+                                let textoLimpio = (msg.mensaje || "").replace('SISTEMA:', '').trim();
+                                html = `
+                                <div id="msg-${msg.id}" class="flex flex-col items-center my-4 w-full">
+                                    <div class="bg-slate-900 text-white rounded-xl shadow-md border border-slate-700 text-center text-xs px-4 py-3 max-w-[90%] sm:max-w-[70%]">
+                                        <p class="leading-relaxed whitespace-pre-wrap font-bold"><i class="fas fa-robot text-blue-400 mr-1.5"></i> ${textoLimpio}</p>
+                                    </div>
+                                    <span class="text-[9px] font-medium text-slate-400 mt-1">${horaCorta}</span>
+                                </div>`;
+
+                            } else {
+                                let contenidoHtml = msg.tipo === 'imagen' 
+                                    ? `<div class="rounded-lg overflow-hidden my-1"><img src="/static/uploads/${msg.mensaje}" class="max-w-full h-auto object-cover max-h-60 rounded cursor-zoom-in" onclick="window.open(this.src)"></div>` 
+                                    : `<p class="leading-relaxed whitespace-pre-wrap pr-8">${msg.mensaje || ""}</p>`;
+                                    
+                                html = `
+                                <div id="msg-${msg.id}" class="flex flex-col w-full ${alineacion} my-1">
+                                    <div class="flex items-end max-w-[85%] md:max-w-[70%] gap-2">
+                                        ${avatarInfo}
+                                        <div class="relative px-4 py-2.5 text-sm shadow-sm rounded-2xl ${burbujaNormal}">
+                                            ${contenidoHtml}
+                                            <span class="absolute bottom-1 right-2 text-[9px] font-medium ${colorHora}">${horaCorta}</span>
+                                        </div>
+                                    </div>
+                                </div>`;
+                            }
+                            
+                            cajaMensajes.insertAdjacentHTML('beforeend', html);
+                        } catch(e) {
+                            console.error("Error procesando mensaje individual:", e, msg);
                         }
-                        
-                        cajaMensajes.insertAdjacentHTML('beforeend', html);
                     });
                     
                     irAlFinalChat();
                 }
             })
+            .catch(error => console.error("Error en el polling de mensajes:", error))
             .finally(() => { 
                 if (!document.hidden) miPollingTimer = setTimeout(cargarMensajes, 4000); 
             });
