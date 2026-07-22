@@ -98,7 +98,23 @@
                             {{ usuario['nombre'] }}
                         </h2>
                         <p class="text-xs text-blue-600 font-bold uppercase tracking-wider mt-0.5">{{ usuario['correo'] }}</p>
-                        
+                       <!-- 🚀 INSIGNIAS DE CIUDAD Y EXPERIENCIA -->
+                        {% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}
+                        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
+                            {% if usuario['ciudad'] %}
+                            <span class="bg-slate-50 border border-slate-200 text-slate-600 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-sm">
+                                <i class="fas fa-map-marker-alt text-rose-500"></i> {{ usuario['ciudad'] }}
+                            </span>
+                            {% endif %}
+                            
+                            {% if usuario['anos_experiencia'] and usuario['anos_experiencia']|int > 0 %}
+                            <span class="bg-slate-50 border border-slate-200 text-slate-600 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-sm">
+                                <i class="fas fa-briefcase text-amber-500"></i> {{ usuario['anos_experiencia'] }} Años Exp.
+                            </span>
+                            {% endif %}
+                        </div>
+                        {% endif %} 
+
                         <div class="mt-3">
                             <label class="inline-block bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 hover:border-blue-200 text-[10px] font-bold uppercase tracking-wide px-3 py-2 rounded-xl cursor-pointer transition shadow-sm">
                                 <i class="fas fa-camera mr-1"></i> Actualizar Foto

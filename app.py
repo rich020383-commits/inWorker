@@ -3381,6 +3381,26 @@ def admin_resolver_disputa(tarea_id):
     return redirect(url_for('home'))
 
 # =====================================================================
+# 🗄️ HISTORIAL DE SERVICIOS (BÓVEDA DE SOLO LECTURA)
+# =====================================================================
+@app.route('/historial')
+def historial_tareas():
+    if 'usuario_correo' not in session:
+        flash("Debes iniciar sesión para ver tu historial.", "error")
+        return redirect(url_for('login'))
+
+    correo_actual = session['usuario_correo']
+    rol_actual = session.get('usuario_rol', 'Cliente')
+
+    # Filtramos solo las tareas en estado 'Finalizada' según el rol
+    if rol_actual == 'Trabajador' or rol_actual == 'Worker':
+        tareas = Tarea.query.filter_by(trabajador_correo=correo_actual, estado='Finalizada').order_by(Tarea.id.desc()).all()
+    else:
+        tareas = Tarea.query.filter_by(cliente_correo=correo_actual, estado='Finalizada').order_by(Tarea.id.desc()).all()
+
+    return render_template('historial.html', tareas=tareas, rol=rol_actual)
+
+# =====================================================================
 # 🛠️ ENDPOINT COPILOT DE PERFIL PARA EL TRABAJADOR (FASE 2.2)
 # =====================================================================
 @app.route('/trabajador/optimizar-perfil', methods=['POST'])
