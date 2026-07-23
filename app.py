@@ -350,6 +350,12 @@ class Recarga(db.Model):
     # Usamos db.func.current_timestamp() para mantener la coherencia con tus otras tablas
     fecha = db.Column(db.DateTime, default=db.func.current_timestamp())
 
+class Favorito(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    cliente_correo = db.Column(db.String(120), nullable=False) # Quien da el like
+    tecnico_id = db.Column(db.Integer, nullable=False)         # A quién le dan like
+    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 # ========================================================
 # 🚀 EJECUCIÓN DEL CONTEXTO Y SEEDING DE SEGURIDAD
@@ -709,6 +715,32 @@ def eliminar_proyecto(id_proyecto):
         flash("Hubo un error al intentar eliminar la imagen.", "error")
 
     return redirect(url_for('ver_perfil'))
+
+from flask import jsonify, request
+
+@app.route('/api/favorito/toggle', methods=['POST'])
+def toggle_favorito():
+    if 'usuario_correo' not in session:
+        return jsonify({'success': False, 'error': 'No autenticado'}), 401
+        
+    data = request.get_json()
+    tecnico_id = data.get('tecnico_id')
+    cliente_correo = session['usuario_correo']
+    
+    # Buscamos si ya lo tenía en favoritos
+    fav_existente = Favorito.query.filter_by(cliente_correo=cliente_correo, tecnico_id=tecnico_id).first()
+    
+    if fav_existente:
+        # Si ya existe, se lo quitamos (Toggle off)
+        db.session.delete(fav_existente)
+        db.session.commit()
+        return jsonify({'success': True, 'estado': 'removido'})
+    else:
+        # Si no existe, lo agregamos (Toggle on)
+        nuevo_fav = Favorito(cliente_correo=cliente_correo, tecnico_id=tecnico_id)
+        db.session.add(nuevo_fav)
+        db.session.commit()
+        return jsonify({'success': True, 'estado': 'agregado'})
 
 # =====================================================================
 # 🌉 4. PUENTE PARA LOGIN CON GOOGLE
@@ -2898,20 +2930,26 @@ def listar_tecnicos():
         for tec in tecnicos_db:
             # Reconstruimos el diccionario espejo nativo para el HTML
             item = {
+                'id': tec.id, # 👈 OBLIGATORIO PARA QUE FUNCIONE EL BOTÓN DE FAVORITOS
                 'nombre': tec.nombre,
                 'correo': tec.correo,
                 'rol': tec.rol,
                 'profesion': tec.profesion,
                 'habilidades': tec.habilidades,
                 'foto': tec.foto,
+                
+                # 🛠️ CORRECCIÓN: Inyectamos Ciudad y Experiencia (Ajusta los nombres si tus columnas se llaman distinto en la BD)
+                'ciudad': tec.ciudad if tec.ciudad else 'Colombia', 
+                'anos_experiencia': tec.experiencia if hasattr(tec, 'experiencia') else (tec.anos_experiencia if hasattr(tec, 'anos_experiencia') else 0),
+                
                 # Biografía de respaldo si el campo está vacío en BD
                 'descripcion': tec.descripcion or 'Especialista verificado dispuesto a ayudarte en tus requerimientos de soporte técnico.'
             }
             
             # ⚡ 2. Buscamos los proyectos de este usuario específico en la tabla portafolio
             proyectos_db = Portafolio.query.filter_by(usuario_correo=tec.correo)\
-                                             .order_by(Portafolio.id.desc()).all()
-                                             
+                                           .order_by(Portafolio.id.desc()).all()
+                                           
             item['proyectos'] = [{
                 'id': p.id,
                 'imagen_ruta': p.imagen_ruta,
@@ -2920,7 +2958,6 @@ def listar_tecnicos():
             } for p in proyectos_db]
             
             # Variables de reputación por defecto o heredadas
-            # Nota: Si en el futuro mapeas las reales, puedes cambiarlas aquí: tec.puntuacion_total
             item['promedio_estrellas'] = 5.0
             item['total_calificaciones'] = 1
             
