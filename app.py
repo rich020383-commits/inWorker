@@ -684,36 +684,52 @@ def registrar():
 import os
 from flask import redirect, url_for, flash, session
 
-@app.route('/eliminar_proyecto/<int:id_proyecto>')
-def eliminar_proyecto(id_proyecto):
+import os
+from flask import request, jsonify, session
+
+# =====================================================================
+# 🗑️ MÓDULO DE PORTAFOLIO: BORRADO ASINCRÓNICO EN LOTE
+# =====================================================================
+@app.route('/eliminar_proyecto', methods=['POST'])
+def eliminar_proyecto():
     if 'usuario_correo' not in session:
-        flash("Por favor inicia sesión para realizar esta acción.", "error")
-        return redirect(url_for('ver_perfil'))
+        return jsonify({'success': False, 'error': 'Por favor inicia sesión para realizar esta acción.'}), 401
 
     correo_logueado = session['usuario_correo'].strip().lower()
+    
+    # Recibimos la lista de IDs desde el JavaScript
+    data = request.get_json()
+    ids_a_borrar = data.get('ids', [])
+
+    if not ids_a_borrar:
+        return jsonify({'success': False, 'error': 'No hay imágenes seleccionadas para borrar.'}), 400
 
     try:
-        # Buscamos la imagen asegurándonos de que le pertenezca a quien la intenta borrar
-        proyecto = Portafolio.query.filter_by(id=id_proyecto, usuario_correo=correo_logueado).first()
+        # Buscamos TODAS las imágenes de esa lista asegurándonos de que le pertenezcan al usuario
+        proyectos = Portafolio.query.filter(
+            Portafolio.id.in_(ids_a_borrar), 
+            Portafolio.usuario_correo == correo_logueado
+        ).all()
         
-        if proyecto:
-            # 1. Eliminar el archivo físico del servidor
-            ruta_fisica = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.imagen_ruta)
-            if os.path.exists(ruta_fisica):
-                os.remove(ruta_fisica)
+        if proyectos:
+            for proyecto in proyectos:
+                # 1. Eliminar el archivo físico del servidor
+                ruta_fisica = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.imagen_ruta)
+                if os.path.exists(ruta_fisica):
+                    os.remove(ruta_fisica)
 
-            # 2. Eliminar el registro de la base de datos
-            db.session.delete(proyecto)
-            db.session.commit()
+                # 2. Eliminar el registro de la base de datos
+                db.session.delete(proyecto)
             
-            flash("Imagen eliminada de tu portafolio exitosamente.", "success")
+            db.session.commit()
+            return jsonify({'success': True})
         else:
-            flash("No se encontró la imagen o no tienes permisos para eliminarla.", "error")
+            return jsonify({'success': False, 'error': 'No se encontraron imágenes o no tienes permisos.'}), 404
             
     except Exception as e:
         db.session.rollback()
-        print(f"⚠️ Error eliminando proyecto: {e}")
-        flash("Hubo un error al intentar eliminar la imagen.", "error")
+        print(f"⚠️ Error eliminando proyectos en lote: {e}")
+        return jsonify({'success': False, 'error': 'Hubo un error al intentar eliminar las imágenes.'}), 500
 
     return redirect(url_for('ver_perfil'))
 

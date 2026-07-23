@@ -98,7 +98,7 @@
                             {{ usuario['nombre'] }}
                         </h2>
                         <p class="text-xs text-blue-600 font-bold uppercase tracking-wider mt-0.5">{{ usuario['correo'] }}</p>
-                       <!-- 🚀 INSIGNIAS DE CIUDAD Y EXPERIENCIA -->
+                        
                         {% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}
                         <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
                             {% if usuario['ciudad'] %}
@@ -137,7 +137,6 @@
 
                     {% if session['usuario_rol'] in ['Trabajador', 'Worker'] %}
                     
-                    <!-- 🚀 NUEVOS CAMPOS: Ciudad, Experiencia y Tarifa -->
                     <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-5 border-y border-slate-100 py-4 my-2">
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Ciudad de Operación</label>
@@ -362,43 +361,51 @@
                         </div>
                     </div>
 
-                    <!-- 🚀 NUEVO: BIO SEPARADA DE SKILLS -->
                     <div class="md:col-span-2">
                         <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Resumen Profesional (Biografía optimizable con IA)</label>
                         <textarea id="field-descripcion_perfil" name="descripcion_perfil" rows="3" placeholder="Describe brevemente tu experiencia y por qué deberían contratarte..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition resize-none">{{ usuario['descripcion_perfil'] if usuario['descripcion_perfil'] else '' }}</textarea>
                     </div>
 
-                    <!-- 🚀 NUEVO: CAMPO DE HABILIDADES TIPO ETIQUETAS -->
                     <div class="md:col-span-2">
                         <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Habilidades Clave (Separadas por comas)</label>
                         <input type="text" name="habilidades" value="{{ usuario['habilidades'] if usuario['habilidades'] and usuario['habilidades'] != 'Sin especificar' else '' }}" placeholder="Ej: React, Node.js, Limpieza Profunda, Fontanería" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
                         <p class="text-[9px] text-slate-400 mt-1 font-medium">Estas palabras aparecerán como etiquetas visuales en tu perfil público.</p>
                     </div>
 
-                    <!-- 🚀 MEJORADO: VISUALIZACIÓN DEL PORTAFOLIO -->
+                    <!-- 🚀 MEJORADO: VISUALIZACIÓN DEL PORTAFOLIO MULTISELECCIÓN -->
                     <div class="md:col-span-2 bg-slate-50 p-5 border border-slate-200 rounded-xl">
                         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
                             <div>
                                 <label class="block text-xs font-black uppercase tracking-wider text-slate-800 mb-1"><i class="fas fa-images text-blue-500 mr-1"></i> Portafolio de Trabajos</label>
-                                <p class="text-[10px] text-slate-500">Sube fotos de tus mejores proyectos para generar confianza.</p>
+                                <p class="text-[10px] text-slate-500">Sube fotos de tus mejores proyectos. <strong>Haz clic sobre ellas para seleccionarlas y borrarlas.</strong></p>
                             </div>
                             <input type="file" name="trabajos_previos" multiple accept="image/*" class="block text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-white file:border file:border-blue-200 file:text-blue-600 hover:file:bg-blue-50 hover:file:border-blue-300 cursor-pointer shadow-sm transition">
                         </div>
                         
+                        <!-- PANEL FLOTANTE DE BORRADO (Se oculta hasta seleccionar algo) -->
+                        <div id="panel-borrado-lote" class="hidden bg-rose-50 border border-rose-200 p-3 rounded-xl flex justify-between items-center transition-all animate-pulse shadow-sm">
+                            <span class="text-xs font-bold text-rose-700"><span id="contador-seleccionados" class="font-black text-rose-900 text-sm">0</span> seleccionadas</span>
+                            <button type="button" onclick="borrarProyectosSeleccionados()" class="bg-rose-500 hover:bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg shadow-sm transition flex items-center">
+                                <i class="fas fa-trash-alt mr-1"></i> Borrar Selección
+                            </button>
+                        </div>
+
                         <!-- Cuadrícula de fotos subidas -->
-{% if proyectos and proyectos|length > 0 %}
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-200/60 mt-4">
-    {% for proyecto in proyectos %}
-    <div class="relative group rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-md transition">
-        <img src="{{ url_for('static', filename='uploads/' + proyecto.imagen_ruta) }}" class="w-full h-24 object-cover">
-        
-        <button type="button" onclick="eliminarProyectoNinja('{{ proyecto.id }}')" class="absolute top-1.5 right-1.5 bg-rose-500 hover:bg-rose-600 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-md border border-white" title="Eliminar imagen">
-            <i class="fas fa-trash-alt text-[10px]"></i>
-        </button>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
+                        {% if proyectos and proyectos|length > 0 %}
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-200/60 mt-4" id="galeria-proyectos">
+                            {% for proyecto in proyectos %}
+                            <div id="card-proyecto-{{ proyecto.id }}" onclick="toggleSeleccionProyecto('{{ proyecto.id }}')" class="relative group rounded-xl overflow-hidden border-4 border-transparent hover:border-blue-200 bg-white shadow-sm hover:shadow-md transition-all cursor-pointer">
+                                <img src="{{ url_for('static', filename='uploads/' + proyecto.imagen_ruta) }}" class="w-full h-24 object-cover transition-transform group-hover:scale-105">
+                                
+                                <!-- Capa oscura y check de selección -->
+                                <div id="overlay-{{ proyecto.id }}" class="absolute inset-0 bg-rose-500/20 hidden transition-all"></div>
+                                <div id="check-{{ proyecto.id }}" class="absolute top-2 right-2 bg-rose-500 text-white w-6 h-6 rounded-full flex items-center justify-center hidden shadow-md border-2 border-white transform scale-0 transition-transform">
+                                    <i class="fas fa-check text-[10px]"></i>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                     </div>
 
                     {% else %}
@@ -463,16 +470,11 @@
     </div>
 
     <script>
-// 🚀 FUNCIÓN NINJA PARA INYECTAR LA IA EN EL FORMULARIO DE BIOGRAFÍA
         function aplicarTextoIA(texto) {
-            // Actualizado para apuntar al nuevo campo de biografía
             const txtAreaBio = document.getElementById('field-descripcion_perfil');
             
             if (txtAreaBio) {
-                // 1. Pegamos el texto en la caja del formulario
                 txtAreaBio.value = texto;
-                
-                // 2. Le damos un efecto visual verde para que el usuario note el cambio
                 txtAreaBio.classList.remove('bg-slate-50', 'border-slate-200');
                 txtAreaBio.classList.add('bg-emerald-50', 'border-emerald-500', 'ring-2', 'ring-emerald-200');
                 
@@ -481,10 +483,8 @@
                     txtAreaBio.classList.remove('bg-emerald-50', 'border-emerald-500', 'ring-2', 'ring-emerald-200');
                 }, 2000);
 
-                // 3. Ocultamos el panel lateral de Gemini
                 toggleCopilot();
 
-                // 4. Mostramos alerta de éxito
                 Swal.fire({
                     toast: true,
                     position: 'top-end',
@@ -498,16 +498,54 @@
             }
         }
 
-        // 🚀 NUEVA FUNCIÓN: ELIMINAR IMAGEN DEL PORTAFOLIO CON ALERTA
-        function eliminarProyectoNinja(nombreImagen) {
+        // 🚀 NUEVA LÓGICA: SELECCIÓN Y BORRADO EN LOTE
+        let proyectosSeleccionados = new Set();
+
+        function toggleSeleccionProyecto(id) {
+            const card = document.getElementById(`card-proyecto-${id}`);
+            const overlay = document.getElementById(`overlay-${id}`);
+            const check = document.getElementById(`check-${id}`);
+            const panel = document.getElementById('panel-borrado-lote');
+            const contador = document.getElementById('contador-seleccionados');
+
+            if (proyectosSeleccionados.has(id)) {
+                // Desmarcar
+                proyectosSeleccionados.delete(id);
+                card.classList.remove('border-rose-500');
+                card.classList.add('border-transparent');
+                overlay.classList.add('hidden');
+                check.classList.add('hidden');
+                check.classList.remove('scale-100');
+            } else {
+                // Marcar
+                proyectosSeleccionados.add(id);
+                card.classList.remove('border-transparent', 'hover:border-blue-200');
+                card.classList.add('border-rose-500');
+                overlay.classList.remove('hidden');
+                check.classList.remove('hidden');
+                setTimeout(() => check.classList.add('scale-100'), 10);
+            }
+
+            // Mostrar u ocultar el panel flotante
+            if (proyectosSeleccionados.size > 0) {
+                panel.classList.remove('hidden');
+                contador.innerText = proyectosSeleccionados.size;
+            } else {
+                panel.classList.add('hidden');
+            }
+        }
+
+        function borrarProyectosSeleccionados() {
+            if (proyectosSeleccionados.size === 0) return;
+
             Swal.fire({
-                title: '¿Eliminar imagen?',
-                text: "Esta acción quitará la imagen de tu portafolio público.",
+                title: '¿Borrar ' + proyectosSeleccionados.size + ' imágenes?',
+                text: "Esta acción las quitará permanentemente de tu portafolio.",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#e11d48',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Sí, eliminar',
+                confirmButtonText: '<i class="fas fa-trash-alt mr-1"></i> Sí, borrar selección',
                 cancelButtonText: 'Cancelar',
                 customClass: {
                     popup: 'rounded-2xl',
@@ -516,8 +554,50 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Redirige a la ruta de Python con el nombre de la imagen
-                    window.location.href = `/eliminar_proyecto/${nombreImagen}`;
+                    Swal.fire({
+                        title: 'Borrando...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    // 🛠️ Petición asincrónica apuntando a tu ruta limpia
+                    fetch('/eliminar_proyecto', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ids: Array.from(proyectosSeleccionados) })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Remover las imágenes del HTML para no recargar la página
+                            proyectosSeleccionados.forEach(id => {
+                                const card = document.getElementById(`card-proyecto-${id}`);
+                                if (card) {
+                                    card.classList.add('scale-0', 'opacity-0');
+                                    setTimeout(() => card.remove(), 300);
+                                }
+                            });
+                            
+                            proyectosSeleccionados.clear();
+                            document.getElementById('panel-borrado-lote').classList.add('hidden');
+
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: 'Imágenes eliminadas',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                customClass: { popup: 'rounded-xl shadow-md' }
+                            });
+                        } else {
+                            Swal.fire('Error', data.error || 'Ocurrió un problema.', 'error');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        Swal.fire('Error', 'Problema de conexión con el servidor', 'error');
+                    });
                 }
             });
         }
@@ -691,7 +771,6 @@
             });
         }
 
-        // 🛑 FUNCIÓN NINJA PARA ELIMINACIÓN SEGURA
         function confirmarEliminarCuentaNinja() {
             Swal.fire({
                 title: '⚠️ ¿Estás seguro?',
