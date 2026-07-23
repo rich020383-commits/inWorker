@@ -744,6 +744,56 @@ def toggle_favorito():
         return jsonify({'success': True, 'estado': 'agregado'})
 
 # =====================================================================
+# ❤️ MÓDULO DE FAVORITOS: MIS ESPECIALISTAS DE CONFIANZA
+# =====================================================================
+@app.route('/mis_favoritos')
+def mis_favoritos():
+    if 'usuario_correo' not in session: 
+        flash("Debes iniciar sesión para ver tus favoritos.", "error")
+        return redirect(url_for('login'))
+        
+    try:
+        cliente_correo = session['usuario_correo']
+        
+        # 1. Buscamos los IDs de los técnicos que este cliente marcó como favoritos
+        favoritos_db = Favorito.query.filter_by(cliente_correo=cliente_correo).order_by(Favorito.fecha.desc()).all()
+        ids_favoritos = [fav.tecnico_id for fav in favoritos_db]
+        
+        tecnicos = []
+        if ids_favoritos:
+            # 2. Traemos los perfiles completos de esos técnicos
+            tecnicos_db = Usuario.query.filter(Usuario.id.in_(ids_favoritos)).all()
+            
+            for tec in tecnicos_db:
+                item = {
+                    'id': tec.id,
+                    'nombre': tec.nombre,
+                    'correo': tec.correo,
+                    'rol': tec.rol,
+                    'profesion': tec.profesion,
+                    'habilidades': tec.habilidades,
+                    'foto': tec.foto,
+                    'ciudad': tec.ciudad if tec.ciudad else 'Colombia', 
+                    'anos_experiencia': tec.experiencia if hasattr(tec, 'experiencia') else (tec.anos_experiencia if hasattr(tec, 'anos_experiencia') else 0),
+                    'descripcion': tec.descripcion or 'Especialista verificado dispuesto a ayudarte.'
+                }
+                
+                proyectos_db = Portafolio.query.filter_by(usuario_correo=tec.correo).order_by(Portafolio.id.desc()).all()
+                item['proyectos'] = [{'id': p.id, 'imagen_ruta': p.imagen_ruta, 'descripcion': p.descripcion, 'tipo': p.tipo} for p in proyectos_db]
+                
+                item['promedio_estrellas'] = 5.0
+                item['total_calificaciones'] = 1
+                
+                tecnicos.append(item)
+                
+    except Exception as e:
+        print(f"❌ Error al cargar favoritos: {e}")
+        tecnicos = []
+
+    return render_template('favoritos.html', 
+                           tecnicos=tecnicos, 
+                           nombre_usuario=session['usuario_nombre'])
+# =====================================================================
 # 🌉 4. PUENTE PARA LOGIN CON GOOGLE
 # =====================================================================
 @app.route('/auth/callback')
