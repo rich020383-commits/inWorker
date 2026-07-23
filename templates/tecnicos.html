@@ -21,7 +21,6 @@
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen font-sans antialiased pb-20 md:pb-10">
 
-    <!-- Navbar superior -->
     <nav class="bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4 sticky top-0 z-40">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <a href="/tareas" class="flex items-center gap-2">
@@ -29,12 +28,9 @@
             </a>
             <div class="flex items-center gap-4">
                 <span class="text-xs font-bold text-slate-500 hidden sm:inline">Hola, {{ nombre_usuario }}</span>
-                
-                <!-- 💖 NUEVO BOTÓN DE FAVORITOS (Escritorio) -->
                 <a href="/mis_favoritos" class="text-[11px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-600 transition flex items-center gap-1.5 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100">
                     <i class="fas fa-heart"></i> Favoritos
                 </a>
-
                 <a href="/tareas" class="text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-brand-blue transition">Tablón</a>
                 <a href="/logout" class="text-[11px] font-black uppercase tracking-widest bg-slate-900 text-white px-4 py-2 rounded-xl hover:bg-slate-800 transition shadow-md">Salir</a>
             </div>
@@ -43,7 +39,6 @@
 
     <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         
-        <!-- HEADER TEXTOS -->
         <div class="mb-6">
             <h1 class="text-3xl sm:text-4xl font-black text-brand-dark tracking-tight leading-tight">
                 Especialistas<br>Verificados <i class="fas fa-certificate text-brand-blue text-2xl sm:text-3xl"></i>
@@ -53,7 +48,6 @@
             </p>
         </div>
 
-        <!-- BÚSQUEDA Y CATEGORÍAS -->
         <form action="/tecnicos" method="GET" class="mb-8">
             <div class="flex gap-2 mb-6">
                 <div class="relative flex-1">
@@ -67,7 +61,6 @@
                 </button>
             </div>
 
-            <!-- Botones de Categoría Horizontales -->
             <div class="flex overflow-x-auto hide-scrollbar gap-3 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 mb-6">
                 <button type="submit" name="categoria" value="" class="shrink-0 px-5 py-3 rounded-2xl text-[11px] font-black tracking-wide transition-all {% if not request.args.get('categoria') %}bg-brand-dark text-white{% else %}bg-white border border-slate-200 text-slate-600 hover:bg-slate-50{% endif %}">
                     Todos
@@ -87,7 +80,6 @@
             </div>
         </form>
 
-        <!-- BANNER DE ESTADÍSTICAS OSCURO -->
         <div class="bg-brand-dark text-white rounded-3xl p-5 mb-6 flex justify-between items-center shadow-lg">
             <div class="text-center flex-1 border-r border-slate-700/50">
                 <p class="text-base sm:text-lg font-black flex items-center justify-center gap-1.5"><i class="fas fa-user-check text-emerald-400"></i> {{ tecnicos|length }}</p>
@@ -103,12 +95,10 @@
             </div>
         </div>
 
-        <!-- LISTA DE ESPECIALISTAS VERTICAL -->
         <div class="space-y-4">
             {% for tecnico in tecnicos %}
             <div class="bg-white border border-slate-200 rounded-3xl p-5 hover:border-emerald-200 hover:shadow-xl transition-all relative overflow-hidden group">
                 
-                <!-- Badge superior -->
                 <div class="flex justify-between items-center mb-4 relative z-10">
                     <span class="bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md flex items-center gap-1">
                         <i class="fas fa-shield-check"></i> VERIFICADO
@@ -119,7 +109,6 @@
                 </div>
 
                 <div class="flex gap-4 relative z-10">
-                    <!-- Avatar -->
                     <div class="relative shrink-0">
                         <div class="w-16 h-16 rounded-[1.25rem] bg-slate-100 overflow-hidden border-2 border-slate-50 shadow-sm flex items-center justify-center">
                             {% if tecnico.foto %}
@@ -131,7 +120,6 @@
                         <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
                     </div>
                     
-                    <!-- Info Textual -->
                     <div>
                         <h3 class="text-lg font-black text-brand-dark leading-tight truncate">{{ tecnico.nombre }}</h3>
                         <div class="flex flex-wrap items-center gap-2 mt-1 mb-2">
@@ -142,7 +130,6 @@
                     </div>
                 </div>
 
-                <!-- Habilidades -->
                 <div class="flex flex-wrap gap-2 mt-4 relative z-10">
                     {% if tecnico.habilidades %}
                         {% for hab in tecnico.habilidades.split(',')[:4] %}
@@ -153,7 +140,6 @@
                     {% endif %}
                 </div>
 
-                <!-- Stats Footer & Bottom CTA -->
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-5 pt-5 border-t border-slate-50 gap-4">
                     <div class="flex items-center gap-x-4 text-[10px] font-bold text-slate-500">
                         <span class="flex items-center gap-1.5 truncate max-w-[120px]"><i class="fas fa-map-marker-alt text-slate-400"></i> {{ tecnico.ciudad }}</span>
@@ -166,8 +152,11 @@
                         </div>
                         
                         <div class="mt-5 sm:mt-0 relative z-10 w-full sm:w-auto">
-                            <button onclick="prepararYAbrirModal(this)" 
+                            <!-- 💖 AQUI SE INYECTÓ LA MEMORIA DEL FAVORITO -->
+                            <button id="btn-tecnico-{{ tecnico.id }}"
+                                    onclick="prepararYAbrirModal(this)" 
                                     data-id="{{ tecnico.id }}"
+                                    data-es-favorito="{{ tecnico.es_favorito }}"
                                     data-correo="{{ tecnico.correo }}"
                                     data-nombre="{{ tecnico.nombre }}"
                                     data-profesion="{{ tecnico.profesion }}"
@@ -198,7 +187,6 @@
         </div>
     </main>
 
-    <!-- EL NUEVO MODAL DE PERFIL -->
     <div id="modalPerfil" class="fixed inset-0 bg-brand-dark/40 backdrop-blur-md hidden justify-center items-end sm:items-center z-50 transition-opacity p-0 sm:p-4">
         
         <div class="bg-slate-50 w-full sm:max-w-2xl h-[95vh] sm:h-[90vh] sm:rounded-[2rem] shadow-2xl relative flex flex-col overflow-hidden animate-slide-up sm:animate-none rounded-t-[2rem]">
@@ -301,7 +289,6 @@
         </div>
     </div>
 
-    <!-- EL MODAL DE COTIZACIÓN -->
     <div id="modalCotizacionPrivada" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[60] flex items-center justify-center hidden p-4">
         <div class="bg-white border border-slate-200 rounded-[2rem] max-w-sm w-full shadow-2xl overflow-hidden animate-slide-up">
             <div class="px-6 py-5 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
@@ -340,14 +327,11 @@
     <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around items-center pb-safe pt-2 px-2 z-30 h-16 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
         <a href="/dashboard" class="flex flex-col items-center p-2 text-slate-400"><i class="fas fa-home text-lg mb-1"></i><span class="text-[9px] font-bold">Inicio</span></a>
         <a href="/tareas" class="flex flex-col items-center p-2 text-slate-400"><i class="fas fa-search text-lg mb-1"></i><span class="text-[9px] font-bold">Servicios</span></a>
-        
-        <!-- 💖 NUEVO BOTÓN MÓVIL DE FAVORITOS -->
         <a href="/mis_favoritos" class="flex flex-col items-center p-2 text-slate-400 hover:text-rose-500 transition"><i class="fas fa-heart text-lg mb-1"></i><span class="text-[9px] font-bold">Favoritos</span></a>
-        
         <a href="/tecnicos" class="flex flex-col items-center p-2 text-brand-blue relative"><div class="absolute -top-1 w-10 h-10 bg-brand-blue/10 rounded-full -z-10"></div><i class="fas fa-user-friends text-lg mb-1"></i><span class="text-[9px] font-black">Expertos</span></a>
     </div>
 
-    <!-- 🛠️ LÓGICA JAVASCRIPT DE LOS FAVORITOS -->
+    <!-- 🛠️ AQUI SE CORRIGIÓ LA LÓGICA JAVASCRIPT DE LECTURA DE FAVORITOS -->
     <script>
         let tecnicoActivoCorreo = ''; 
         let tecnicoActivoId = null; 
@@ -361,14 +345,20 @@
             document.getElementById('modalDescripcion').innerText = boton.getAttribute('data-descripcion');
             document.getElementById('modalEstrellas').innerText = boton.getAttribute('data-estrellas');
             document.getElementById('modalEstrellasMini').innerText = boton.getAttribute('data-estrellas');
-            
             document.getElementById('modalCiudad').innerText = boton.getAttribute('data-ciudad');
             document.getElementById('modalExperiencia').innerText = boton.getAttribute('data-experiencia') + ' Años Exp.';
             
-            // Reseteamos el estado visual del corazón al abrir el modal (por defecto transparente)
+            // 💖 LA SOLUCIÓN: Leemos la memoria del backend
             const iconFav = document.getElementById('iconFavoritoModal');
-            iconFav.classList.remove('fas', 'text-rose-500');
-            iconFav.classList.add('far', 'text-white');
+            const esFavorito = boton.getAttribute('data-es-favorito') === 'true';
+
+            if (esFavorito) {
+                iconFav.classList.remove('far', 'text-white');
+                iconFav.classList.add('fas', 'text-rose-500');
+            } else {
+                iconFav.classList.remove('fas', 'text-rose-500');
+                iconFav.classList.add('far', 'text-white');
+            }
 
             const tarifa = parseFloat(boton.getAttribute('data-tarifa'));
             const txtTarifa = document.getElementById('modalTarifa'); 
@@ -410,7 +400,6 @@
                     contenedorGaleria.innerHTML = `<p class="text-xs text-slate-400 font-medium italic col-span-2">No hay trabajos en la galería.</p>`;
                 }
             } catch (e) {
-                console.log("Error parseando portafolio", e);
                 contenedorGaleria.innerHTML = `<p class="text-xs text-slate-400 font-medium italic col-span-2">No hay trabajos en la galería.</p>`;
             }
             
@@ -449,10 +438,11 @@
             document.getElementById('modalCotizacionPrivada').classList.remove('hidden'); 
         }
 
-        // Lógica asíncrona para guardar en Favoritos
+        // 💖 AQUÍ ACTUALIZAMOS LA MEMORIA SIN RECARGAR LA PÁGINA
         async function toggleFavoritoModal() {
             if (!tecnicoActivoId) return;
             const iconFav = document.getElementById('iconFavoritoModal');
+            const botonTarjeta = document.getElementById(`btn-tecnico-${tecnicoActivoId}`);
             
             try {
                 const res = await fetch('/api/favorito/toggle', {
@@ -466,12 +456,12 @@
                     if (data.estado === 'agregado') {
                         iconFav.classList.remove('far', 'text-white');
                         iconFav.classList.add('fas', 'text-rose-500');
+                        if (botonTarjeta) botonTarjeta.setAttribute('data-es-favorito', 'true');
                     } else {
                         iconFav.classList.remove('fas', 'text-rose-500');
                         iconFav.classList.add('far', 'text-white');
+                        if (botonTarjeta) botonTarjeta.setAttribute('data-es-favorito', 'false');
                     }
-                } else {
-                    console.error("Error del backend:", data.error);
                 }
             } catch (error) {
                 console.error("Error al procesar el favorito", error);

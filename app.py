@@ -2974,41 +2974,36 @@ def listar_tecnicos():
         return redirect(url_for('index'))
         
     try:
-        # ⚡ 1. Traemos todos los especialistas en una sola lectura masiva
+        # ⚡ 1. Buscamos primero qué técnicos ya son favoritos del usuario actual
+        mis_favoritos_ids = []
+        if 'usuario_correo' in session:
+            favs = Favorito.query.filter_by(cliente_correo=session['usuario_correo']).all()
+            mis_favoritos_ids = [f.tecnico_id for f in favs]
+
+        # ⚡ 2. Traemos todos los especialistas
         tecnicos_db = Usuario.query.filter(Usuario.rol.in_(['Trabajador', 'Worker'])).all()
         
         tecnicos = []
         for tec in tecnicos_db:
-            # Reconstruimos el diccionario espejo nativo para el HTML
             item = {
-                'id': tec.id, # 👈 OBLIGATORIO PARA QUE FUNCIONE EL BOTÓN DE FAVORITOS
+                'id': tec.id,
                 'nombre': tec.nombre,
                 'correo': tec.correo,
                 'rol': tec.rol,
                 'profesion': tec.profesion,
                 'habilidades': tec.habilidades,
                 'foto': tec.foto,
-                
-                # 🛠️ CORRECCIÓN: Inyectamos Ciudad y Experiencia (Ajusta los nombres si tus columnas se llaman distinto en la BD)
                 'ciudad': tec.ciudad if tec.ciudad else 'Colombia', 
                 'anos_experiencia': tec.experiencia if hasattr(tec, 'experiencia') else (tec.anos_experiencia if hasattr(tec, 'anos_experiencia') else 0),
+                'descripcion': tec.descripcion or 'Especialista verificado dispuesto a ayudarte en tus requerimientos de soporte técnico.',
                 
-                # Biografía de respaldo si el campo está vacío en BD
-                'descripcion': tec.descripcion or 'Especialista verificado dispuesto a ayudarte en tus requerimientos de soporte técnico.'
+                # 💖 AQUÍ ESTÁ LA MAGIA: Le decimos al HTML si ya es favorito o no
+                'es_favorito': 'true' if tec.id in mis_favoritos_ids else 'false'
             }
             
-            # ⚡ 2. Buscamos los proyectos de este usuario específico en la tabla portafolio
-            proyectos_db = Portafolio.query.filter_by(usuario_correo=tec.correo)\
-                                           .order_by(Portafolio.id.desc()).all()
-                                           
-            item['proyectos'] = [{
-                'id': p.id,
-                'imagen_ruta': p.imagen_ruta,
-                'descripcion': p.descripcion,
-                'tipo': p.tipo
-            } for p in proyectos_db]
+            proyectos_db = Portafolio.query.filter_by(usuario_correo=tec.correo).order_by(Portafolio.id.desc()).all()
+            item['proyectos'] = [{'id': p.id, 'imagen_ruta': p.imagen_ruta, 'descripcion': p.descripcion, 'tipo': p.tipo} for p in proyectos_db]
             
-            # Variables de reputación por defecto o heredadas
             item['promedio_estrellas'] = 5.0
             item['total_calificaciones'] = 1
             
