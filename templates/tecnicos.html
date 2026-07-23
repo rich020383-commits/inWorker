@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Especialistas Verificados - inWorker</title>
+    <title>inWorker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- 🛠️ CORRECCIÓN: Traemos los grosores seguros (600, 700, 800) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    /* 🛠️ CORRECCIÓN: Fallback tipográfico más seguro */
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
                     colors: { brand: { dark: '#0f172a', blue: '#1a56ff', light: '#eef2ff' } }
                 }
             }
@@ -19,7 +21,8 @@
     </script>
     <style>.hide-scrollbar::-webkit-scrollbar { display: none; } .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }</style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen font-sans antialiased pb-20 md:pb-10">
+<!-- 🛠️ CORRECCIÓN: Se eliminó la clase 'antialiased' -->
+<body class="bg-slate-50 text-slate-900 min-h-screen font-sans pb-20 md:pb-10">
 
     <nav class="bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4 sticky top-0 z-40">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
