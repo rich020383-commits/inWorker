@@ -29,45 +29,19 @@
         }
     </script>
     <style>
-        /* Animaciones base de la página */
+        /* Animación de la barra de carga inicial */
         @keyframes loading { 0% { transform: scaleX(0); } 100% { transform: scaleX(1); } }
+        
+        /* Animaciones para la IA */
         @keyframes orbit { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .animate-orbit-slow { animation: orbit 20s linear infinite; }
         .animate-orbit-fast { animation: orbit 8s linear infinite reverse; }
         
+        /* Efecto 3D Interactivo Upward AI */
         .perspective-card { perspective: 1000px; }
         .tilt-element {
             transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
             transform-style: preserve-3d;
-        }
-
-        /* ==================================================== */
-        /* MAGIA DEL NUEVO WIDGET: Mini-Réplica de la Landing   */
-        /* ==================================================== */
-        
-        /* 1. Movimiento del cursor falso */
-        @keyframes moveCursor {
-            0%   { transform: translate(120px, 80px); opacity: 0; }
-            10%  { opacity: 1; }
-            40%  { transform: translate(15px, 8px); } /* Se posiciona sobre el botón azul */
-            45%  { transform: translate(15px, 8px) scale(0.85); } /* Efecto de clic pulsado */
-            50%  { transform: translate(15px, 8px) scale(1); }
-            80%  { transform: translate(15px, 8px); opacity: 0; } /* Desaparece tras abrir el modal */
-            100% { transform: translate(120px, 80px); opacity: 0; }
-        }
-
-        /* 2. El botón falso se hunde al hacerle clic */
-        @keyframes clickButton {
-            0%, 43% { transform: scale(1); background-color: #2563eb; } 
-            45%, 48% { transform: scale(0.92); background-color: #1d4ed8; } /* Clic presionado */
-            50%, 100% { transform: scale(1); background-color: #2563eb; }
-        }
-
-        /* 3. Aparece el modal de registro falso */
-        @keyframes showModal {
-            0%, 48% { opacity: 0; transform: scale(0.9) translateY(10px); pointer-events: none; }
-            52%, 85% { opacity: 1; transform: scale(1) translateY(0); pointer-events: auto; }
-            100% { opacity: 0; transform: scale(0.9) translateY(10px); pointer-events: none; }
         }
     </style>
 </head>
@@ -146,7 +120,7 @@
                     Conectamos talento técnico independiente con clientes bajo un sistema de pago 100% protegido. El dinero solo se libera cuando apruebas el servicio.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                    <a id="btn-buscar-talento" href="{{ url_for('login', action='registro', rol='Cliente') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-lg shadow-blue-600/20 text-center transition flex items-center justify-center gap-2 active:scale-95">
+                    <a href="{{ url_for('login', action='registro', rol='Cliente') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-lg shadow-blue-600/20 text-center transition flex items-center justify-center gap-2 active:scale-95">
                         <i class="fas fa-search"></i> Buscar talento técnico
                     </a>
                     <a href="{{ url_for('login', action='registro', rol='Worker') }}" class="bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl text-center transition flex items-center justify-center gap-2 active:scale-95">
@@ -270,6 +244,19 @@
                         <div class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wide">Pagos Protegidos</div>
                     </div>
                 </div>
+
+                <div class="pt-6 border-t border-slate-200/80 flex items-start gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <img src="https://ui-avatars.com/api/?name=Juan+Esteban&background=0D8ABC&color=fff" class="w-10 h-10 rounded-full shrink-0" alt="Avatar">
+                    <div>
+                        <div class="flex gap-0.5 text-xs text-amber-400 mb-1">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                        <p class="text-xs text-slate-600 font-medium italic mb-2">
+                            "Encontré al desarrollador perfecto para mi proyecto en menos de 24 horas. El sistema Escrow me dio total tranquilidad."
+                        </p>
+                        <h4 class="text-[11px] font-black text-slate-900">Juan Esteban M. <span class="text-slate-400 font-normal">| CEO, StartupTech</span></h4>
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -381,75 +368,6 @@
     </footer>
 
     <!-- ========================================== -->
-    <!-- 🎯 WIDGET: RÉPLICA EXACTA DE LA LANDING (ONBOARDING) -->
-    <!-- ========================================== -->
-    <div id="video-demo-widget" class="fixed bottom-6 right-6 z-[9999] w-72 md:w-80 bg-slate-900 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-slate-700/50 overflow-hidden transform translate-y-[150%] opacity-0 transition-all duration-1000 cubic-bezier(0.16, 1, 0.3, 1)">
-        
-        <!-- Cabecera del Widget -->
-        <div class="px-4 py-2.5 bg-slate-800/80 backdrop-blur-sm flex justify-between items-center border-b border-slate-700/50">
-            <span class="text-[10px] text-slate-300 font-bold uppercase tracking-widest flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span> 
-                CÓMO REGISTRARSE
-            </span>
-            <button onclick="cerrarVideoDemo()" class="text-slate-400 hover:text-white transition-colors duration-200">
-                <i class="fas fa-times text-sm"></i>
-            </button>
-        </div>
-
-        <!-- Contenedor del Mockup Interactivo -->
-        <div class="relative bg-white aspect-video w-full overflow-hidden p-4 font-sans flex flex-col justify-center">
-            
-            <!-- Barra superior del "navegador web" falso -->
-            <div class="absolute top-2 left-3 flex gap-1.5 opacity-50">
-                <div class="w-1.5 h-1.5 rounded-full bg-red-400"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
-            </div>
-
-            <!-- Mini Logo -->
-            <div class="w-12 h-2.5 bg-slate-200 rounded mb-4 mt-2"></div>
-            
-            <!-- Mini H1 (Titular principal) -->
-            <div class="w-4/5 h-4 bg-slate-800 rounded mb-1.5"></div>
-            <div class="w-3/5 h-4 bg-slate-800 rounded mb-3"></div>
-            
-            <!-- Mini P (Texto descriptivo) -->
-            <div class="w-full h-1.5 bg-slate-200 rounded mb-1"></div>
-            <div class="w-11/12 h-1.5 bg-slate-200 rounded mb-4"></div>
-
-            <!-- Los Botones de la Landing -->
-            <div class="flex gap-2 relative z-10 w-full">
-                
-                <!-- Botón Cliente (Azul - El que recibe el clic animado) -->
-                <div class="w-20 h-5 rounded shadow-sm flex items-center justify-center transition-all" style="animation: clickButton 6s infinite;">
-                    <div class="w-3 h-0.5 bg-white rounded-full opacity-80"></div>
-                </div>
-
-                <!-- Botón Especialista (Gris) -->
-                <div class="w-20 h-5 border border-slate-300 rounded flex items-center justify-center bg-white">
-                    <div class="w-3 h-0.5 bg-slate-400 rounded-full opacity-80"></div>
-                </div>
-
-                <!-- El Ratón Falso que hace la acción -->
-                <div class="absolute left-0 top-0 text-slate-800 text-lg drop-shadow-md z-30" style="animation: moveCursor 6s infinite;">
-                    <i class="fas fa-mouse-pointer"></i>
-                </div>
-            </div>
-
-            <!-- Overlay del Formulario de Registro (Aparece al hacer clic) -->
-            <div class="absolute inset-0 bg-slate-900/20 backdrop-blur-[1px] flex items-center justify-center z-20" style="animation: showModal 6s infinite;">
-                <div class="bg-white p-3 rounded-lg shadow-xl border border-slate-200 w-3/4 transform scale-100 flex flex-col items-center">
-                    <div class="w-1/2 h-2 bg-slate-800 rounded mb-3"></div>
-                    <div class="w-full h-3 border border-slate-200 rounded mb-1.5"></div>
-                    <div class="w-full h-3 border border-slate-200 rounded mb-3"></div>
-                    <div class="w-full h-4 bg-blue-600 rounded"></div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- ========================================== -->
     <!-- 🛠 SCRIPTS  -->
     <!-- ========================================== -->
     <script>
@@ -494,27 +412,6 @@
                 aiCard.style.boxShadow = 'none';
                 if (coreLogo) coreLogo.style.transform = 'translateZ(0px) translateX(0px) translateY(0px)';
             });
-        }
-
-        // 3. Controlador de entrada del Widget 
-        document.addEventListener('DOMContentLoaded', function () {
-            // Entra a los 3 segundos
-            setTimeout(() => {
-                const videoWidget = document.getElementById('video-demo-widget');
-                if (videoWidget && !localStorage.getItem('videoDemoVisto')) {
-                    videoWidget.classList.remove('translate-y-[150%]', 'opacity-0');
-                    videoWidget.classList.add('translate-y-0', 'opacity-100');
-                }
-            }, 3000); 
-        });
-
-        // Función para cerrar el widget 
-        function cerrarVideoDemo() {
-            const videoWidget = document.getElementById('video-demo-widget');
-            videoWidget.classList.remove('translate-y-0', 'opacity-100');
-            videoWidget.classList.add('translate-y-[150%]', 'opacity-0');
-            localStorage.setItem('videoDemoVisto', 'true');
-            setTimeout(() => videoWidget.remove(), 1000);
         }
     </script>
 </body>
