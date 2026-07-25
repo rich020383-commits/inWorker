@@ -45,7 +45,12 @@
         }
     </style>
 </head>
-<body class="bg-white text-slate-900 font-sans antialiased min-h-screen overflow-x-hidden">
+<body class="bg-white text-slate-900 font-sans antialiased min-h-screen overflow-x-hidden relative">
+
+    <!-- 🌌 FONDO PREMIUM CON TEXTURA -->
+    <div class="absolute inset-0 z-[-1] h-full w-full bg-white bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:3rem_3rem]">
+        <div class="absolute bottom-0 left-0 right-0 top-0 bg-[radial-gradient(circle_800px_at_50%_0%,rgba(37,99,235,0.08),transparent)]"></div>
+    </div>
 
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KMVS6XHL"
@@ -53,33 +58,25 @@
     <!-- End Google Tag Manager (noscript) -->
 
     <!-- ========================================== -->
-    <!-- 🚀 SPLASH SCREEN FINAL -->
+    <!-- 🚀 SPLASH SCREEN FINAL (Blanco Premium) -->
     <!-- ========================================== -->
-    <div id="splash-screen" class="fixed inset-0 z-[99999] flex flex-col items-center justify-end pb-28 text-white transition-opacity duration-1000 bg-slate-900 overflow-hidden">
+    <div id="splash-screen" class="fixed inset-0 z-[99999] flex flex-col items-center justify-center text-slate-900 transition-opacity duration-1000 bg-white overflow-hidden">
         
-        <img src="{{ url_for('static', filename='img/bg-landing.webp') }}" 
-             class="block md:hidden absolute inset-0 w-full h-full object-cover object-center" 
-             alt="inWorker Móvil">
-
-        <img src="{{ url_for('static', filename='img/bg-dashboard.webp') }}" 
-             class="hidden md:block absolute inset-0 w-full h-full object-cover object-center" 
-             alt="inWorker Desktop">
-
-        <div class="relative z-10 w-48 h-[4px] bg-black/20 rounded-full overflow-hidden border border-white/10 shadow-lg mb-6">
-            <div class="h-full bg-blue-500 w-full animate-[loading_2s_ease-in-out] origin-left shadow-[0_0_15px_rgba(59,130,246,0.8)]"></div>
+        <div class="flex flex-col items-center justify-center animate-pulse mb-8">
+            <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-24 w-auto object-contain mb-4">
         </div>
-        
-        <p class="relative z-10 text-[10px] md:text-xs font-black text-white uppercase tracking-[0.3em] drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
-            <i class="fas fa-microchip mr-1"></i> Ecosistema Tech • Confianza
-        </p>
+
+        <div class="absolute bottom-20 w-48 h-1 bg-slate-100 rounded-full overflow-hidden shadow-sm">
+            <div class="h-full bg-blue-600 w-full animate-[loading_2s_ease-in-out] origin-left"></div>
+        </div>
     </div>
 
     <!-- ========================================== -->
     <!-- 🏢 NAVBAR -->
     <!-- ========================================== -->
-    <nav class="absolute top-0 w-full z-50 px-6 py-6 max-w-7xl mx-auto left-0 right-0 flex justify-between items-center">
+    <nav class="absolute top-0 w-full z-50 px-6 py-6 max-w-7xl mx-auto left-0 right-0 flex justify-between items-center bg-white/50 backdrop-blur-sm border-b border-slate-200/50">
         <a href="#" class="flex items-center space-x-2 select-none group">
-            <div class="bg-white px-2 py-1.5 rounded-lg shadow-sm flex items-center justify-center transition-transform group-hover:scale-105">
+            <div class="bg-white px-2 py-1.5 rounded-lg shadow-sm flex items-center justify-center border border-slate-100 transition-transform group-hover:scale-105">
                 <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-6 w-auto object-contain">
             </div>
             <div class="flex flex-col border-l border-slate-300 pl-3 ml-1">
@@ -107,9 +104,9 @@
         <div class="lg:col-span-7 space-y-16">
             
             <!-- Hero principal -->
-            <div class="space-y-6 max-w-2xl relative z-10">
+            <div class="space-y-6 max-w-2xl relative z-10 text-center md:text-left">
                 
-                <div class="inline-block text-center text-blue-600 text-[10px] font-black uppercase tracking-widest bg-blue-50 px-4 py-2 rounded-2xl md:rounded-full border border-blue-100 shadow-sm leading-snug">
+                <div class="inline-block text-center text-blue-600 text-[10px] font-black uppercase tracking-widest bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl md:rounded-full border border-blue-100 shadow-sm leading-snug">
                     <i class="fas fa-map-marker-alt mr-1"></i> El marketplace de servicios definitivo en Colombia
                 </div>
                 
@@ -120,98 +117,98 @@
                     Conectamos talento técnico independiente con clientes bajo un sistema de pago 100% protegido. El dinero solo se libera cuando apruebas el servicio.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                    <a href="{{ url_for('login', action='registro', rol='Cliente') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-lg shadow-blue-600/20 text-center transition flex items-center justify-center gap-2 active:scale-95">
+                    <a id="btn-buscar-talento" href="{{ url_for('login', action='registro', rol='Cliente') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-[0_8px_30px_rgba(37,99,235,0.25)] text-center transition flex items-center justify-center gap-2 active:scale-95">
                         <i class="fas fa-search"></i> Buscar talento técnico
                     </a>
-                    <a href="{{ url_for('login', action='registro', rol='Worker') }}" class="bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl text-center transition flex items-center justify-center gap-2 active:scale-95">
+                    <a href="{{ url_for('login', action='registro', rol='Worker') }}" class="bg-white/80 backdrop-blur-sm border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-sm text-center transition flex items-center justify-center gap-2 active:scale-95">
                         <i class="fas fa-tools text-emerald-500"></i> Ofrecer mis servicios
                     </a>
                 </div>
                 
-                <!-- Beneficios rápidos -->
-                <div class="grid grid-cols-4 gap-2 md:gap-4 pt-8">
-                    <div class="flex flex-col items-center p-2 md:p-3 bg-white/60 backdrop-blur-sm rounded-xl text-center border border-slate-200/60 shadow-sm transition hover:-translate-y-1">
-                        <i class="fas fa-lock text-blue-600 text-lg md:text-2xl mb-1.5 md:mb-2"></i>
-                        <span class="text-[8px] md:text-[10px] font-black uppercase text-slate-700 leading-tight">Pagos en<br>Escrow</span>
+                <!-- Beneficios rápidos: Grid 2x2 en celular, 4 en línea en escritorio -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 pt-8">
+                    <div class="flex flex-col items-center p-3 md:p-3 bg-white/80 backdrop-blur-md rounded-2xl text-center border border-slate-200/80 shadow-sm transition hover:-translate-y-1">
+                        <i class="fas fa-lock text-blue-600 text-xl md:text-2xl mb-2 md:mb-1.5"></i>
+                        <span class="text-[9px] md:text-[10px] font-black uppercase text-slate-700 leading-tight">Pagos en<br>Escrow</span>
                     </div>
-                    <div class="flex flex-col items-center p-2 md:p-3 bg-white/60 backdrop-blur-sm rounded-xl text-center border border-slate-200/60 shadow-sm transition hover:-translate-y-1">
-                        <i class="fas fa-id-card text-emerald-500 text-lg md:text-2xl mb-1.5 md:mb-2"></i>
-                        <span class="text-[8px] md:text-[10px] font-black uppercase text-slate-700 leading-tight">Perfiles<br>Verificados</span>
+                    <div class="flex flex-col items-center p-3 md:p-3 bg-white/80 backdrop-blur-md rounded-2xl text-center border border-slate-200/80 shadow-sm transition hover:-translate-y-1">
+                        <i class="fas fa-id-card text-emerald-500 text-xl md:text-2xl mb-2 md:mb-1.5"></i>
+                        <span class="text-[9px] md:text-[10px] font-black uppercase text-slate-700 leading-tight">Perfiles<br>Verificados</span>
                     </div>
-                    <div class="flex flex-col items-center p-2 md:p-3 bg-white/60 backdrop-blur-sm rounded-xl text-center border border-slate-200/60 shadow-sm transition hover:-translate-y-1">
-                        <i class="fas fa-briefcase text-amber-500 text-lg md:text-2xl mb-1.5 md:mb-2"></i>
-                        <span class="text-[8px] md:text-[10px] font-black uppercase text-slate-700 leading-tight">Portafolios<br>Reales</span>
+                    <div class="flex flex-col items-center p-3 md:p-3 bg-white/80 backdrop-blur-md rounded-2xl text-center border border-slate-200/80 shadow-sm transition hover:-translate-y-1">
+                        <i class="fas fa-briefcase text-amber-500 text-xl md:text-2xl mb-2 md:mb-1.5"></i>
+                        <span class="text-[9px] md:text-[10px] font-black uppercase text-slate-700 leading-tight">Portafolios<br>Reales</span>
                     </div>
-                    <div class="flex flex-col items-center p-2 md:p-3 bg-white/60 backdrop-blur-sm rounded-xl text-center border border-slate-200/60 shadow-sm transition hover:-translate-y-1">
-                        <i class="fas fa-check-circle text-purple-500 text-lg md:text-2xl mb-1.5 md:mb-2"></i>
-                        <span class="text-[8px] md:text-[10px] font-black uppercase text-slate-700 leading-tight">Garantía de<br>Entrega</span>
+                    <div class="flex flex-col items-center p-3 md:p-3 bg-white/80 backdrop-blur-md rounded-2xl text-center border border-slate-200/80 shadow-sm transition hover:-translate-y-1">
+                        <i class="fas fa-check-circle text-purple-500 text-xl md:text-2xl mb-2 md:mb-1.5"></i>
+                        <span class="text-[9px] md:text-[10px] font-black uppercase text-slate-700 leading-tight">Garantía de<br>Entrega</span>
                     </div>
                 </div>
             </div>
 
             <!-- Sección de Seguridad -->
             <div class="space-y-8 pt-8">
-                <div class="space-y-2">
+                <div class="space-y-2 text-center md:text-left">
                     <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest block">Diseñado para tu seguridad</span>
                     <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">Adiós a los fraudes en contratación independiente</h2>
                 </div>
 
                 <div class="space-y-6">
-                    <div class="bg-slate-50 border border-slate-100 rounded-3xl p-6 relative overflow-hidden group hover:bg-blue-50/30 transition">
-                        <div class="flex items-center gap-3 mb-6">
+                    <div class="bg-white/60 backdrop-blur-md border border-slate-200/80 rounded-3xl p-6 relative overflow-hidden group hover:bg-blue-50/50 shadow-sm transition">
+                        <div class="flex items-center justify-center md:justify-start gap-3 mb-6">
                             <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-sm shadow-inner"><i class="fas fa-user-shield"></i></div>
                             <h3 class="font-extrabold text-slate-900 text-sm uppercase tracking-wide">Para el Cliente: Cero Estafas</h3>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                            <div class="flex sm:flex-col gap-3 sm:gap-1.5 items-start">
-                                <div class="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center shrink-0">1</div>
+                            <div class="flex sm:flex-col gap-4 sm:gap-1.5 items-start">
+                                <div class="w-7 h-7 md:w-6 md:h-6 rounded-full bg-blue-600 text-white text-[11px] md:text-[10px] font-black flex items-center justify-center shrink-0 shadow-md">1</div>
                                 <div>
-                                    <h4 class="font-bold text-slate-800 text-[13px] mb-1">Publica tu necesidad</h4>
-                                    <p class="text-[11px] text-slate-500 font-medium">Describe detalladamente el servicio o proyecto que requieres.</p>
+                                    <h4 class="font-bold text-slate-800 text-[14px] md:text-[13px] mb-1">Publica tu necesidad</h4>
+                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Describe detalladamente el servicio o proyecto que requieres.</p>
                                 </div>
                             </div>
-                            <div class="flex sm:flex-col gap-3 sm:gap-1.5 items-start">
-                                <div class="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center shrink-0">2</div>
+                            <div class="flex sm:flex-col gap-4 sm:gap-1.5 items-start">
+                                <div class="w-7 h-7 md:w-6 md:h-6 rounded-full bg-blue-600 text-white text-[11px] md:text-[10px] font-black flex items-center justify-center shrink-0 shadow-md">2</div>
                                 <div>
-                                    <h4 class="font-bold text-slate-800 text-[13px] mb-1">Depósito seguro</h4>
-                                    <p class="text-[11px] text-slate-500 font-medium">Tu pago queda retenido de forma segura mediante sistema Escrow.</p>
+                                    <h4 class="font-bold text-slate-800 text-[14px] md:text-[13px] mb-1">Depósito seguro</h4>
+                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Tu pago queda retenido de forma segura mediante sistema Escrow.</p>
                                 </div>
                             </div>
-                            <div class="flex sm:flex-col gap-3 sm:gap-1.5 items-start">
-                                <div class="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center shrink-0">3</div>
+                            <div class="flex sm:flex-col gap-4 sm:gap-1.5 items-start">
+                                <div class="w-7 h-7 md:w-6 md:h-6 rounded-full bg-blue-600 text-white text-[11px] md:text-[10px] font-black flex items-center justify-center shrink-0 shadow-md">3</div>
                                 <div>
-                                    <h4 class="font-bold text-slate-800 text-[13px] mb-1">Revisa y libera</h4>
-                                    <p class="text-[11px] text-slate-500 font-medium">El especialista trabaja, verificas el resultado y liberas fondos.</p>
+                                    <h4 class="font-bold text-slate-800 text-[14px] md:text-[13px] mb-1">Revisa y libera</h4>
+                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">El especialista trabaja, verificas el resultado y liberas fondos.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-slate-50 border border-slate-100 rounded-3xl p-6 relative overflow-hidden group hover:bg-emerald-50/30 transition">
-                        <div class="flex items-center gap-3 mb-6">
+                    <div class="bg-white/60 backdrop-blur-md border border-slate-200/80 rounded-3xl p-6 relative overflow-hidden group hover:bg-emerald-50/50 shadow-sm transition">
+                        <div class="flex items-center justify-center md:justify-start gap-3 mb-6">
                             <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm shadow-inner"><i class="fas fa-screwdriver-wrench"></i></div>
                             <h3 class="font-extrabold text-slate-900 text-sm uppercase tracking-wide">Para el Especialista: Cobro Seguro</h3>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                            <div class="flex sm:flex-col gap-3 sm:gap-1.5 items-start">
-                                <div class="w-6 h-6 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center shrink-0">1</div>
+                            <div class="flex sm:flex-col gap-4 sm:gap-1.5 items-start">
+                                <div class="w-7 h-7 md:w-6 md:h-6 rounded-full bg-emerald-500 text-white text-[11px] md:text-[10px] font-black flex items-center justify-center shrink-0 shadow-md">1</div>
                                 <div>
-                                    <h4 class="font-bold text-slate-800 text-[13px] mb-1">Verifica tu identidad</h4>
-                                    <p class="text-[11px] text-slate-500 font-medium">Sube tu cédula y validación facial para ganar credibilidad.</p>
+                                    <h4 class="font-bold text-slate-800 text-[14px] md:text-[13px] mb-1">Verifica tu identidad</h4>
+                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Sube tu cédula y validación facial para ganar credibilidad.</p>
                                 </div>
                             </div>
-                            <div class="flex sm:flex-col gap-3 sm:gap-1.5 items-start">
-                                <div class="w-6 h-6 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center shrink-0">2</div>
+                            <div class="flex sm:flex-col gap-4 sm:gap-1.5 items-start">
+                                <div class="w-7 h-7 md:w-6 md:h-6 rounded-full bg-emerald-500 text-white text-[11px] md:text-[10px] font-black flex items-center justify-center shrink-0 shadow-md">2</div>
                                 <div>
-                                    <h4 class="font-bold text-slate-800 text-[13px] mb-1">Muestra tu portafolio</h4>
-                                    <p class="text-[11px] text-slate-500 font-medium">Carga fotos de trabajos previos para atraer clientes premium.</p>
+                                    <h4 class="font-bold text-slate-800 text-[14px] md:text-[13px] mb-1">Muestra tu portafolio</h4>
+                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Carga fotos de trabajos previos para atraer clientes premium.</p>
                                 </div>
                             </div>
-                            <div class="flex sm:flex-col gap-3 sm:gap-1.5 items-start">
-                                <div class="w-6 h-6 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center shrink-0">3</div>
+                            <div class="flex sm:flex-col gap-4 sm:gap-1.5 items-start">
+                                <div class="w-7 h-7 md:w-6 md:h-6 rounded-full bg-emerald-500 text-white text-[11px] md:text-[10px] font-black flex items-center justify-center shrink-0 shadow-md">3</div>
                                 <div>
-                                    <h4 class="font-bold text-slate-800 text-[13px] mb-1">Trabaja con garantía</h4>
-                                    <p class="text-[11px] text-slate-500 font-medium">Inicia labores sabiendo que el pago ya está respaldado.</p>
+                                    <h4 class="font-bold text-slate-800 text-[14px] md:text-[13px] mb-1">Trabaja con garantía</h4>
+                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Inicia labores sabiendo que el pago ya está respaldado.</p>
                                 </div>
                             </div>
                         </div>
@@ -220,27 +217,27 @@
             </div>
 
             <!-- Métricas y Testimonios -->
-            <div class="space-y-8 bg-slate-50 border border-slate-100 rounded-3xl p-8">
+            <div class="space-y-8 bg-white/60 backdrop-blur-md border border-slate-200/80 rounded-3xl p-8 shadow-sm">
                 <div class="space-y-1 text-center sm:text-left">
                     <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block">Confianza que se demuestra</span>
                     <h2 class="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Miles de proyectos completados con éxito en la plataforma</h2>
                 </div>
                 
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center sm:text-left">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-4 text-center sm:text-left">
                     <div>
-                        <div class="text-3xl font-black text-slate-900">12K+</div>
+                        <div class="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">12K<span class="text-blue-500">+</span></div>
                         <div class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wide">Proyectos Completados</div>
                     </div>
                     <div>
-                        <div class="text-3xl font-black text-slate-900">7K+</div>
+                        <div class="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">7K<span class="text-emerald-500">+</span></div>
                         <div class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wide">Profesionales Verificados</div>
                     </div>
                     <div>
-                        <div class="text-3xl font-black text-slate-900">98%</div>
+                        <div class="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">98<span class="text-amber-500">%</span></div>
                         <div class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wide">Clientes Satisfechos</div>
                     </div>
                     <div>
-                        <div class="text-3xl font-black text-slate-900">100%</div>
+                        <div class="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">100<span class="text-purple-500">%</span></div>
                         <div class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wide">Pagos Protegidos</div>
                     </div>
                 </div>
@@ -268,8 +265,8 @@
             
             <!-- 🤖 SECCIÓN UPWARD AI -->
             <div class="space-y-6 lg:sticky lg:top-28">
-                <div class="space-y-2">
-                    <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block bg-blue-50 inline-block px-3 py-1 rounded-md border border-blue-100">Tecnología de vanguardia</span>
+                <div class="space-y-2 text-center md:text-left">
+                    <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block bg-blue-50/80 inline-block px-3 py-1 rounded-md border border-blue-100">Tecnología de vanguardia</span>
                     <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Potenciado por <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Upward AI</span></h2>
                     <p class="text-xs text-slate-500 font-medium leading-relaxed">
                         Nuestro sistema utiliza algoritmos avanzados de Inteligencia Artificial para ejecutar un matching automático inteligente. Analizamos las habilidades del técnico y los requerimientos exactos del cliente para conectarte con el perfil perfecto en segundos.
@@ -298,8 +295,8 @@
                             </div>
                         </div>
 
-                        <div class="sm:col-span-5 flex flex-col justify-center space-y-2 text-white relative z-10 select-none">
-                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-lg shadow-lg shadow-amber-500/20 mb-2">
+                        <div class="sm:col-span-5 flex flex-col justify-center space-y-2 text-white relative z-10 select-none text-center md:text-left mt-4 md:mt-0">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-lg shadow-lg shadow-amber-500/20 mx-auto md:mx-0 mb-2">
                                 <i class="fas fa-bolt"></i>
                             </div>
                             <h4 class="font-black text-xs uppercase tracking-widest text-slate-300">Matching Automático</h4>
@@ -309,10 +306,10 @@
                 </div>
 
                 <!-- 👑 SECCIÓN PROGRAMA FUNDADOR -->
-                <div class="bg-slate-900 border border-indigo-500/20 rounded-[2rem] p-6 text-white shadow-2xl relative overflow-hidden space-y-6 mt-8">
+                <div class="bg-slate-900 border border-indigo-500/20 rounded-[2rem] p-6 md:p-8 text-white shadow-2xl relative overflow-hidden space-y-6 mt-8">
                     <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-600/20 rounded-full blur-[80px] pointer-events-none"></div>
 
-                    <div class="space-y-3 relative z-10">
+                    <div class="space-y-3 relative z-10 text-center md:text-left">
                         <div class="inline-block bg-indigo-500/20 border border-indigo-400/20 text-indigo-300 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
                             Convocatoria Limitada: 1er Año
                         </div>
@@ -320,33 +317,59 @@
                         <p class="text-xs text-slate-400 font-medium leading-relaxed">
                             No seas solo un usuario. Conviértete en Socio de Crecimiento y gana hasta un 30% de comisiones por los servicios de tu red.
                         </p>
+                        <div class="inline-flex items-center justify-center md:justify-start gap-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-bold px-3 py-1 rounded-full w-full md:w-auto mt-2">
+                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span> Economía Real • Cero esquemas piramidales
+                        </div>
                     </div>
 
                     <div class="space-y-3 pt-2 relative z-10">
-                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex gap-4 items-start">
-                            <div class="w-8 h-8 rounded-xl bg-slate-900 text-emerald-400 border border-slate-800 flex items-center justify-center shrink-0 shadow-inner">
-                                <i class="fas fa-seedling text-xs"></i>
+                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex gap-4 items-center md:items-start">
+                            <div class="w-10 h-10 md:w-8 md:h-8 rounded-xl bg-slate-900 text-emerald-400 border border-slate-800 flex items-center justify-center shrink-0 shadow-inner">
+                                <i class="fas fa-seedling text-sm md:text-xs"></i>
                             </div>
                             <div>
-                                <h4 class="font-black text-[13px] text-white">1. Embajador</h4>
-                                <span class="text-emerald-400 text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 21% de Comisión</span>
+                                <h4 class="font-black text-[14px] md:text-[13px] text-white">1. Embajador</h4>
+                                <span class="text-emerald-400 text-[11px] md:text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 21% de Comisión</span>
+                                <p class="text-[10px] text-slate-400 font-medium leading-relaxed hidden md:block">Construye tu red. Gana comisiones por los primeros 100 servicios de tus referidos.</p>
                             </div>
                         </div>
 
-                        <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 flex gap-4 items-start relative shadow-lg shadow-indigo-900/20">
+                        <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 flex gap-4 items-center md:items-start relative shadow-lg shadow-indigo-900/20">
                             <span class="absolute -top-2 right-4 bg-blue-600 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full shadow-sm">Más Popular</span>
-                            <div class="w-8 h-8 rounded-xl bg-indigo-900 text-blue-400 border border-indigo-500/30 flex items-center justify-center shrink-0 shadow-inner">
-                                <i class="fas fa-rocket text-xs"></i>
+                            <div class="w-10 h-10 md:w-8 md:h-8 rounded-xl bg-indigo-900 text-blue-400 border border-indigo-500/30 flex items-center justify-center shrink-0 shadow-inner">
+                                <i class="fas fa-rocket text-sm md:text-xs"></i>
                             </div>
                             <div>
-                                <h4 class="font-black text-[13px] text-white">2. Líder <span class="text-blue-400">in</span>Worker</h4>
-                                <span class="text-blue-400 text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 26% de Comisión</span>
+                                <h4 class="font-black text-[14px] md:text-[13px] text-white">2. Líder <span class="text-blue-400">in</span>Worker</h4>
+                                <span class="text-blue-400 text-[11px] md:text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 26% de Comisión</span>
+                                <p class="text-[10px] text-slate-300 font-medium leading-relaxed hidden md:block">Supera los 100 servicios en tu red y accede a multiplicadores de ganancias.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex gap-4 items-center md:items-start">
+                            <div class="w-10 h-10 md:w-8 md:h-8 rounded-xl bg-slate-900 text-amber-400 border border-slate-800 flex items-center justify-center shrink-0 shadow-inner">
+                                <i class="fas fa-crown text-sm md:text-xs"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-black text-[14px] md:text-[13px] text-white">3. Director Regional</h4>
+                                <span class="text-amber-400 text-[11px] md:text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 30% de Comisión</span>
+                                <p class="text-[10px] text-slate-400 font-medium leading-relaxed hidden md:block">Alcanza 1.000 servicios. Domina tu región con la mayor rentabilidad del sistema.</p>
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex gap-3 items-start relative z-10">
+                        <i class="fas fa-hourglass-half text-amber-500 text-sm mt-0.5 hidden md:block"></i>
+                        <div class="text-center md:text-left w-full md:w-auto">
+                            <h5 class="text-[10px] font-black text-amber-500 uppercase tracking-wide">El tiempo corre, fundador</h5>
+                            <p class="text-[10px] text-amber-100/70 font-medium leading-relaxed mt-1">
+                                El estatus de "Programa Fundador" se clausurará permanentemente al finalizar el primer año. Quienes ingresen ahora, conservarán sus comisiones VIP de por vida.
+                            </p>
+                        </div>
+                    </div>
 
-                    <div class="pt-2 relative z-10">
-                        <a href="{{ url_for('login', action='registro') }}" class="block w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-[11px] uppercase tracking-widest py-4 rounded-xl shadow-lg shadow-orange-500/20 active:scale-95 transition text-center">
+                    <div class="pt-4 relative z-10">
+                        <a href="{{ url_for('login', action='registro') }}" class="block w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-[12px] md:text-[11px] uppercase tracking-widest py-4 md:py-3 rounded-xl shadow-[0_8px_20px_rgba(245,158,11,0.2)] active:scale-95 transition text-center">
                             Reclamar código hoy
                         </a>
                     </div>
@@ -356,11 +379,39 @@
     </main>
 
     <!-- ========================================== -->
-    <!-- 🏢 FOOTER -->
+    <!-- 🏢 FOOTER (Completo e intacto) -->
     <!-- ========================================== -->
-    <footer class="bg-slate-50 border-t border-slate-200 mt-12 pt-16 pb-8">
+    <footer class="bg-white/80 backdrop-blur-md border-t border-slate-200 mt-12 pt-16 pb-8 relative z-10">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center md:items-start gap-8">
+            
+            <div class="space-y-4 text-center md:text-left max-w-sm">
+                <a href="#" class="flex items-center justify-center md:justify-start space-x-2 select-none">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-6 w-auto grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition duration-300">
+                    <span class="text-xl font-black text-slate-900 block"><span class="text-blue-600">in</span>Worker</span>
+                </a>
+                <p class="text-[11px] text-slate-500 font-medium leading-relaxed">
+                    Conectamos talento. Construimos confianza. La solución integral y transparente para contratación técnica independiente.
+                </p>
+                <div class="flex justify-center md:justify-start gap-3 text-slate-400 text-sm">
+                    <a href="https://www.facebook.com/inworkeroficial" class="hover:text-blue-600 transition"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.instagram.com/inworker.oficial" class="hover:text-pink-600 transition"><i class="fab fa-instagram"></i></a>
+                    <a href="https://wa.me/573126427856" class="hover:text-emerald-500 transition"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-center md:text-right">
+                <h4 class="text-[10px] font-black uppercase tracking-wider text-slate-800">Empresa & Legal</h4>
+                <ul class="text-[11px] text-slate-500 font-medium space-y-2">
+                    <li><a href="/terminos-y-condiciones" class="hover:text-blue-600 transition">Términos y Condiciones</a></li>
+                    <li><a href="/privacidad" class="hover:text-blue-600 transition">Política de Privacidad</a></li>
+                    <li><a href="https://wa.me/573126427856" class="hover:text-blue-600 transition">Contacto Directo</a></li>
+                </ul>
+            </div>
+            
+        </div>
+
         <div class="max-w-7xl mx-auto px-6 border-t border-slate-200/60 mt-12 pt-6 text-center">
-            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest leading-loose">
                 <span class="lowercase">in</span>Worker © 2026 - UNIENDO TECNOLOGÍA Y CONFIANZA<br>
                 UNA MARCA DE BARAKAH TECH HUB S.A.S.
             </p>
@@ -379,7 +430,7 @@
                     splash.classList.add('opacity-0');
                     setTimeout(() => splash.remove(), 1000); 
                 }
-            }, 2000); 
+            }, 1800); 
         });
 
         // 2. Interfaz 3D de Upward AI
