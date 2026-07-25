@@ -135,7 +135,7 @@
                     </a>
                 </div>
                 
-                <!-- Beneficios rápidos en 1 sola línea (grid-cols-4 forzado) -->
+                <!-- Beneficios rápidos -->
                 <div class="grid grid-cols-4 gap-2 md:gap-4 pt-8">
                     <div class="flex flex-col items-center p-2 md:p-3 bg-white/60 backdrop-blur-sm rounded-xl text-center border border-slate-200/60 shadow-sm transition hover:-translate-y-1">
                         <i class="fas fa-lock text-blue-600 text-lg md:text-2xl mb-1.5 md:mb-2"></i>
@@ -164,7 +164,6 @@
                 </div>
 
                 <div class="space-y-6">
-                    <!-- Tarjeta Cliente -->
                     <div class="bg-slate-50 border border-slate-100 rounded-3xl p-6 relative overflow-hidden group hover:bg-blue-50/30 transition">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-sm shadow-inner"><i class="fas fa-user-shield"></i></div>
@@ -195,7 +194,6 @@
                         </div>
                     </div>
 
-                    <!-- Tarjeta Especialista -->
                     <div class="bg-slate-50 border border-slate-100 rounded-3xl p-6 relative overflow-hidden group hover:bg-emerald-50/30 transition">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm shadow-inner"><i class="fas fa-screwdriver-wrench"></i></div>
@@ -253,19 +251,6 @@
                         <div class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wide">Pagos Protegidos</div>
                     </div>
                 </div>
-
-                <div class="pt-6 border-t border-slate-200/80 flex items-start gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                    <img src="https://ui-avatars.com/api/?name=Juan+Esteban&background=0D8ABC&color=fff" class="w-10 h-10 rounded-full shrink-0" alt="Avatar">
-                    <div>
-                        <div class="flex gap-0.5 text-xs text-amber-400 mb-1">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
-                        <p class="text-xs text-slate-600 font-medium italic mb-2">
-                            "Encontré al desarrollador perfecto para mi proyecto en menos de 24 horas. El sistema Escrow me dio total tranquilidad."
-                        </p>
-                        <h4 class="text-[11px] font-black text-slate-900">Juan Esteban M. <span class="text-slate-400 font-normal">| CEO, StartupTech</span></h4>
-                    </div>
-                </div>
             </div>
 
         </div>
@@ -275,7 +260,7 @@
         <!-- ========================================== -->
         <div class="lg:col-span-5 space-y-8">
             
-            <!-- 🤖 SECCIÓN UPWARD AI (INTERACTIVA 3D) -->
+            <!-- 🤖 SECCIÓN UPWARD AI -->
             <div class="space-y-6 lg:sticky lg:top-28">
                 <div class="space-y-2">
                     <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block bg-blue-50 inline-block px-3 py-1 rounded-md border border-blue-100">Tecnología de vanguardia</span>
@@ -289,10 +274,8 @@
                 <div class="perspective-card w-full">
                     <div id="upward-ai-card" class="tilt-element bg-slate-950 rounded-[2rem] p-6 shadow-2xl relative overflow-hidden border border-slate-800 grid grid-cols-1 sm:grid-cols-12 gap-6 cursor-crosshair">
                         
-                        <!-- Capa de brillo dinámico controlada por JS -->
                         <div id="card-glow" class="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-0 bg-[radial-gradient(circle_at_var(--x)_var(--y),rgba(59,130,246,0.25)_0%,transparent_50%)]"></div>
                         
-                        <!-- Interfaz Gráfica de la IA -->
                         <div class="sm:col-span-7 h-48 bg-slate-900/50 rounded-2xl border border-slate-800/80 flex items-center justify-center relative overflow-hidden shadow-inner">
                             <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:16px_16px]"></div>
                             
@@ -303,14 +286,12 @@
                                 <div class="w-1.5 h-1.5 bg-emerald-400 rounded-full absolute -bottom-1 shadow-[0_0_8px_#10b981]"></div>
                             </div>
                             
-                            <!-- Logotipo Reactivo Parallax -->
                             <div id="ai-core-logo" class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-xl shadow-blue-500/30 border border-white/10 relative z-10 transition-transform duration-100 ease-out">
                                 <span class="text-white font-black text-2xl select-none filter drop-shadow">in</span>
                                 <div class="absolute inset-0 rounded-2xl bg-blue-400/20 animate-pulse"></div>
                             </div>
                         </div>
 
-                        <!-- Estado del Matching -->
                         <div class="sm:col-span-5 flex flex-col justify-center space-y-2 text-white relative z-10 select-none">
                             <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-lg shadow-lg shadow-amber-500/20 mb-2">
                                 <i class="fas fa-bolt"></i>
@@ -333,9 +314,6 @@
                         <p class="text-xs text-slate-400 font-medium leading-relaxed">
                             No seas solo un usuario. Conviértete en Socio de Crecimiento y gana hasta un 30% de comisiones por los servicios de tu red.
                         </p>
-                        <div class="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-bold px-3 py-1 rounded-full">
-                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span> Economía Real • Cero esquemas piramidales
-                        </div>
                     </div>
 
                     <div class="space-y-3 pt-2 relative z-10">
@@ -346,7 +324,6 @@
                             <div>
                                 <h4 class="font-black text-[13px] text-white">1. Embajador</h4>
                                 <span class="text-emerald-400 text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 21% de Comisión</span>
-                                <p class="text-[10px] text-slate-400 font-medium leading-relaxed">Construye tu red. Gana comisiones por los primeros 100 servicios de tus referidos.</p>
                             </div>
                         </div>
 
@@ -358,7 +335,6 @@
                             <div>
                                 <h4 class="font-black text-[13px] text-white">2. Líder <span class="text-blue-400">in</span>Worker</h4>
                                 <span class="text-blue-400 text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 26% de Comisión</span>
-                                <p class="text-[10px] text-slate-300 font-medium leading-relaxed">Supera los 100 servicios en tu red y accede a multiplicadores de ganancias.</p>
                             </div>
                         </div>
 
@@ -369,18 +345,7 @@
                             <div>
                                 <h4 class="font-black text-[13px] text-white">3. Director Regional</h4>
                                 <span class="text-amber-400 text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 30% de Comisión</span>
-                                <p class="text-[10px] text-slate-400 font-medium leading-relaxed">Alcanza 1.000 servicios. Domina tu región con la mayor rentabilidad del sistema.</p>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex gap-3 items-start relative z-10">
-                        <i class="fas fa-hourglass-half text-amber-500 text-sm mt-0.5"></i>
-                        <div>
-                            <h5 class="text-[10px] font-black text-amber-500 uppercase tracking-wide">El tiempo corre, fundador</h5>
-                            <p class="text-[10px] text-amber-100/70 font-medium leading-relaxed mt-1">
-                                El estatus de "Programa Fundador" se clausurará permanentemente al finalizar el primer año. Quienes ingresen ahora, conservarán sus comisiones VIP de por vida.
-                            </p>
                         </div>
                     </div>
 
@@ -390,7 +355,6 @@
                         </a>
                     </div>
                 </div>
-
             </div>
         </div>
     </main>
@@ -399,34 +363,6 @@
     <!-- 🏢 FOOTER -->
     <!-- ========================================== -->
     <footer class="bg-slate-50 border-t border-slate-200 mt-12 pt-16 pb-8">
-        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center md:items-start gap-8">
-            
-            <div class="space-y-4 text-center md:text-left max-w-sm">
-                <a href="#" class="flex items-center justify-center md:justify-start space-x-2 select-none">
-                    <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-6 w-auto grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition duration-300">
-                    <span class="text-xl font-black text-slate-900 block"><span class="text-blue-600">in</span>Worker</span>
-                </a>
-                <p class="text-[11px] text-slate-500 font-medium leading-relaxed">
-                    Conectamos talento. Construimos confianza. La solución integral y transparente para contratación técnica independiente.
-                </p>
-                <div class="flex justify-center md:justify-start gap-3 text-slate-400 text-sm">
-                    <a href="https://www.facebook.com/inworkeroficial" class="hover:text-blue-600 transition"><i class="fab fa-facebook-f"></i></a>
-                    <a href="https://www.instagram.com/inworker.oficial" class="hover:text-pink-600 transition"><i class="fab fa-instagram"></i></a>
-                    <a href="https://wa.me/573126427856" class="hover:text-emerald-500 transition"><i class="fab fa-whatsapp"></i></a>
-                </div>
-            </div>
-
-            <div class="space-y-3 text-center md:text-right">
-                <h4 class="text-[10px] font-black uppercase tracking-wider text-slate-800">Empresa & Legal</h4>
-                <ul class="text-[11px] text-slate-500 font-medium space-y-2">
-                    <li><a href="/terminos-y-condiciones" class="hover:text-blue-600 transition">Términos y Condiciones</a></li>
-                    <li><a href="/privacidad" class="hover:text-blue-600 transition">Política de Privacidad</a></li>
-                    <li><a href="https://wa.me/573126427856" class="hover:text-blue-600 transition">Contacto Directo</a></li>
-                </ul>
-            </div>
-            
-        </div>
-
         <div class="max-w-7xl mx-auto px-6 border-t border-slate-200/60 mt-12 pt-6 text-center">
             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
                 <span class="lowercase">in</span>Worker © 2026 - UNIENDO TECNOLOGÍA Y CONFIANZA<br>
@@ -436,11 +372,11 @@
     </footer>
 
     <!-- ========================================== -->
-    <!-- 🎥 WIDGET DE VIDEO DEMO FLOTANTE (CSS PURO)-->
+    <!-- 🎥 WIDGET DE VIDEO DEMO FLOTANTE CON ANIMACIÓN INTELIGENTE -->
     <!-- ========================================== -->
     <div id="video-demo-widget" class="fixed bottom-6 right-6 z-[9999] w-72 md:w-80 bg-slate-900 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-slate-700/50 overflow-hidden transform translate-y-[150%] opacity-0 transition-all duration-1000 cubic-bezier(0.16, 1, 0.3, 1)">
         
-        <!-- Cabecera del reproductor -->
+        <!-- Cabecera -->
         <div class="px-4 py-2.5 bg-slate-800/80 backdrop-blur-sm flex justify-between items-center border-b border-slate-700/50">
             <span class="text-[10px] text-slate-300 font-bold uppercase tracking-widest flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span> 
@@ -451,50 +387,50 @@
             </button>
         </div>
 
-        <!-- Contenedor del Mockup Animado en CSS -->
-        <div class="relative bg-slate-50 aspect-video w-full overflow-hidden p-3 font-sans">
-            <!-- Barra superior simulada -->
-            <div class="flex gap-1.5 mb-3">
-                <div class="w-2 h-2 rounded-full bg-slate-300"></div>
-                <div class="w-2 h-2 rounded-full bg-slate-300"></div>
-                <div class="w-2 h-2 rounded-full bg-slate-300"></div>
+        <!-- Contenedor del Mockup -->
+        <div class="relative bg-slate-50 aspect-video w-full overflow-hidden p-4 font-sans flex flex-col justify-center">
+            
+            <!-- Texto de Estado Dinámico -->
+            <div id="demo-status-text" class="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-2 transition-colors duration-300">
+                Analizando requerimiento...
             </div>
 
-            <!-- Animación de "Buscando especialista" -->
-            <div class="w-2/3 h-2.5 bg-slate-200 rounded-full mb-4 relative overflow-hidden">
+            <!-- Animación de barra que desaparece al hacer match -->
+            <div id="demo-loading-bar" class="w-full h-1.5 bg-slate-200 rounded-full mb-4 relative overflow-hidden transition-all duration-300">
                 <div class="absolute top-0 bottom-0 left-0 bg-blue-500 w-1/3 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)] animate-scan"></div>
             </div>
 
-            <!-- Resultados apareciendo en cascada -->
             <div class="space-y-2 relative">
-                <!-- Tarjeta Especialista 1 (Hace "bounce" suave) -->
-                <div class="bg-white p-2 rounded-lg shadow-sm border border-slate-100 flex gap-2 items-center animate-pulse">
-                    <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[8px]"><i class="fas fa-check"></i></div>
-                    <div class="space-y-1 flex-1">
-                        <div class="w-full h-1.5 bg-slate-200 rounded"></div>
-                        <div class="w-1/2 h-1.5 bg-slate-100 rounded"></div>
+                <!-- Tarjeta Principal (La que hará el Match) -->
+                <div id="demo-card-1" class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-100 flex gap-3 items-center opacity-50 transition-all duration-500">
+                    <div id="demo-icon-1" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] transition-colors duration-500 text-transparent">
+                        <i class="fas fa-check"></i>
                     </div>
-                </div>
-                <!-- Tarjeta Especialista 2 -->
-                <div class="bg-white p-2 rounded-lg shadow-sm border border-slate-100 flex gap-2 items-center opacity-50">
-                    <div class="w-6 h-6 rounded-full bg-slate-200"></div>
-                    <div class="space-y-1 flex-1">
-                        <div class="w-3/4 h-1.5 bg-slate-200 rounded"></div>
-                        <div class="w-1/3 h-1.5 bg-slate-100 rounded"></div>
+                    <div class="space-y-1.5 flex-1">
+                        <div class="w-full h-2 bg-slate-200 rounded-full"></div>
+                        <div class="w-1/2 h-2 bg-slate-100 rounded-full"></div>
                     </div>
                 </div>
                 
-                <!-- Efecto de desvanecimiento en la parte baja -->
+                <!-- Tarjeta Fondo -->
+                <div class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-100 flex gap-3 items-center opacity-30">
+                    <div class="w-8 h-8 rounded-full bg-slate-100"></div>
+                    <div class="space-y-1.5 flex-1">
+                        <div class="w-3/4 h-2 bg-slate-200 rounded-full"></div>
+                        <div class="w-1/3 h-2 bg-slate-100 rounded-full"></div>
+                    </div>
+                </div>
+                
                 <div class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-slate-50 to-transparent"></div>
             </div>
         </div>
     </div>
 
     <!-- ========================================== -->
-    <!-- 🛠 SCRIPTS (Carga inicial, Efecto 3D AI y Widget CSS) -->
+    <!-- 🛠 SCRIPTS  -->
     <!-- ========================================== -->
     <script>
-        // 1. Script original del Splash Screen
+        // 1. Splash Screen
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
@@ -505,7 +441,7 @@
             }, 2000); 
         });
 
-        // 2. Motor interactivo 3D para la tarjeta Upward AI
+        // 2. Interfaz 3D de Upward AI
         const aiCard = document.getElementById('upward-ai-card');
         const glow = document.getElementById('card-glow');
         const coreLogo = document.getElementById('ai-core-logo');
@@ -526,9 +462,7 @@
                 aiCard.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
                 aiCard.style.boxShadow = '0 25px 50px -12px rgba(59, 130, 246, 0.25)';
                 
-                if (coreLogo) {
-                    coreLogo.style.transform = `translateZ(40px) translateX(${rotateY * 0.8}px) translateY(${rotateX * -0.8}px)`;
-                }
+                if (coreLogo) coreLogo.style.transform = `translateZ(40px) translateX(${rotateY * 0.8}px) translateY(${rotateX * -0.8}px)`;
             });
 
             aiCard.addEventListener('mouseleave', () => {
@@ -539,32 +473,67 @@
             });
         }
 
-        // 3. Script para animar la entrada del Widget Flotante Premium
+        // 3. Controlador del Widget Flotante Premium
         document.addEventListener('DOMContentLoaded', function () {
-            // Esperamos 3 segundos (después del splash screen) para que deslice hacia arriba
             setTimeout(() => {
                 const videoWidget = document.getElementById('video-demo-widget');
                 
-                // Solo lo mostramos si el usuario no lo ha cerrado antes
                 if (videoWidget && !localStorage.getItem('videoDemoVisto')) {
                     videoWidget.classList.remove('translate-y-[150%]', 'opacity-0');
                     videoWidget.classList.add('translate-y-0', 'opacity-100');
+                    
+                    // Iniciamos la animación cíclica en cuanto el widget entra a pantalla
+                    iniciarBucleDemo();
                 }
             }, 3000); 
         });
 
-        // Función para cerrar el widget de forma elegante
+        // Lógica para que el CSS cuente una historia de "Buscando -> Encontrado"
+        function iniciarBucleDemo() {
+            const statusText = document.getElementById('demo-status-text');
+            const loadingBar = document.getElementById('demo-loading-bar');
+            const card1 = document.getElementById('demo-card-1');
+            const icon1 = document.getElementById('demo-icon-1');
+
+            if(!statusText) return;
+
+            // Se ejecuta cada 5 segundos
+            setInterval(() => {
+                
+                // --- FASE 1: Buscando (Dura 2 segundos) ---
+                statusText.innerText = "Analizando requerimiento...";
+                statusText.className = "text-[9px] font-black text-blue-600 uppercase tracking-widest mb-2 transition-colors duration-300";
+                
+                loadingBar.style.height = "6px";
+                loadingBar.style.opacity = "1";
+                loadingBar.style.marginBottom = "1rem";
+                
+                card1.className = "bg-white p-2.5 rounded-xl shadow-sm border border-slate-100 flex gap-3 items-center opacity-50 transition-all duration-500";
+                icon1.className = "w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] transition-colors duration-500 text-transparent";
+
+                // --- FASE 2: ¡Match! (Dura 3 segundos) ---
+                setTimeout(() => {
+                    statusText.innerText = "¡Especialista Encontrado!";
+                    statusText.className = "text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-2 transition-colors duration-300";
+                    
+                    // Ocultamos la barra
+                    loadingBar.style.height = "0px";
+                    loadingBar.style.opacity = "0";
+                    loadingBar.style.marginBottom = "0px";
+                    
+                    // Encendemos la tarjeta en verde
+                    card1.className = "bg-emerald-50 p-2.5 rounded-xl shadow-md border border-emerald-400 flex gap-3 items-center opacity-100 transform scale-[1.02] transition-all duration-500";
+                    icon1.className = "w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-[12px] transition-colors duration-500 text-white shadow-lg shadow-emerald-500/30";
+                }, 2000); // Entra a los 2 segundos
+
+            }, 5000); 
+        }
+
         function cerrarVideoDemo() {
             const videoWidget = document.getElementById('video-demo-widget');
-            
-            // Lo volvemos a deslizar hacia abajo
             videoWidget.classList.remove('translate-y-0', 'opacity-100');
             videoWidget.classList.add('translate-y-[150%]', 'opacity-0');
-            
-            // Guardamos en LocalStorage para no molestar al usuario en futuras visitas
             localStorage.setItem('videoDemoVisto', 'true');
-            
-            // Eliminamos el nodo del DOM después de la animación para limpiar
             setTimeout(() => videoWidget.remove(), 1000);
         }
     </script>
