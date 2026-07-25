@@ -18,6 +18,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Driver.js CSS para el Tour Guiado Premium -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
 
     <script>
         tailwind.config = {
@@ -121,7 +124,7 @@
                     Conectamos talento técnico independiente con clientes bajo un sistema de pago 100% protegido. El dinero solo se libera cuando apruebas el servicio.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                    <a href="{{ url_for('login', action='registro', rol='Cliente') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-lg shadow-blue-600/20 text-center transition flex items-center justify-center gap-2 active:scale-95">
+                    <a id="btn-buscar-talento" href="{{ url_for('login', action='registro', rol='Cliente') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-lg shadow-blue-600/20 text-center transition flex items-center justify-center gap-2 active:scale-95">
                         <i class="fas fa-search"></i> Buscar talento técnico
                     </a>
                     <a href="{{ url_for('login', action='registro', rol='Worker') }}" class="bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl text-center transition flex items-center justify-center gap-2 active:scale-95">
@@ -430,7 +433,7 @@
     </footer>
 
     <!-- ========================================== -->
-    <!-- 🛠 SCRIPTS (Carga inicial y Efecto 3D AI) -->
+    <!-- 🛠 SCRIPTS (Carga inicial, Efecto 3D AI y Tour Guiado) -->
     <!-- ========================================== -->
     <script>
         // 1. Script original del Splash Screen
@@ -481,6 +484,51 @@
                 if (coreLogo) coreLogo.style.transform = 'translateZ(0px) translateX(0px) translateY(0px)';
             });
         }
+    </script>
+    
+    <!-- 3. Script de Driver.js (Tour Guiado) -->
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const driver = window.driver.js.driver;
+
+            const tourLanding = driver({
+                showProgress: true,
+                nextBtnText: 'Siguiente ➔',
+                prevBtnText: '⬅ Atrás',
+                doneBtnText: 'Entendido',
+                overlayColor: 'rgba(15, 23, 42, 0.9)', 
+                
+                steps: [
+                    { 
+                      element: '#btn-buscar-talento', 
+                      popover: { 
+                        title: 'Empieza con inWorker', 
+                        description: 'Si necesitas un experto, crea tu cuenta aquí. Tu pago estará 100% protegido por nuestro sistema Escrow.', 
+                        side: "bottom", 
+                        align: 'start' 
+                      }
+                    },
+                    { 
+                      element: '#upward-ai-card', 
+                      popover: { 
+                        title: 'Tecnología Inteligente', 
+                        description: 'No pierdas tiempo buscando. Nuestra IA analiza tu requerimiento y te conecta con el perfil ideal en segundos.', 
+                        side: "left", 
+                        align: 'center' 
+                      }
+                    }
+                ]
+            });
+
+            // Esperamos a que pase el Splash Screen (2.5 segundos) para lanzar el tour
+            setTimeout(() => {
+                if (!localStorage.getItem('tourLandingCompletado')) {
+                    tourLanding.drive();
+                    localStorage.setItem('tourLandingCompletado', 'true');
+                }
+            }, 2500);
+        });
     </script>
 </body>
 </html>
