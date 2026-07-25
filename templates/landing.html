@@ -29,27 +29,46 @@
         }
     </script>
     <style>
-        /* Animación de la barra de carga inicial */
+        /* Animaciones base de la página */
         @keyframes loading { 0% { transform: scaleX(0); } 100% { transform: scaleX(1); } }
-        
-        /* Animaciones para la IA */
         @keyframes orbit { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .animate-orbit-slow { animation: orbit 20s linear infinite; }
         .animate-orbit-fast { animation: orbit 8s linear infinite reverse; }
         
-        /* Efecto 3D Interactivo Upward AI */
         .perspective-card { perspective: 1000px; }
         .tilt-element {
             transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
             transform-style: preserve-3d;
         }
 
-        /* Animación personalizada para el Widget Flotante CSS */
-        @keyframes scan {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(300%); }
+        /* ==================================================== */
+        /* MAGIA DEL NUEVO WIDGET: Mini-Réplica de la Landing   */
+        /* ==================================================== */
+        
+        /* 1. Movimiento del cursor falso */
+        @keyframes moveCursor {
+            0%   { transform: translate(120px, 80px); opacity: 0; }
+            10%  { opacity: 1; }
+            40%  { transform: translate(15px, 8px); } /* Se posiciona sobre el botón azul */
+            45%  { transform: translate(15px, 8px) scale(0.85); } /* Efecto de clic pulsado */
+            50%  { transform: translate(15px, 8px) scale(1); }
+            80%  { transform: translate(15px, 8px); opacity: 0; } /* Desaparece tras abrir el modal */
+            100% { transform: translate(120px, 80px); opacity: 0; }
         }
-        .animate-scan { animation: scan 1.5s linear infinite; }
+
+        /* 2. El botón falso se hunde al hacerle clic */
+        @keyframes clickButton {
+            0%, 43% { transform: scale(1); background-color: #2563eb; } 
+            45%, 48% { transform: scale(0.92); background-color: #1d4ed8; } /* Clic presionado */
+            50%, 100% { transform: scale(1); background-color: #2563eb; }
+        }
+
+        /* 3. Aparece el modal de registro falso */
+        @keyframes showModal {
+            0%, 48% { opacity: 0; transform: scale(0.9) translateY(10px); pointer-events: none; }
+            52%, 85% { opacity: 1; transform: scale(1) translateY(0); pointer-events: auto; }
+            100% { opacity: 0; transform: scale(0.9) translateY(10px); pointer-events: none; }
+        }
     </style>
 </head>
 <body class="bg-white text-slate-900 font-sans antialiased min-h-screen overflow-x-hidden">
@@ -337,16 +356,6 @@
                                 <span class="text-blue-400 text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 26% de Comisión</span>
                             </div>
                         </div>
-
-                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex gap-4 items-start">
-                            <div class="w-8 h-8 rounded-xl bg-slate-900 text-amber-400 border border-slate-800 flex items-center justify-center shrink-0 shadow-inner">
-                                <i class="fas fa-crown text-xs"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-black text-[13px] text-white">3. Director Regional</h4>
-                                <span class="text-amber-400 text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 30% de Comisión</span>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="pt-2 relative z-10">
@@ -372,57 +381,71 @@
     </footer>
 
     <!-- ========================================== -->
-    <!-- 🎥 WIDGET DE VIDEO DEMO FLOTANTE CON ANIMACIÓN INTELIGENTE -->
+    <!-- 🎯 WIDGET: RÉPLICA EXACTA DE LA LANDING (ONBOARDING) -->
     <!-- ========================================== -->
     <div id="video-demo-widget" class="fixed bottom-6 right-6 z-[9999] w-72 md:w-80 bg-slate-900 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-slate-700/50 overflow-hidden transform translate-y-[150%] opacity-0 transition-all duration-1000 cubic-bezier(0.16, 1, 0.3, 1)">
         
-        <!-- Cabecera -->
+        <!-- Cabecera del Widget -->
         <div class="px-4 py-2.5 bg-slate-800/80 backdrop-blur-sm flex justify-between items-center border-b border-slate-700/50">
             <span class="text-[10px] text-slate-300 font-bold uppercase tracking-widest flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span> 
-                inWorker en Acción
+                CÓMO REGISTRARSE
             </span>
             <button onclick="cerrarVideoDemo()" class="text-slate-400 hover:text-white transition-colors duration-200">
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
 
-        <!-- Contenedor del Mockup -->
-        <div class="relative bg-slate-50 aspect-video w-full overflow-hidden p-4 font-sans flex flex-col justify-center">
+        <!-- Contenedor del Mockup Interactivo -->
+        <div class="relative bg-white aspect-video w-full overflow-hidden p-4 font-sans flex flex-col justify-center">
             
-            <!-- Texto de Estado Dinámico -->
-            <div id="demo-status-text" class="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-2 transition-colors duration-300">
-                Analizando requerimiento...
+            <!-- Barra superior del "navegador web" falso -->
+            <div class="absolute top-2 left-3 flex gap-1.5 opacity-50">
+                <div class="w-1.5 h-1.5 rounded-full bg-red-400"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
             </div>
 
-            <!-- Animación de barra que desaparece al hacer match -->
-            <div id="demo-loading-bar" class="w-full h-1.5 bg-slate-200 rounded-full mb-4 relative overflow-hidden transition-all duration-300">
-                <div class="absolute top-0 bottom-0 left-0 bg-blue-500 w-1/3 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)] animate-scan"></div>
+            <!-- Mini Logo -->
+            <div class="w-12 h-2.5 bg-slate-200 rounded mb-4 mt-2"></div>
+            
+            <!-- Mini H1 (Titular principal) -->
+            <div class="w-4/5 h-4 bg-slate-800 rounded mb-1.5"></div>
+            <div class="w-3/5 h-4 bg-slate-800 rounded mb-3"></div>
+            
+            <!-- Mini P (Texto descriptivo) -->
+            <div class="w-full h-1.5 bg-slate-200 rounded mb-1"></div>
+            <div class="w-11/12 h-1.5 bg-slate-200 rounded mb-4"></div>
+
+            <!-- Los Botones de la Landing -->
+            <div class="flex gap-2 relative z-10 w-full">
+                
+                <!-- Botón Cliente (Azul - El que recibe el clic animado) -->
+                <div class="w-20 h-5 rounded shadow-sm flex items-center justify-center transition-all" style="animation: clickButton 6s infinite;">
+                    <div class="w-3 h-0.5 bg-white rounded-full opacity-80"></div>
+                </div>
+
+                <!-- Botón Especialista (Gris) -->
+                <div class="w-20 h-5 border border-slate-300 rounded flex items-center justify-center bg-white">
+                    <div class="w-3 h-0.5 bg-slate-400 rounded-full opacity-80"></div>
+                </div>
+
+                <!-- El Ratón Falso que hace la acción -->
+                <div class="absolute left-0 top-0 text-slate-800 text-lg drop-shadow-md z-30" style="animation: moveCursor 6s infinite;">
+                    <i class="fas fa-mouse-pointer"></i>
+                </div>
             </div>
 
-            <div class="space-y-2 relative">
-                <!-- Tarjeta Principal (La que hará el Match) -->
-                <div id="demo-card-1" class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-100 flex gap-3 items-center opacity-50 transition-all duration-500">
-                    <div id="demo-icon-1" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] transition-colors duration-500 text-transparent">
-                        <i class="fas fa-check"></i>
-                    </div>
-                    <div class="space-y-1.5 flex-1">
-                        <div class="w-full h-2 bg-slate-200 rounded-full"></div>
-                        <div class="w-1/2 h-2 bg-slate-100 rounded-full"></div>
-                    </div>
+            <!-- Overlay del Formulario de Registro (Aparece al hacer clic) -->
+            <div class="absolute inset-0 bg-slate-900/20 backdrop-blur-[1px] flex items-center justify-center z-20" style="animation: showModal 6s infinite;">
+                <div class="bg-white p-3 rounded-lg shadow-xl border border-slate-200 w-3/4 transform scale-100 flex flex-col items-center">
+                    <div class="w-1/2 h-2 bg-slate-800 rounded mb-3"></div>
+                    <div class="w-full h-3 border border-slate-200 rounded mb-1.5"></div>
+                    <div class="w-full h-3 border border-slate-200 rounded mb-3"></div>
+                    <div class="w-full h-4 bg-blue-600 rounded"></div>
                 </div>
-                
-                <!-- Tarjeta Fondo -->
-                <div class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-100 flex gap-3 items-center opacity-30">
-                    <div class="w-8 h-8 rounded-full bg-slate-100"></div>
-                    <div class="space-y-1.5 flex-1">
-                        <div class="w-3/4 h-2 bg-slate-200 rounded-full"></div>
-                        <div class="w-1/3 h-2 bg-slate-100 rounded-full"></div>
-                    </div>
-                </div>
-                
-                <div class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-slate-50 to-transparent"></div>
             </div>
+
         </div>
     </div>
 
@@ -473,62 +496,19 @@
             });
         }
 
-        // 3. Controlador del Widget Flotante Premium
+        // 3. Controlador de entrada del Widget 
         document.addEventListener('DOMContentLoaded', function () {
+            // Entra a los 3 segundos
             setTimeout(() => {
                 const videoWidget = document.getElementById('video-demo-widget');
-                
                 if (videoWidget && !localStorage.getItem('videoDemoVisto')) {
                     videoWidget.classList.remove('translate-y-[150%]', 'opacity-0');
                     videoWidget.classList.add('translate-y-0', 'opacity-100');
-                    
-                    // Iniciamos la animación cíclica en cuanto el widget entra a pantalla
-                    iniciarBucleDemo();
                 }
             }, 3000); 
         });
 
-        // Lógica para que el CSS cuente una historia de "Buscando -> Encontrado"
-        function iniciarBucleDemo() {
-            const statusText = document.getElementById('demo-status-text');
-            const loadingBar = document.getElementById('demo-loading-bar');
-            const card1 = document.getElementById('demo-card-1');
-            const icon1 = document.getElementById('demo-icon-1');
-
-            if(!statusText) return;
-
-            // Se ejecuta cada 5 segundos
-            setInterval(() => {
-                
-                // --- FASE 1: Buscando (Dura 2 segundos) ---
-                statusText.innerText = "Analizando requerimiento...";
-                statusText.className = "text-[9px] font-black text-blue-600 uppercase tracking-widest mb-2 transition-colors duration-300";
-                
-                loadingBar.style.height = "6px";
-                loadingBar.style.opacity = "1";
-                loadingBar.style.marginBottom = "1rem";
-                
-                card1.className = "bg-white p-2.5 rounded-xl shadow-sm border border-slate-100 flex gap-3 items-center opacity-50 transition-all duration-500";
-                icon1.className = "w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] transition-colors duration-500 text-transparent";
-
-                // --- FASE 2: ¡Match! (Dura 3 segundos) ---
-                setTimeout(() => {
-                    statusText.innerText = "¡Especialista Encontrado!";
-                    statusText.className = "text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-2 transition-colors duration-300";
-                    
-                    // Ocultamos la barra
-                    loadingBar.style.height = "0px";
-                    loadingBar.style.opacity = "0";
-                    loadingBar.style.marginBottom = "0px";
-                    
-                    // Encendemos la tarjeta en verde
-                    card1.className = "bg-emerald-50 p-2.5 rounded-xl shadow-md border border-emerald-400 flex gap-3 items-center opacity-100 transform scale-[1.02] transition-all duration-500";
-                    icon1.className = "w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-[12px] transition-colors duration-500 text-white shadow-lg shadow-emerald-500/30";
-                }, 2000); // Entra a los 2 segundos
-
-            }, 5000); 
-        }
-
+        // Función para cerrar el widget 
         function cerrarVideoDemo() {
             const videoWidget = document.getElementById('video-demo-widget');
             videoWidget.classList.remove('translate-y-0', 'opacity-100');
