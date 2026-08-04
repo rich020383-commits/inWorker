@@ -107,21 +107,21 @@
             <div class="space-y-6 max-w-2xl relative z-10 text-center md:text-left">
                 
                 <div class="inline-block text-center text-blue-600 text-[10px] font-black uppercase tracking-widest bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl md:rounded-full border border-blue-100 shadow-sm leading-snug">
-                    <i class="fas fa-map-marker-alt mr-1"></i> El marketplace de servicios definitivo en Colombia
+                    <i class="fas fa-map-marker-alt mr-1"></i> Fase Beta: El marketplace de servicios de Colombia
                 </div>
                 
                 <h1 class="text-4xl md:text-[3.5rem] font-black text-slate-900 tracking-tight leading-[1.05]">
-                    <span class="text-blue-600">in</span>Worker:<br>Trabaja y contrata con <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">total confianza.</span>
+                    Contrata técnicos, plomeros y<br>expertos de confianza. Tu dinero <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">100% seguro.</span>
                 </h1>
                 <p class="text-base text-slate-500 font-medium leading-relaxed">
-                    Conectamos talento técnico independiente con clientes bajo un sistema de pago 100% protegido. El dinero solo se libera cuando apruebas el servicio.
+                    El primer marketplace en Colombia donde acuerdas el trabajo por chat y el pago se protege en garantía hasta que el servicio está terminado. Sin adelantos riesgosos, sin clientes fantasma.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                    <a id="btn-buscar-talento" href="{{ url_for('login', action='registro', rol='Cliente') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-[0_8px_30px_rgba(37,99,235,0.25)] text-center transition flex items-center justify-center gap-2 active:scale-95">
-                        <i class="fas fa-search"></i> Buscar talento técnico
+                    <a id="btn-buscar-talento" href="https://wa.me/573126427856?text=Hola,%20quiero%20solicitar%20un%20servicio%20en%20inWorker%20(Beta)" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-[0_8px_30px_rgba(37,99,235,0.25)] text-center transition flex items-center justify-center gap-2 active:scale-95">
+                        <i class="fas fa-search"></i> Solicitar un servicio (Beta)
                     </a>
-                    <a href="{{ url_for('login', action='registro', rol='Worker') }}" class="bg-white/80 backdrop-blur-sm border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-sm text-center transition flex items-center justify-center gap-2 active:scale-95">
-                        <i class="fas fa-tools text-emerald-500"></i> Ofrecer mis servicios
+                    <a href="https://wa.me/573126427856?text=Hola,%20quiero%20unirme%20como%20profesional%20a%20inWorker%20(Beta)" target="_blank" class="bg-white/80 backdrop-blur-sm border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-sm text-center transition flex items-center justify-center gap-2 active:scale-95">
+                        <i class="fas fa-tools text-emerald-500"></i> Únete como profesional
                     </a>
                 </div>
                 
@@ -163,15 +163,15 @@
                             <div class="flex sm:flex-col gap-4 sm:gap-1.5 items-start">
                                 <div class="w-7 h-7 md:w-6 md:h-6 rounded-full bg-blue-600 text-white text-[11px] md:text-[10px] font-black flex items-center justify-center shrink-0 shadow-md">1</div>
                                 <div>
-                                    <h4 class="font-bold text-slate-800 text-[14px] md:text-[13px] mb-1">Publica tu necesidad</h4>
-                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Describe detalladamente el servicio o proyecto que requieres.</p>
+                                    <h4 class="font-bold text-slate-800 text-[14px] md:text-[13px] mb-1">Pacta el trabajo</h4>
+                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Describe detalladamente el servicio, condiciones y precio acordado.</p>
                                 </div>
                             </div>
                             <div class="flex sm:flex-col gap-4 sm:gap-1.5 items-start">
                                 <div class="w-7 h-7 md:w-6 md:h-6 rounded-full bg-blue-600 text-white text-[11px] md:text-[10px] font-black flex items-center justify-center shrink-0 shadow-md">2</div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-[14px] md:text-[13px] mb-1">Depósito seguro</h4>
-                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Tu pago queda retenido de forma segura mediante sistema Escrow.</p>
+                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Tu pago queda retenido de forma segura en garantía (Escrow).</p>
                                 </div>
                             </div>
                             <div class="flex sm:flex-col gap-4 sm:gap-1.5 items-start">
@@ -193,22 +193,22 @@
                             <div class="flex sm:flex-col gap-4 sm:gap-1.5 items-start">
                                 <div class="w-7 h-7 md:w-6 md:h-6 rounded-full bg-emerald-500 text-white text-[11px] md:text-[10px] font-black flex items-center justify-center shrink-0 shadow-md">1</div>
                                 <div>
-                                    <h4 class="font-bold text-slate-800 text-[14px] md:text-[13px] mb-1">Verifica tu identidad</h4>
-                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Sube tu cédula y validación facial para ganar credibilidad.</p>
+                                    <h4 class="font-bold text-slate-800 text-[14px] md:text-[13px] mb-1">Únete a la red</h4>
+                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Supera nuestro proceso de verificación manual de confianza.</p>
                                 </div>
                             </div>
                             <div class="flex sm:flex-col gap-4 sm:gap-1.5 items-start">
                                 <div class="w-7 h-7 md:w-6 md:h-6 rounded-full bg-emerald-500 text-white text-[11px] md:text-[10px] font-black flex items-center justify-center shrink-0 shadow-md">2</div>
                                 <div>
-                                    <h4 class="font-bold text-slate-800 text-[14px] md:text-[13px] mb-1">Muestra tu portafolio</h4>
-                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Carga fotos de trabajos previos para atraer clientes premium.</p>
+                                    <h4 class="font-bold text-slate-800 text-[14px] md:text-[13px] mb-1">Acuerda detalles</h4>
+                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Define costos y tiempos exactos con el cliente antes de arrancar.</p>
                                 </div>
                             </div>
                             <div class="flex sm:flex-col gap-4 sm:gap-1.5 items-start">
                                 <div class="w-7 h-7 md:w-6 md:h-6 rounded-full bg-emerald-500 text-white text-[11px] md:text-[10px] font-black flex items-center justify-center shrink-0 shadow-md">3</div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-[14px] md:text-[13px] mb-1">Trabaja con garantía</h4>
-                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Inicia labores sabiendo que el pago ya está respaldado.</p>
+                                    <p class="text-[12px] md:text-[11px] text-slate-500 font-medium leading-relaxed">Inicia labores sabiendo que el pago del cliente ya está respaldado.</p>
                                 </div>
                             </div>
                         </div>
@@ -216,44 +216,15 @@
                 </div>
             </div>
 
-            <!-- Métricas y Testimonios -->
-            <div class="space-y-8 bg-white/60 backdrop-blur-md border border-slate-200/80 rounded-3xl p-8 shadow-sm">
-                <div class="space-y-1 text-center sm:text-left">
-                    <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block">Confianza que se demuestra</span>
-                    <h2 class="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Miles de proyectos completados con éxito en la plataforma</h2>
+            <!-- Fase Beta: Transparencia -->
+            <div class="space-y-6 bg-blue-50/50 border border-blue-100 rounded-3xl p-8 shadow-sm text-center">
+                <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-handshake text-xl"></i>
                 </div>
-                
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-4 text-center sm:text-left">
-                    <div>
-                        <div class="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">12K<span class="text-blue-500">+</span></div>
-                        <div class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wide">Proyectos Completados</div>
-                    </div>
-                    <div>
-                        <div class="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">7K<span class="text-emerald-500">+</span></div>
-                        <div class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wide">Profesionales Verificados</div>
-                    </div>
-                    <div>
-                        <div class="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">98<span class="text-amber-500">%</span></div>
-                        <div class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wide">Clientes Satisfechos</div>
-                    </div>
-                    <div>
-                        <div class="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">100<span class="text-purple-500">%</span></div>
-                        <div class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wide">Pagos Protegidos</div>
-                    </div>
-                </div>
-
-                <div class="pt-6 border-t border-slate-200/80 flex items-start gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                    <img src="https://ui-avatars.com/api/?name=Juan+Esteban&background=0D8ABC&color=fff" class="w-10 h-10 rounded-full shrink-0" alt="Avatar">
-                    <div>
-                        <div class="flex gap-0.5 text-xs text-amber-400 mb-1">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
-                        <p class="text-xs text-slate-600 font-medium italic mb-2">
-                            "Encontré al desarrollador perfecto para mi proyecto en menos de 24 horas. El sistema Escrow me dio total tranquilidad."
-                        </p>
-                        <h4 class="text-[11px] font-black text-slate-900">Juan Esteban M. <span class="text-slate-400 font-normal">| CEO, StartupTech</span></h4>
-                    </div>
-                </div>
+                <h2 class="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Únete a nuestra Fase Beta Privada</h2>
+                <p class="text-sm text-slate-600 font-medium max-w-xl mx-auto leading-relaxed">
+                    Estamos construyendo la comunidad de oficios más segura de Colombia. En esta fase inicial de validación, estamos conectando a nuestros primeros clientes con técnicos de absoluta confianza para garantizar un servicio impecable. Sé de los primeros en experimentar contrataciones sin estrés y con pagos 100% protegidos.
+                </p>
             </div>
 
         </div>
@@ -266,10 +237,10 @@
             <!-- 🤖 SECCIÓN UPWARD AI -->
             <div class="space-y-6 lg:sticky lg:top-28">
                 <div class="space-y-2 text-center md:text-left">
-                    <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block bg-blue-50/80 inline-block px-3 py-1 rounded-md border border-blue-100">Tecnología de vanguardia</span>
+                    <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block bg-blue-50/80 inline-block px-3 py-1 rounded-md border border-blue-100">Tecnología en Desarrollo</span>
                     <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Potenciado por <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Upward AI</span></h2>
                     <p class="text-xs text-slate-500 font-medium leading-relaxed">
-                        Nuestro sistema utiliza algoritmos avanzados de Inteligencia Artificial para ejecutar un matching automático inteligente. Analizamos las habilidades del técnico y los requerimientos exactos del cliente para conectarte con el perfil perfecto en segundos.
+                        Nuestro sistema conectará inteligentemente a técnicos verificados con los requerimientos exactos de los clientes. Actualmente operamos con un sistema de emparejamiento asistido para asegurar la máxima calidad en esta fase Beta.
                     </p>
                 </div>
 
@@ -299,81 +270,12 @@
                             <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-lg shadow-lg shadow-amber-500/20 mx-auto md:mx-0 mb-2">
                                 <i class="fas fa-bolt"></i>
                             </div>
-                            <h4 class="font-black text-xs uppercase tracking-widest text-slate-300">Matching Automático</h4>
+                            <h4 class="font-black text-xs uppercase tracking-widest text-slate-300">Conexión Inteligente</h4>
                             <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Preciso, rápido y confiable</p>
                         </div>
                     </div>
                 </div>
-
-                <!-- 👑 SECCIÓN PROGRAMA FUNDADOR -->
-                <div class="bg-slate-900 border border-indigo-500/20 rounded-[2rem] p-6 md:p-8 text-white shadow-2xl relative overflow-hidden space-y-6 mt-8">
-                    <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-600/20 rounded-full blur-[80px] pointer-events-none"></div>
-
-                    <div class="space-y-3 relative z-10 text-center md:text-left">
-                        <div class="inline-block bg-indigo-500/20 border border-indigo-400/20 text-indigo-300 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
-                            Convocatoria Limitada: 1er Año
-                        </div>
-                        <h2 class="text-2xl font-black tracking-tight leading-tight">Programa Fundador de <span class="text-indigo-400">Expansión</span></h2>
-                        <p class="text-xs text-slate-400 font-medium leading-relaxed">
-                            No seas solo un usuario. Conviértete en Socio de Crecimiento y gana hasta un 30% de comisiones por los servicios de tu red.
-                        </p>
-                        <div class="inline-flex items-center justify-center md:justify-start gap-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-bold px-3 py-1 rounded-full w-full md:w-auto mt-2">
-                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span> Economía Real • Cero esquemas piramidales
-                        </div>
-                    </div>
-
-                    <div class="space-y-3 pt-2 relative z-10">
-                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex gap-4 items-center md:items-start">
-                            <div class="w-10 h-10 md:w-8 md:h-8 rounded-xl bg-slate-900 text-emerald-400 border border-slate-800 flex items-center justify-center shrink-0 shadow-inner">
-                                <i class="fas fa-seedling text-sm md:text-xs"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-black text-[14px] md:text-[13px] text-white">1. Embajador</h4>
-                                <span class="text-emerald-400 text-[11px] md:text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 21% de Comisión</span>
-                                <p class="text-[10px] text-slate-400 font-medium leading-relaxed hidden md:block">Construye tu red. Gana comisiones por los primeros 100 servicios de tus referidos.</p>
-                            </div>
-                        </div>
-
-                        <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 flex gap-4 items-center md:items-start relative shadow-lg shadow-indigo-900/20">
-                            <span class="absolute -top-2 right-4 bg-blue-600 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full shadow-sm">Más Popular</span>
-                            <div class="w-10 h-10 md:w-8 md:h-8 rounded-xl bg-indigo-900 text-blue-400 border border-indigo-500/30 flex items-center justify-center shrink-0 shadow-inner">
-                                <i class="fas fa-rocket text-sm md:text-xs"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-black text-[14px] md:text-[13px] text-white">2. Líder <span class="text-blue-400">in</span>Worker</h4>
-                                <span class="text-blue-400 text-[11px] md:text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 26% de Comisión</span>
-                                <p class="text-[10px] text-slate-300 font-medium leading-relaxed hidden md:block">Supera los 100 servicios en tu red y accede a multiplicadores de ganancias.</p>
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex gap-4 items-center md:items-start">
-                            <div class="w-10 h-10 md:w-8 md:h-8 rounded-xl bg-slate-900 text-amber-400 border border-slate-800 flex items-center justify-center shrink-0 shadow-inner">
-                                <i class="fas fa-crown text-sm md:text-xs"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-black text-[14px] md:text-[13px] text-white">3. Director Regional</h4>
-                                <span class="text-amber-400 text-[11px] md:text-[10px] uppercase tracking-wide font-black block mb-1">Hasta 30% de Comisión</span>
-                                <p class="text-[10px] text-slate-400 font-medium leading-relaxed hidden md:block">Alcanza 1.000 servicios. Domina tu región con la mayor rentabilidad del sistema.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex gap-3 items-start relative z-10">
-                        <i class="fas fa-hourglass-half text-amber-500 text-sm mt-0.5 hidden md:block"></i>
-                        <div class="text-center md:text-left w-full md:w-auto">
-                            <h5 class="text-[10px] font-black text-amber-500 uppercase tracking-wide">El tiempo corre, fundador</h5>
-                            <p class="text-[10px] text-amber-100/70 font-medium leading-relaxed mt-1">
-                                El estatus de "Programa Fundador" se clausurará permanentemente al finalizar el primer año. Quienes ingresen ahora, conservarán sus comisiones VIP de por vida.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="pt-4 relative z-10">
-                        <a href="{{ url_for('login', action='registro') }}" class="block w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-[12px] md:text-[11px] uppercase tracking-widest py-4 md:py-3 rounded-xl shadow-[0_8px_20px_rgba(245,158,11,0.2)] active:scale-95 transition text-center">
-                            Reclamar código hoy
-                        </a>
-                    </div>
-                </div>
+                
             </div>
         </div>
     </main>
