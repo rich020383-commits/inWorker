@@ -230,16 +230,16 @@
                     </p>
                 </div>
 
-                <!-- Contenedor Limpio Premium para el Logo de Upway -->
-                <div class="w-full bg-slate-50 border border-slate-200 rounded-[2rem] p-10 shadow-inner flex flex-col items-center justify-center relative overflow-hidden group hover:bg-slate-100 transition duration-300">
+                <!-- Contenedor Oscuro Premium para el Logo Original -->
+                <div class="w-full bg-black border border-slate-800 rounded-[2rem] p-10 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden group hover:border-slate-700 transition duration-300">
                     
-                    <!-- Efecto de luz sutil en el fondo -->
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <!-- Efecto de luz sutil azulada al pasar el mouse -->
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.15)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
                     
-                    <!-- 🎯 AQUÍ SE CARGA EL LOGO OFICIAL -->
-                    <img src="{{ url_for('static', filename='img/upway-logo.png') }}" alt="Logo Upway" class="relative z-10 h-16 md:h-20 w-auto object-contain transition-transform duration-500 group-hover:scale-105 filter drop-shadow-sm">
+                    <!-- 🎯 AQUÍ SE CARGA EL LOGO OFICIAL CON FONDO NEGRO -->
+                    <img src="{{ url_for('static', filename='img/upway-logo.png') }}" alt="Logo Upway" class="relative z-10 h-20 md:h-24 w-auto object-contain transition-transform duration-500 group-hover:scale-105">
                     
-                    <div class="relative z-10 mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <div class="relative z-10 mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-blue-400 transition-colors duration-300">
                         <i class="fas fa-microchip"></i> Motor de emparejamiento
                     </div>
                 </div>
