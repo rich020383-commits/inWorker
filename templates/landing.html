@@ -229,55 +229,30 @@
 
         </div>
 
-        <!-- ========================================== -->
-        <!-- COLUMNA DERECHA (5/12) -->
-        <!-- ========================================== -->
-        <div class="lg:col-span-5 space-y-8">
-            
-            <!-- 🤖 SECCIÓN UPWARD AI -->
+        <!-- 🤖 SECCIÓN UPWAY -->
             <div class="space-y-6 lg:sticky lg:top-28">
                 <div class="space-y-2 text-center md:text-left">
                     <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block bg-blue-50/80 inline-block px-3 py-1 rounded-md border border-blue-100">Tecnología en Desarrollo</span>
-                    <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Potenciado por <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Upward AI</span></h2>
+                    <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Potenciado por <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Upway</span></h2>
                     <p class="text-xs text-slate-500 font-medium leading-relaxed">
-                        Nuestro sistema conectará inteligentemente a técnicos verificados con los requerimientos exactos de los clientes. Actualmente operamos con un sistema de emparejamiento asistido para asegurar la máxima calidad en esta fase Beta.
+                        Nuestro ecosistema integrará la tecnología de Upway para conectar inteligentemente a técnicos verificados con los requerimientos exactos de los clientes. Actualmente operamos con un sistema de emparejamiento asistido por nuestro equipo para asegurar la máxima calidad en esta fase Beta.
                     </p>
                 </div>
 
-                <!-- 🔮 Tarjeta Holográfica Interactiva -->
-                <div class="perspective-card w-full">
-                    <div id="upward-ai-card" class="tilt-element bg-slate-950 rounded-[2rem] p-6 shadow-2xl relative overflow-hidden border border-slate-800 grid grid-cols-1 sm:grid-cols-12 gap-6 cursor-crosshair">
-                        
-                        <div id="card-glow" class="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-0 bg-[radial-gradient(circle_at_var(--x)_var(--y),rgba(59,130,246,0.25)_0%,transparent_50%)]"></div>
-                        
-                        <div class="sm:col-span-7 h-48 bg-slate-900/50 rounded-2xl border border-slate-800/80 flex items-center justify-center relative overflow-hidden shadow-inner">
-                            <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:16px_16px]"></div>
-                            
-                            <div class="animate-orbit-slow absolute w-36 h-36 border border-dashed border-blue-500/20 rounded-full flex items-center justify-center">
-                                <div class="w-2 h-2 bg-blue-400 rounded-full absolute -top-1 shadow-[0_0_8px_#3b82f6]"></div>
-                            </div>
-                            <div class="animate-orbit-fast absolute w-24 h-24 border border-dashed border-emerald-500/30 rounded-full flex items-center justify-center">
-                                <div class="w-1.5 h-1.5 bg-emerald-400 rounded-full absolute -bottom-1 shadow-[0_0_8px_#10b981]"></div>
-                            </div>
-                            
-                            <div id="ai-core-logo" class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-xl shadow-blue-500/30 border border-white/10 relative z-10 transition-transform duration-100 ease-out">
-                                <span class="text-white font-black text-2xl select-none filter drop-shadow">in</span>
-                                <div class="absolute inset-0 rounded-2xl bg-blue-400/20 animate-pulse"></div>
-                            </div>
-                        </div>
-
-                        <div class="sm:col-span-5 flex flex-col justify-center space-y-2 text-white relative z-10 select-none text-center md:text-left mt-4 md:mt-0">
-                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-lg shadow-lg shadow-amber-500/20 mx-auto md:mx-0 mb-2">
-                                <i class="fas fa-bolt"></i>
-                            </div>
-                            <h4 class="font-black text-xs uppercase tracking-widest text-slate-300">Conexión Inteligente</h4>
-                            <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Preciso, rápido y confiable</p>
-                        </div>
+                <!-- Contenedor Limpio Premium para el Logo de Upway -->
+                <div class="w-full bg-slate-50 border border-slate-200 rounded-[2rem] p-10 shadow-inner flex flex-col items-center justify-center relative overflow-hidden group hover:bg-slate-100 transition duration-300">
+                    
+                    <!-- Efecto de luz sutil en el fondo -->
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    
+                    <!-- 🎯 AQUÍ SE CARGA EL LOGO OFICIAL -->
+                    <img src="{{ url_for('static', filename='img/upway-logo.png') }}" alt="Logo Upway" class="relative z-10 h-16 md:h-20 w-auto object-contain transition-transform duration-500 group-hover:scale-105 filter drop-shadow-sm">
+                    
+                    <div class="relative z-10 mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        <i class="fas fa-microchip"></i> Motor de emparejamiento
                     </div>
                 </div>
-                
             </div>
-        </div>
     </main>
 
     <!-- ========================================== -->
