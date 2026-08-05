@@ -31,18 +31,6 @@
     <style>
         /* Animación de la barra de carga inicial */
         @keyframes loading { 0% { transform: scaleX(0); } 100% { transform: scaleX(1); } }
-        
-        /* Animaciones para la IA */
-        @keyframes orbit { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .animate-orbit-slow { animation: orbit 20s linear infinite; }
-        .animate-orbit-fast { animation: orbit 8s linear infinite reverse; }
-        
-        /* Efecto 3D Interactivo Upward AI */
-        .perspective-card { perspective: 1000px; }
-        .tilt-element {
-            transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
-            transform-style: preserve-3d;
-        }
     </style>
 </head>
 <body class="bg-white text-slate-900 font-sans antialiased min-h-screen overflow-x-hidden relative">
@@ -61,11 +49,9 @@
     <!-- 🚀 SPLASH SCREEN FINAL (Blanco Premium) -->
     <!-- ========================================== -->
     <div id="splash-screen" class="fixed inset-0 z-[99999] flex flex-col items-center justify-center text-slate-900 transition-opacity duration-1000 bg-white overflow-hidden">
-        
         <div class="flex flex-col items-center justify-center animate-pulse mb-8">
             <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-24 w-auto object-contain mb-4">
         </div>
-
         <div class="absolute bottom-20 w-48 h-1 bg-slate-100 rounded-full overflow-hidden shadow-sm">
             <div class="h-full bg-blue-600 w-full animate-[loading_2s_ease-in-out] origin-left"></div>
         </div>
@@ -229,7 +215,12 @@
 
         </div>
 
-        <!-- 🤖 SECCIÓN UPWAY -->
+        <!-- ========================================== -->
+        <!-- COLUMNA DERECHA (5/12) -->
+        <!-- ========================================== -->
+        <div class="lg:col-span-5 space-y-8">
+            
+            <!-- 🤖 SECCIÓN UPWAY -->
             <div class="space-y-6 lg:sticky lg:top-28">
                 <div class="space-y-2 text-center md:text-left">
                     <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block bg-blue-50/80 inline-block px-3 py-1 rounded-md border border-blue-100">Tecnología en Desarrollo</span>
@@ -253,10 +244,12 @@
                     </div>
                 </div>
             </div>
+            
+        </div>
     </main>
 
     <!-- ========================================== -->
-    <!-- 🏢 FOOTER (Completo e intacto) -->
+    <!-- 🏢 FOOTER -->
     <!-- ========================================== -->
     <footer class="bg-white/80 backdrop-blur-md border-t border-slate-200 mt-12 pt-16 pb-8 relative z-10">
         <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center md:items-start gap-8">
@@ -309,38 +302,6 @@
                 }
             }, 1800); 
         });
-
-        // 2. Interfaz 3D de Upward AI
-        const aiCard = document.getElementById('upward-ai-card');
-        const glow = document.getElementById('card-glow');
-        const coreLogo = document.getElementById('ai-core-logo');
-
-        if (aiCard && glow) {
-            aiCard.addEventListener('mousemove', (e) => {
-                const rect = aiCard.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                glow.style.setProperty('--x', `${x}px`);
-                glow.style.setProperty('--y', `${y}px`);
-                glow.style.opacity = '1';
-
-                const rotateX = ((y - rect.height / 2) / (rect.height / 2)) * -10; 
-                const rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 10;
-
-                aiCard.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-                aiCard.style.boxShadow = '0 25px 50px -12px rgba(59, 130, 246, 0.25)';
-                
-                if (coreLogo) coreLogo.style.transform = `translateZ(40px) translateX(${rotateY * 0.8}px) translateY(${rotateX * -0.8}px)`;
-            });
-
-            aiCard.addEventListener('mouseleave', () => {
-                glow.style.opacity = '0';
-                aiCard.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
-                aiCard.style.boxShadow = 'none';
-                if (coreLogo) coreLogo.style.transform = 'translateZ(0px) translateX(0px) translateY(0px)';
-            });
-        }
     </script>
 </body>
 </html>
