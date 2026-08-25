@@ -103,10 +103,11 @@
                     El primer marketplace en Colombia donde acuerdas el trabajo por chat y el pago se protege en garantía hasta que el servicio está terminado. Sin adelantos riesgosos, sin clientes fantasma.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                    <a id="btn-buscar-talento" href="https://wa.me/573126427856?text=Hola,%20quiero%20solicitar%20un%20servicio%20en%20inWorker%20(Beta)" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-[0_8px_30px_rgba(37,99,235,0.25)] text-center transition flex items-center justify-center gap-2 active:scale-95">
+                    <!-- BOTONES CORREGIDOS AL PANEL -->
+                    <a id="btn-buscar-talento" href="{{ url_for('login', action='registro', rol='Cliente') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-[0_8px_30px_rgba(37,99,235,0.25)] text-center transition flex items-center justify-center gap-2 active:scale-95">
                         <i class="fas fa-search"></i> Solicitar un servicio (Beta)
                     </a>
-                    <a href="https://wa.me/573126427856?text=Hola,%20quiero%20unirme%20como%20profesional%20a%20inWorker%20(Beta)" target="_blank" class="bg-white/80 backdrop-blur-sm border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-sm text-center transition flex items-center justify-center gap-2 active:scale-95">
+                    <a href="{{ url_for('login', action='registro', rol='Worker') }}" class="bg-white/80 backdrop-blur-sm border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-black text-[11px] uppercase tracking-wider px-6 py-4 rounded-xl shadow-sm text-center transition flex items-center justify-center gap-2 active:scale-95">
                         <i class="fas fa-tools text-emerald-500"></i> Únete como profesional
                     </a>
                 </div>
@@ -213,6 +214,32 @@
                 </p>
             </div>
 
+            <!-- NUEVO BANNER: ASISTENCIA INTELIGENTE 24/7 -->
+            <div class="space-y-6 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-3xl p-8 shadow-xl text-center md:text-left flex flex-col md:flex-row items-center gap-6 group hover:border-indigo-500/50 transition-colors duration-500 relative overflow-hidden">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_100%_100%,rgba(99,102,241,0.1)_0%,transparent_50%)]"></div>
+                
+                <div class="w-16 h-16 shrink-0 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shadow-inner border border-indigo-500/30 relative z-10">
+                    <i class="fas fa-robot text-3xl"></i>
+                </div>
+                <div class="flex-1 text-white space-y-2 relative z-10">
+                    <div class="flex items-center justify-center md:justify-start gap-2">
+                        <h2 class="text-xl md:text-2xl font-black tracking-tight">Asistencia Inteligente 24/7</h2>
+                        <span class="flex h-3 w-3 relative">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                        </span>
+                    </div>
+                    <p class="text-sm text-slate-300 font-medium leading-relaxed">
+                        ¿Tienes dudas sobre cómo publicar un servicio, cómo registrarte o cómo funciona el pago seguro? Conoce a <strong>Sofía</strong>, nuestra experta en éxito de usuarios. Escríbele en cualquier momento a nuestro WhatsApp oficial y ella te guiará paso a paso.
+                    </p>
+                    <div class="pt-2">
+                        <a href="https://wa.me/573126427857?text=Hola%20Sofía,%20tengo%20una%20duda%20sobre%20el%20uso%20de%20inWorker" target="_blank" class="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[11px] uppercase tracking-wider px-6 py-3 rounded-xl shadow-[0_8px_20px_rgba(16,185,129,0.3)] transition active:scale-95">
+                            <i class="fab fa-whatsapp text-lg"></i> Hablar con Sofía
+                        </a>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- ========================================== -->
@@ -265,7 +292,7 @@
                 <div class="flex justify-center md:justify-start gap-3 text-slate-400 text-sm">
                     <a href="https://www.facebook.com/inworkeroficial" class="hover:text-blue-600 transition"><i class="fab fa-facebook-f"></i></a>
                     <a href="https://www.instagram.com/inworker.oficial" class="hover:text-pink-600 transition"><i class="fab fa-instagram"></i></a>
-                    <a href="https://wa.me/573126427856" class="hover:text-emerald-500 transition"><i class="fab fa-whatsapp"></i></a>
+                    <a href="https://wa.me/573126427857" target="_blank" class="hover:text-emerald-500 transition"><i class="fab fa-whatsapp"></i></a>
                 </div>
             </div>
 
@@ -274,7 +301,7 @@
                 <ul class="text-[11px] text-slate-500 font-medium space-y-2">
                     <li><a href="/terminos-y-condiciones" class="hover:text-blue-600 transition">Términos y Condiciones</a></li>
                     <li><a href="/privacidad" class="hover:text-blue-600 transition">Política de Privacidad</a></li>
-                    <li><a href="https://wa.me/573126427856" class="hover:text-blue-600 transition">Contacto Directo</a></li>
+                    <li><a href="https://wa.me/573126427857" target="_blank" class="hover:text-blue-600 transition">Contacto Directo</a></li>
                 </ul>
             </div>
             
@@ -287,6 +314,16 @@
             </p>
         </div>
     </footer>
+
+    <!-- BOTÓN FLOTANTE WHATSAPP GLOBAL (SOFÍA) -->
+    <a href="https://wa.me/573126427857?text=Hola%20Sofía,%20tengo%20una%20duda%20sobre%20inWorker" target="_blank" class="fixed bottom-6 right-6 z-50 bg-emerald-500 hover:bg-emerald-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(16,185,129,0.4)] transition-transform hover:-translate-y-1 hover:scale-105 group">
+        <i class="fab fa-whatsapp text-3xl"></i>
+        <!-- Tooltip -->
+        <span class="absolute right-16 bg-slate-900 text-white text-xs font-bold px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none shadow-lg">
+            ¡Pregúntale a Sofía 24/7!
+            <div class="absolute top-1/2 -right-1 -mt-1 border-4 border-transparent border-l-slate-900"></div>
+        </span>
+    </a>
 
     <!-- ========================================== -->
     <!-- 🛠 SCRIPTS  -->
