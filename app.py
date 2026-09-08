@@ -922,11 +922,31 @@ def auth_google_sync():
     if not credential:
         return jsonify({"error": "No se recibió el token de Google"}), 400
     # 1. Verificamos el token en el SERVIDOR (nunca confiamos en el correo que dice el cliente)
+    #    Puede llegar como ID token de Google (GIS) o como access token/provider_token (Supabase)
     try:
         info = google_id_token.verify_oauth2_token(credential, google_requests.Request())
-    except ValueError as e:
-        print(f"⚠️ Token de Google inválido: {e}")
-        return jsonify({"error": "Token de Google inválido o expirado"}), 401
+    except ValueError:
+        # No es un ID token: lo tratamos como access token de Google y consultamos tokeninfo
+        try:
+            import requests as http_requests
+            resp = http_requests.get(
+                'https://oauth2.googleapis.com/tokeninfo',
+                params={'access_token': credential},
+                timeout=10
+            )
+            if resp.status_code != 200:
+                return jsonify({"error": "Token de Google inválido o expirado"}), 401
+            raw = resp.json()
+            if raw.get('error'):
+                return jsonify({"error": "Token de Google inválido o expirado"}), 401
+            info = {
+                'email': raw.get('email'),
+                'email_verified': raw.get('email_verified') in (True, 'true', 'True'),
+                'name': raw.get('name')
+            }
+        except Exception as e:
+            print(f"⚠️ Error validando token de Google: {e}")
+            return jsonify({"error": "Token de Google inválido o expirado"}), 401
     correo = info.get('email')
     nombre = info.get('name') or (correo.split('@')[0] if correo else None)
 

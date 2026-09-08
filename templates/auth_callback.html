@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-slate-50 min-h-screen flex items-center justify-center">
-    
+
     <div class="text-center">
         <i class="fas fa-circle-notch fa-spin text-4xl text-blue-600 mb-4"></i>
         <h2 class="text-lg font-bold text-slate-800">Sincronizando cuenta...</h2>
@@ -18,7 +18,7 @@
 
     <script>
         // Tus llaves de Supabase
-        const supabaseUrl = 'https://tjdqrngasqqafrwaeoao.supabase.co'; 
+        const supabaseUrl = 'https://tjdqrngasqqafrwaeoao.supabase.co';
         const supabaseAnonKey = 'sb_publishable_8eGQza0GkdmDR33Wcvh7NQ_uqMwACUY';
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
@@ -28,6 +28,8 @@
                 // Capturamos el correo y nombre desde Google
                 const userEmail = session.user.email;
                 const userName = session.user.user_metadata.full_name || userEmail.split('@')[0];
+                // 🔐 Token de Google entregado por Supabase (el servidor lo verifica, no confía en el correo)
+                const googleToken = session.provider_token || session.access_token;
 
                 // Enviamos los datos a Flask para que inicie la sesión real
                 try {
@@ -36,7 +38,7 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ correo: userEmail, nombre: userName })
+                        body: JSON.stringify({ credential: googleToken, correo: userEmail, nombre: userName })
                     });
 
                     if (response.ok) {
