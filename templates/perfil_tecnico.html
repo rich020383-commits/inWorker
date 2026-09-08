@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app-refresh.css') }}">
 
     <script>
         tailwind.config = {
@@ -37,23 +38,23 @@
     </header>
 
     <main class="max-w-7xl mx-auto p-6">
-        
+
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            
+
             {% for tecnico in tecnicos %}
             <div class="group relative flex flex-col items-start w-full bg-white border border-slate-100 rounded-[1.5rem] p-3 shadow-sm hover:shadow-xl transition-all duration-300">
-                
+
                 <div class="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 mb-4">
                     {% if tecnico.foto %}
-                        <img src="{{ url_for('static', filename='uploads/' + tecnico.foto) }}" 
-                             alt="{{ tecnico.nombre }}" 
+                        <img src="{{ url_for('static', filename='uploads/' + tecnico.foto) }}"
+                             alt="{{ tecnico.nombre }}"
                              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                     {% else %}
                         <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-50 text-blue-500 text-5xl font-black uppercase tracking-tighter group-hover:scale-105 transition-transform duration-500">
                             {{ tecnico.nombre[:2] }}
                         </div>
                     {% endif %}
-                    
+
                     {% if tecnico.verificado == 1 %}
                     <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1.5 rounded-full flex items-center gap-1 shadow-sm">
                         <i class="fas fa-shield-check text-emerald-500 text-[10px]"></i>
@@ -69,7 +70,7 @@
                             <i class="fas fa-star text-amber-500 text-[10px]"></i> {{ tecnico.promedio_estrellas }}
                         </div>
                     </div>
-                    
+
                     <p class="text-xs text-blue-600 font-bold uppercase tracking-wider truncate mb-1">
                         {{ tecnico.profesion or 'Técnico General' }}
                     </p>
@@ -81,14 +82,14 @@
                             <i class="fas fa-map-marker-alt text-rose-500"></i> {{ tecnico.ciudad }}
                         </span>
                         {% endif %}
-                        
+
                         {% if tecnico.anos_experiencia and tecnico.anos_experiencia|int > 0 %}
                         <span class="bg-slate-50 border border-slate-200 text-slate-500 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
                             <i class="fas fa-briefcase text-amber-500"></i> {{ tecnico.anos_experiencia }} Años
                         </span>
                         {% endif %}
                     </div>
-                    
+
                     <p class="text-[11px] text-slate-500 line-clamp-2 leading-relaxed mb-4 mt-1">
                         {% if tecnico.habilidades and tecnico.habilidades != 'Sin especificar' %}
                             {{ tecnico.habilidades }}
@@ -96,7 +97,7 @@
                             Especialista disponible para soporte técnico.
                         {% endif %}
                     </p>
-                    
+
                     <div class="mt-auto pt-4 border-t border-slate-100 flex gap-2 w-full">
                         <a href="/tecnicos/{{ tecnico.correo }}" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black py-3 rounded-xl uppercase tracking-wide transition-colors shadow-md shadow-blue-600/20 text-center">
                             Contratar

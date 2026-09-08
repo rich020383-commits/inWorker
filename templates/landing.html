@@ -12,12 +12,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>inWorker: Trabaja y contrata con total confianza</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app-refresh.css') }}">
 
     <script>
         tailwind.config = {
@@ -83,19 +84,19 @@
     <!-- 🌍 CONTENEDOR PRINCIPAL DOS COLUMNAS -->
     <!-- ========================================== -->
     <main class="max-w-7xl mx-auto px-6 pt-32 pb-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start relative">
-        
+
         <!-- ========================================== -->
         <!-- COLUMNA IZQUIERDA (7/12) -->
         <!-- ========================================== -->
         <div class="lg:col-span-7 space-y-16">
-            
+
             <!-- Hero principal -->
             <div class="space-y-6 max-w-2xl relative z-10 text-center md:text-left">
-                
+
                 <div class="inline-block text-center text-blue-600 text-[10px] font-black uppercase tracking-widest bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl md:rounded-full border border-blue-100 shadow-sm leading-snug">
                     <i class="fas fa-map-marker-alt mr-1"></i> Fase Beta: El marketplace de servicios de Colombia
                 </div>
-                
+
                 <h1 class="text-4xl md:text-[3.5rem] font-black text-slate-900 tracking-tight leading-[1.05]">
                     Contrata técnicos, plomeros y<br>expertos de confianza. Tu dinero <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">100% seguro.</span>
                 </h1>
@@ -111,7 +112,7 @@
                         <i class="fas fa-tools text-emerald-500"></i> Únete como profesional
                     </a>
                 </div>
-                
+
                 <!-- Beneficios rápidos: Grid 2x2 en celular, 4 en línea en escritorio -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 pt-8">
                     <div class="flex flex-col items-center p-3 md:p-3 bg-white/80 backdrop-blur-md rounded-2xl text-center border border-slate-200/80 shadow-sm transition hover:-translate-y-1">
@@ -217,7 +218,7 @@
             <!-- NUEVO BANNER: ASISTENCIA INTELIGENTE 24/7 -->
             <div class="space-y-6 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-3xl p-8 shadow-xl text-center md:text-left flex flex-col md:flex-row items-center gap-6 group hover:border-indigo-500/50 transition-colors duration-500 relative overflow-hidden">
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_100%_100%,rgba(99,102,241,0.1)_0%,transparent_50%)]"></div>
-                
+
                 <div class="w-16 h-16 shrink-0 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shadow-inner border border-indigo-500/30 relative z-10">
                     <i class="fas fa-robot text-3xl"></i>
                 </div>
@@ -246,7 +247,7 @@
         <!-- COLUMNA DERECHA (5/12) -->
         <!-- ========================================== -->
         <div class="lg:col-span-5 space-y-8">
-            
+
             <!-- 🤖 SECCIÓN UPWAY -->
             <div class="space-y-6 lg:sticky lg:top-28">
                 <div class="space-y-2 text-center md:text-left">
@@ -259,19 +260,19 @@
 
                 <!-- Contenedor Oscuro Premium para el Logo Original -->
                 <div class="w-full bg-black border border-slate-800 rounded-[2rem] p-10 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden group hover:border-slate-700 transition duration-300">
-                    
+
                     <!-- Efecto de luz sutil azulada al pasar el mouse -->
                     <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.15)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-                    
+
                     <!-- 🎯 AQUÍ SE CARGA EL LOGO OFICIAL CON FONDO NEGRO -->
                     <img src="{{ url_for('static', filename='img/upway-logo.png') }}" alt="Logo Upway" class="relative z-10 h-20 md:h-24 w-auto object-contain transition-transform duration-500 group-hover:scale-105">
-                    
+
                     <div class="relative z-10 mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-blue-400 transition-colors duration-300">
                         <i class="fas fa-microchip"></i> Motor de emparejamiento
                     </div>
                 </div>
             </div>
-            
+
         </div>
     </main>
 
@@ -280,7 +281,7 @@
     <!-- ========================================== -->
     <footer class="bg-white/80 backdrop-blur-md border-t border-slate-200 mt-12 pt-16 pb-8 relative z-10">
         <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center md:items-start gap-8">
-            
+
             <div class="space-y-4 text-center md:text-left max-w-sm">
                 <a href="#" class="flex items-center justify-center md:justify-start space-x-2 select-none">
                     <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-6 w-auto grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition duration-300">
@@ -304,7 +305,7 @@
                     <li><a href="https://wa.me/573126427857" target="_blank" class="hover:text-blue-600 transition">Contacto Directo</a></li>
                 </ul>
             </div>
-            
+
         </div>
 
         <div class="max-w-7xl mx-auto px-6 border-t border-slate-200/60 mt-12 pt-6 text-center">
@@ -335,9 +336,9 @@
                 const splash = document.getElementById('splash-screen');
                 if (splash) {
                     splash.classList.add('opacity-0');
-                    setTimeout(() => splash.remove(), 1000); 
+                    setTimeout(() => splash.remove(), 1000);
                 }
-            }, 1800); 
+            }, 1800);
         });
     </script>
 </body>

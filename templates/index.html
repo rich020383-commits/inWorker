@@ -18,10 +18,11 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app-refresh.css') }}">
 
     <script>
         tailwind.config = {
@@ -81,14 +82,14 @@
     </header>
 
     <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-6">
-        
+
         <!-- ========================================== -->
         <!-- BANNER HERO SOLO PARA ADMIN -->
         <!-- ========================================== -->
         {% if session.get('usuario_rol') == 'Admin' %}
         <div class="relative w-full h-48 md:h-64 rounded-2xl overflow-hidden shadow-lg mb-8 group">
-            <img src="{{ url_for('static', filename='img/bg-dashboard.webp') }}" 
-                 alt="Ecosistema inWorker" 
+            <img src="{{ url_for('static', filename='img/bg-dashboard.webp') }}"
+                 alt="Ecosistema inWorker"
                  class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105">
             <div class="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/40 to-transparent"></div>
             <div class="relative h-full flex flex-col justify-center px-6 md:px-12">
@@ -113,7 +114,7 @@
                         {% if category == 'success' %} bg-emerald-50 border-emerald-200 text-emerald-800
                         {% elif category == 'error' %} bg-rose-50 border-rose-200 text-rose-800
                         {% else %} bg-blue-50 border-blue-200 text-blue-800 {% endif %}">
-                        
+
                         <div class="flex items-center gap-3">
                             {% if category == 'success' %}
                                 <i class="fas fa-check-circle text-emerald-500 text-xl"></i>
@@ -124,7 +125,7 @@
                             {% endif %}
                             <span>{{ message }}</span>
                         </div>
-                        
+
                         <button onclick="this.parentElement.remove()" class="ml-4 text-slate-400 hover:text-slate-700 transition">
                             <i class="fas fa-times"></i>
                         </button>
@@ -144,7 +145,7 @@
     {% endwith %}
 
     <div id="smart-app-banner" class="fixed bottom-6 left-4 right-4 md:left-auto md:right-8 md:w-auto md:min-w-[380px] bg-white/70 backdrop-blur-2xl border border-white/80 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] rounded-full p-2 z-[9999] transition-all duration-700 translate-y-24 opacity-0 flex items-center justify-between gap-3 hidden">
-    
+
         <div class="flex-shrink-0 bg-gradient-to-tr from-blue-600 to-indigo-600 w-11 h-11 rounded-full flex items-center justify-center shadow-inner ml-1 border border-white/20">
             <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Icon" class="w-6 h-6 object-contain filter brightness-0 invert">
         </div>
@@ -202,7 +203,7 @@
     </script>
 
     <div class="space-y-6 flex-grow w-full max-w-md mx-auto md:max-w-full">
-        
+
         <!-- ========================================== -->
         <!-- MÓDULO DEL ADMINISTRADOR -->
         <!-- ========================================== -->
@@ -339,7 +340,7 @@
             <h3 class="text-lg font-black text-slate-800 mb-4 flex items-center">
                 <i class="fas fa-hand-holding-usd text-emerald-600 mr-2"></i> Nómina y Desembolsos
             </h3>
-            
+
             <div class="space-y-4">
                 {% if retiros_pendientes %}
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -363,7 +364,7 @@
                             <div class="bg-white border border-slate-200 rounded-lg p-2 text-[9px] text-slate-600 font-mono break-words shadow-inner">
                                 <strong>Detalles:</strong> {{ ret.detalles_cuenta }}
                             </div>
-                            
+
                             <div class="pt-2 border-t border-slate-200 mt-auto">
                                 {% if ret.estado == 'Pendiente' %}
                                     <form action="/admin/retiro/{{ ret.id }}/procesar" method="POST">
@@ -411,7 +412,7 @@
         <!-- 📱 DASHBOARD DEL USUARIO / TÉCNICO (DISEÑO PREMIUM) -->
         <!-- ========================================== -->
         {% if session.get('usuario_rol') != 'Admin' %}
-            
+
             <div class="mb-6 mt-2">
                 <h1 class="text-2xl font-bold text-slate-800">Hola, {{ session.get('usuario_nombre', 'Usuario').split(' ')[0] }} 👋</h1>
                 <p class="text-slate-500 text-sm mt-1">Qué bueno verte de nuevo</p>
@@ -431,14 +432,14 @@
                     {% if session.get('usuario_rol', '')|lower in ['trabajador', 'worker'] %}
                         <span class="text-slate-400 text-sm hidden md:block">Disponible para retirar</span>
                         <span class="text-slate-400 text-xs md:hidden">Para retiro</span>
-                        
+
                         <button onclick="abrirModalRetiro()" class="bg-white text-slate-900 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-gray-100 transition active:scale-95 shadow-sm">
                             Retirar fondos <span>&rarr;</span>
                         </button>
                     {% else %}
                         <span class="text-slate-400 text-sm hidden md:block">Saldo para contratar</span>
                         <span class="text-slate-400 text-xs md:hidden">Para contratar</span>
-                        
+
                         <a href="/recargar_billetera" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-blue-700 transition active:scale-95 shadow-sm shadow-blue-600/30">
                             Recargar saldo <span>&rarr;</span>
                         </a>
@@ -468,7 +469,7 @@
                     <h2 class="text-lg font-bold text-slate-800">Bandeja de entrada</h2>
                     <a href="{{ url_for('ver_tareas') }}" class="text-blue-600 text-sm font-medium hover:underline">Ver todo &rarr;</a>
                 </div>
-                
+
                 {% if bandeja_entrada %}
                     {% for chat in bandeja_entrada[:1] %}
                     <a href="/chat/{{ chat.id }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex gap-3 cursor-pointer hover:shadow-md transition active:scale-[0.99] block">
@@ -576,7 +577,7 @@
                     <i class="fas fa-users text-2xl text-blue-600"></i>
                 </div>
             </div>
-            
+
             <script>
             function copiarEnlaceReferido(codigo) {
                 const urlReferido = window.location.origin + '/login?ref=' + codigo;
@@ -639,7 +640,7 @@
             </script>
         {% endif %} <!-- Fin Interfaz de Usuario -->
 
-    </div> 
+    </div>
     </main>
 
     <!-- ========================================== -->
@@ -685,7 +686,7 @@
                 </div>
                 <button type="button" onclick="cerrarModalRetiro()" class="text-slate-400 hover:text-slate-700 transition bg-slate-50 p-1.5 rounded-lg"><i class="fas fa-times"></i></button>
             </div>
-            
+
             <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 flex justify-between items-center">
                 <span class="text-xs font-bold text-slate-500 uppercase">Saldo Disponible:</span>
                 <span class="text-lg font-black text-emerald-600">${{ "{:,.0f}".format((saldo | default(0) | float) * 10000) }}</span>
@@ -696,7 +697,7 @@
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Créditos a Retirar (1 Cr = $10.000 COP)</label>
                     <input type="number" name="creditos_retiro" min="0.1" step="0.1" required placeholder="Ej: 5.5" class="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition">
                 </div>
-                
+
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Método de Desembolso</label>
                     <select name="metodo_pago" class="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition font-medium">
@@ -751,7 +752,7 @@
                 </div>
                 <button type="button" onclick="cerrarModalKYC()" class="text-slate-400 hover:text-rose-500 transition bg-slate-50 hover:bg-rose-50 p-2 rounded-lg"><i class="fas fa-times text-lg"></i></button>
             </div>
-            
+
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50">
                 <div class="flex flex-col gap-2">
                     <div class="flex justify-between items-center">
@@ -848,8 +849,8 @@
     <!-- 🟢 BOTÓN FLOTANTE WHATSAPP PREMIUM -->
     <!-- ========================================== -->
     <div class="fixed bottom-20 md:bottom-6 right-6 z-[80] group">
-        <a href="https://wa.me/573126427856?text=¡Hola!%20Vengo%20de%20inWorker.%20Necesito%20más%20información." 
-           target="_blank" 
+        <a href="https://wa.me/573126427856?text=¡Hola!%20Vengo%20de%20inWorker.%20Necesito%20más%20información."
+           target="_blank"
            class="flex items-center justify-center w-14 h-14 bg-emerald-500 text-white rounded-full shadow-2xl hover:bg-emerald-600 transition-all transform hover:scale-110 relative">
             <i class="fab fa-whatsapp text-3xl z-10"></i>
             <div class="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75"></div>
