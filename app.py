@@ -683,9 +683,23 @@ def api_emergencia():
         return jsonify({'success': False, 'error': 'Indica el tipo de emergencia y qué pasó'}), 400
 
     try:
+        # 💰 RECARGO POR EMERGENCIA FUERA DE HORARIO (10%)
+        # Se activa solo si la solicitud cae fuera de:
+        # Lunes a Viernes de 7:00 AM a 7:00 PM (hora Colombia).
+        # No se cobra de créditos por adelantado: se aplica como
+        # comisión adicional sobre la cotización del técnico que acepte
+        # (él sugiere el precio, nosotros le sumamos el recargo).
+        ahora_col = datetime.now(timezone(timedelta(hours=-5)))
+        es_laboral = (
+            ahora_col.weekday() < 5  # Lunes (0) a Viernes (4)
+            and 7 <= ahora_col.hour < 19  # 7:00 a 18:59
+        )
+        recargo_fuera_horario = not es_laboral
+
         tarea = Tarea(
             titulo=f"🚨 EMERGENCIA: {categoria}",
-            descripcion=f"[SOLICITUD DE EMERGENCIA] {descripcion}",
+            descripcion=f"[SOLICITUD DE EMERGENCIA] {descripcion}"
+                + (" ⚠️ RECARGO FUERA DE HORARIO (10%): El cliente pagará un 10% adicional sobre tu cotización como tarifa de urgencia." if recargo_fuera_horario else ""),
             pago='Por acordar',
             categoria=categoria,
             estado='Emergencia',
@@ -719,7 +733,11 @@ def api_emergencia():
                 tarea_id=tarea.id,
                 canal_trabajador=tec.correo,
                 remitente_correo='sistema@inworker.co',
-                mensaje=f"🚨 EMERGENCIA CERCA DE TI: {categoria} — {descripcion}. El cliente necesita ayuda INMEDIATA. Abre el tablón y envía tu cotización AHORA.",
+                mensaje=(
+                    f"🚨 EMERGENCIA CERCA DE TI: {categoria} — {descripcion}. "
+                    + ("⚠️ FUERA DE HORARIO: cotiza con confianza, el cliente paga un 10% extra de recargo de urgencia sobre tu precio. " if recargo_fuera_horario else "")
+                    + "El cliente necesita ayuda INMEDIATA. Abre el tablón y envía tu cotización AHORA."
+                ),
                 tipo='sistema',
                 leido=0
             ))
@@ -730,7 +748,8 @@ def api_emergencia():
         return jsonify({
             'success': True,
             'tarea_id': tarea.id,
-            'tecnicos_alertados': len(cercanos)
+            'tecnicos_alertados': len(cercanos),
+            'recargo_fuera_horario': recargo_fuera_horario
         })
 
     except Exception as e:
@@ -2125,6 +2144,8 @@ def ver_tareas():
     user_lng = request.args.get('lng', type=float)
     query_busqueda = request.args.get('q', '').strip()
     categoria_filtro = request.args.get('categoria_filtro', '').strip()
+    precio_max = request.args.get('precio_max', type=float)
+    orden = request.args.get('orden', '').strip()
 
     correo_logueado = session['usuario_correo']
 
@@ -2173,11 +2194,24 @@ def ver_tareas():
     if categoria_filtro:
         consulta = consulta.filter(Tarea.categoria == categoria_filtro)
 
-    # Extraemos las tareas aplicando los filtros: destacadas primero, luego recientes
-    tareas_db = consulta.order_by(
-        Tarea.destacada_hasta.desc().nullslast(),
-        Tarea.id.desc()
-    ).all()
+    # Filtro de presupuesto máximo
+    if precio_max is not None:
+        consulta = consulta.filter(Tarea.pago <= precio_max)
+
+    # Ordenamiento
+    if orden == 'precio_asc':
+        consulta = consulta.order_by(Tarea.pago.asc().nullslast(), Tarea.id.desc())
+    elif orden == 'precio_desc':
+        consulta = consulta.order_by(Tarea.pago.desc().nullslast(), Tarea.id.desc())
+    elif orden == 'antiguos':
+        consulta = consulta.order_by(Tarea.destacada_hasta.desc().nullslast(), Tarea.id.asc())
+    else:
+        # Extraemos las tareas aplicando los filtros: destacadas primero, luego recientes
+        consulta = consulta.order_by(
+            Tarea.destacada_hasta.desc().nullslast(),
+            Tarea.id.desc()
+        )
+    tareas_db = consulta.all()
     # 🔍 FIN DEL MOTOR DE BÚSQUEDA
     ahora_mismo = datetime.utcnow()
 
@@ -2866,7 +2900,25 @@ def enviar_cotizacion(tarea_id):
     except (ValueError, TypeError):
         monto_pesos = 0.0
 
-    if monto_pesos <= 0 or not concepto_original:
+    # 🚨 RECARGO DE EMERGENCIA: el técnico decide cobrar más por urgencia.
+    # Valores permitidos: 0, 20, 30 o 50 (%). inWorker cobra un excedente
+    # adicional del 10% SOBRE el recargo (no sobre el valor base).
+    try:
+        porcentaje_recargo = int(float(request.form.get('recargo_emergencia', 0) or 0))
+    except (ValueError, TypeError):
+        porcentaje_recargo = 0
+    if porcentaje_recargo not in [0, 20, 30, 50]:
+        porcentaje_recargo = 0
+
+    EXCEDENTE_INWORKER_SOBRE_RECARGO = 10  # % adicional que cobra inWorker sobre el recargo
+
+    monto_base = monto_pesos
+    if porcentaje_recargo > 0:
+        valor_recargo = round(monto_base * (porcentaje_recargo / 100.0))
+        excedente_inworker = round(valor_recargo * (EXCEDENTE_INWORKER_SOBRE_RECARGO / 100.0))
+        monto_pesos = monto_base + valor_recargo + excedente_inworker
+
+    if monto_base <= 0 or not concepto_original:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'success': False, 'error': 'Datos de cotización inválidos'}), 400
         flash("❌ Ingresa un valor en pesos válido y la descripción del cobro.", "error")
@@ -2880,6 +2932,11 @@ def enviar_cotizacion(tarea_id):
         return redirect(url_for('ver_chat', tarea_id=tarea_id))
 
     contenido_cotizacion = f"{monto_pesos}|{concepto}"
+    if porcentaje_recargo > 0:
+        desglose = (f" ⚡ Recargo por emergencia {porcentaje_recargo}% "
+                    f"(Base ${int(monto_base):,} COP · Recargo ${int(valor_recargo):,} COP · "
+                    f"Excedente plataforma ${int(excedente_inworker):,} COP)")
+        contenido_cotizacion = f"{monto_pesos}|{concepto}{desglose}"
 
     try:
         tarea_obj = Tarea.query.get(tarea_id)
@@ -2957,6 +3014,9 @@ def api_cargar_mensajes(tarea_id, canal):
                 'remitente': msg.remitente_correo.split('@')[0]
             }
 
+            # 🏷️ Exponer estado de lectura para los checkmarks ✓✓ del frontend
+            msg_dict['leido'] = bool(msg.leido)
+
             # Formateo dinámico para ofertas económicas
             if msg_dict['tipo'] in ['cotizacion_pendiente', 'cotizacion_aceptada', 'cotizacion_declinada']:
                 partes = msg_dict['mensaje'].split('|')
@@ -2970,11 +3030,50 @@ def api_cargar_mensajes(tarea_id, canal):
 
             mensajes_completos.append(msg_dict)
 
+        # 🏁 CHECKMARKS DE LEÍDO (✓✓): marcamos como leídos los mensajes que NO son del usuario logueado
+        try:
+            Mensaje.query.filter_by(tarea_id=tarea_id, canal_trabajador=canal, leido=0)\
+                         .filter(Mensaje.remitente_correo != session['usuario_correo'])\
+                         .update({'leido': 1})
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
         return jsonify({'success': True, 'mensajes': mensajes_completos})
 
     except Exception as e:
         print(f"❌ Error en API Chat Polling (Tarea #{tarea_id}): {str(e)}")
         return jsonify({'success': False, 'error': 'Error interno al consultar actualizaciones.'}), 500
+
+# =====================================================================
+# ⌨️ INDICADOR "ESCRIBIENDO..." (EN MEMORIA, SIN DB)
+# =====================================================================
+from collections import defaultdict
+estado_escritura = defaultdict(dict)  # {tarea_id: {canal: {'correo': x, 'timestamp': y}}}
+
+@app.route('/api/escritura/<int:tarea_id>/<string:canal>', methods=['POST'])
+def api_notificar_escritura(tarea_id, canal):
+    if 'usuario_correo' not in session:
+        return jsonify({'success': False}), 401
+    estado_escritura[tarea_id][canal] = {
+        'correo': session['usuario_correo'],
+        'timestamp': time.time()
+    }
+    return jsonify({'success': True})
+
+@app.route('/api/escritura/<int:tarea_id>/<string:canal>', methods=['GET'])
+def api_consultar_escritura(tarea_id, canal):
+    if 'usuario_correo' not in session:
+        return jsonify({'success': False}), 401
+
+    estado = estado_escritura.get(tarea_id, {}).get(canal)
+
+    # ⏳ Caducidad: si pasaron más de 3 segundos sin actividad, ya no está escribiendo
+    if estado and (time.time() - estado['timestamp']) < 3 and estado['correo'] != session['usuario_correo']:
+        return jsonify({'success': True, 'escribiendo': True})
+
+    return jsonify({'success': True, 'escribiendo': False})
+
 
 # =====================================================================
 # 💳 PROCESADOR DE RESPUESTA A COTIZACIONES (CIERRE DE TRATOS) - OPTIMIZADO

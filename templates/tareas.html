@@ -95,7 +95,10 @@
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i class="fas fa-search text-slate-400"></i>
                     </div>
-                    <input type="text" name="q" placeholder="Buscar servicio, habilidad o palabra clave..." value="{{ request.args.get('q', '') }}" class="w-full bg-white border border-slate-200 rounded-[1.25rem] pl-11 pr-4 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-light shadow-sm transition-all">
+                    <input type="text" id="input-busqueda" name="q" placeholder="Buscar servicio, habilidad o palabra clave..." value="{{ request.args.get('q', '') }}" class="w-full bg-white border border-slate-200 rounded-[1.25rem] pl-11 pr-10 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-light shadow-sm transition-all">
+                    <button type="button" id="btn-limpiar-busqueda" onclick="limpiarBusqueda()" class="{% if not request.args.get('q') %}hidden {% endif %}absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-rose-500 transition" title="Limpiar búsqueda">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
                 </div>
                 <button type="submit" class="bg-brand-blue text-white w-12 h-12 rounded-[1.25rem] flex items-center justify-center shadow-md shadow-brand-blue/20 hover:bg-blue-700 transition active:scale-95 shrink-0">
                     <i class="fas fa-search text-lg"></i>
@@ -145,15 +148,27 @@
                     </div>
                 </div>
 
-                <button type="button" class="bg-white border border-slate-200 rounded-xl px-4 py-2.5 flex items-center gap-2 text-xs font-bold text-slate-700 shadow-sm">
+                <button type="button" onclick="toggleFiltroPrecio()" class="bg-white border border-slate-200 rounded-xl px-4 py-2.5 flex items-center gap-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition">
                     <i class="fas fa-filter text-slate-400"></i> Filtros
-                    <span class="bg-brand-blue text-white w-4 h-4 rounded-full text-[9px] flex items-center justify-center">2</span>
+                    <span id="badge-filtros" class="{% if request.args.get('precio_max') %}bg-brand-blue{% else %}bg-slate-300{% endif %} text-white w-4 h-4 rounded-full text-[9px] flex items-center justify-center">1</span>
                 </button>
 
+                <div id="panel-filtro-precio" class="{% if not request.args.get('precio_max') %}hidden {% endif %}w-full flex flex-wrap items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Presupuesto máx.</label>
+                    <input type="number" name="precio_max" min="0" step="10000" placeholder="Ej: 500000" value="{{ request.args.get('precio_max', '') }}" class="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-700 w-32 focus:outline-none focus:border-brand-blue">
+                    <button type="submit" class="bg-slate-900 text-white text-[10px] font-black uppercase px-4 py-1.5 rounded-lg hover:bg-slate-800 transition">Aplicar</button>
+                    {% if request.args.get('precio_max') %}
+                    <a href="#" onclick="quitarFiltroPrecio()" class="text-[10px] font-bold text-rose-500 hover:text-rose-700 ml-auto"><i class="fas fa-times"></i> Quitar filtro</a>
+                    {% endif %}
+                </div>
+                <input type="hidden" name="precio_filtro_activo" value="1">
+
                 <div class="relative min-w-[130px] hidden sm:block">
-                    <select class="w-full bg-white border border-slate-200 rounded-xl pl-4 pr-8 py-2.5 text-xs font-bold text-slate-700 appearance-none focus:outline-none focus:border-brand-blue shadow-sm cursor-pointer">
-                        <option value="recientes">Más recientes</option>
-                        <option value="antiguos">Más antiguos</option>
+                    <select name="orden" onchange="document.getElementById('form-busqueda').submit()" class="w-full bg-white border border-slate-200 rounded-xl pl-4 pr-8 py-2.5 text-xs font-bold text-slate-700 appearance-none focus:outline-none focus:border-brand-blue shadow-sm cursor-pointer">
+                        <option value="recientes" {% if request.args.get('orden', 'recientes') == 'recientes' %}selected{% endif %}>Más recientes</option>
+                        <option value="antiguos" {% if request.args.get('orden') == 'antiguos' %}selected{% endif %}>Más antiguos</option>
+                        <option value="precio_asc" {% if request.args.get('orden') == 'precio_asc' %}selected{% endif %}>Menor precio</option>
+                        <option value="precio_desc" {% if request.args.get('orden') == 'precio_desc' %}selected{% endif %}>Mayor precio</option>
                     </select>
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                         <i class="fas fa-chevron-down text-slate-400 text-[10px]"></i>
@@ -337,7 +352,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">Categoría Técnica</label>
-                        <select name="categoria" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:border-brand-blue focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner cursor-pointer">
+                        <select id="categoria_tarea" name="categoria" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:border-brand-blue focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner cursor-pointer">
                             <option value="Limpieza y Aseo General">Limpieza y Aseo General</option>
                             <option value="Soporte Técnico">Soporte Técnico</option>
                             <option value="Desarrollo Web">Desarrollo Web</option>
@@ -420,6 +435,35 @@
 
     <!-- SCRIPTS MANTENIDOS INTACTOS -->
     <script>
+        function toggleFiltroPrecio() {
+            document.getElementById('panel-filtro-precio').classList.toggle('hidden');
+        }
+
+        function quitarFiltroPrecio() {
+            const params = new URLSearchParams(window.location.search);
+            params.delete('precio_max');
+            window.location.href = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+        }
+
+        function limpiarBusqueda() {
+            const input = document.getElementById('input-busqueda');
+            input.value = '';
+            input.focus();
+            document.getElementById('btn-limpiar-busqueda').classList.add('hidden');
+        }
+
+        // Mostrar/ocultar el botón de limpiar mientras se escribe
+        document.getElementById('input-busqueda').addEventListener('input', function() {
+            const btn = document.getElementById('btn-limpiar-busqueda');
+            if (this.value.length > 0) btn.classList.remove('hidden');
+            else btn.classList.add('hidden');
+        });
+
+        // Atajo: presionar Escape dentro del input limpia la búsqueda
+        document.getElementById('input-busqueda').addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') limpiarBusqueda();
+        });
+
         async function mejorarConIA() {
             const textarea = document.getElementById('descripcion_tarea');
             const btn = document.getElementById('btn-upway-ai'); // <-- ID Actualizado

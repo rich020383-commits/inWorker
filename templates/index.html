@@ -846,6 +846,23 @@
     </footer>
 
     <!-- ========================================== -->
+    <!-- 🚨 BOTÓN DE EMERGENCIA (SOS) -->
+    <!-- ========================================== -->
+    {% if session.get('usuario_rol') != 'Admin' %}
+    <div class="fixed bottom-36 md:bottom-24 right-6 z-[80] group">
+        <a href="https://wa.me/573126427856?text=%F0%9F%9A%A8%20EMERGENCIA%20inWorker%3A%20Tengo%20un%20problema%20urgente%20con%20mi%20servicio%20y%20necesito%20intervenci%C3%B3n%20inmediata."
+           target="_blank"
+           class="flex items-center justify-center w-14 h-14 bg-rose-600 text-white rounded-full shadow-2xl hover:bg-rose-700 transition-all transform hover:scale-110 relative">
+            <i class="fas fa-triangle-exclamation text-2xl z-10"></i>
+            <div class="absolute inset-0 rounded-full bg-rose-500 animate-ping opacity-60"></div>
+            <span class="absolute right-16 bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-md pointer-events-none">
+                Emergencia / Disputas
+            </span>
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- ========================================== -->
     <!-- 🟢 BOTÓN FLOTANTE WHATSAPP PREMIUM -->
     <!-- ========================================== -->
     <div class="fixed bottom-20 md:bottom-6 right-6 z-[80] group">

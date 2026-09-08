@@ -27,8 +27,16 @@ def es_mensaje_seguro(texto_mensaje):
 
     # 2. Patrones de Detección Avanzada
     # Celulares colombianos: 10 dígitos empezando en 3 (admite separadores ya eliminados)
-    # Fijos: código de área (1,4,5,6,7,8) + 7 dígitos, con límites de palabra
-    patron_telefono = r'\b3\d{9}\b|\b[145678]\d{6}\b' # Sin el \d{7} genérico que bloqueaba precios y partes
+    # Fijos actuales: '60' + código de área + 7 dígitos (10 dígitos, ej: 6012345678)
+    # Fijos antiguos: 7 dígitos SOLO si van agrupados con separador (ej: '234 5678',
+    #                 '234-5678'), para no bloquear cédulas ni valores escritos seguidos.
+    #                 Se busca sobre texto_normalizado (mantiene espacios/guiones).
+    # Se usan lookarounds en lugar de \b porque al compactar el texto el número
+    # queda pegado a letras (ej: 'fijo6012345678') y \b deja de coincidir.
+    patron_telefono = r'(?<!\d)3\d{9}(?!\d)|(?<!\d)60\d{8}(?!\d)'
+    # Mismo razonamiento: lookarounds en vez de \b (tras compactar el número puede
+    # quedar pegado a letras, ej: '1234567largo').
+    patron_fijo_separado = r'(?<!\d)\d{3}[\s\-]\d{4}(?!\d)'
     patron_correo = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
     patron_enlaces = r'(www\.|http://|https://|\.com|\.co|\.net|instagram|facebook|wpp|whatsapp|face|insta)'
 
@@ -37,6 +45,7 @@ def es_mensaje_seguro(texto_mensaje):
 
     # 3. Evaluación del Mensaje
     if (re.search(patron_telefono, texto_compacto) or
+        re.search(patron_fijo_separado, texto_normalizado) or
         re.search(patron_correo, texto_minusculas) or
         re.search(patron_enlaces, texto_minusculas) or
         contiene_direccion):

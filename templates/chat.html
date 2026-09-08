@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
+
     <style>
         body {
             background-color: #f8fafc;
@@ -36,7 +36,7 @@
             z-index: 10;
             border: 1px solid #e2e8f0;
         }
-        
+
         .estrellas-box { display: flex; flex-direction: row-reverse; justify-content: center; }
         .estrellas-box input { display: none; }
         .estrellas-box label { font-size: 2.5rem; color: #e2e8f0; cursor: pointer; transition: color 0.2s ease-in-out, transform 0.2s; margin: 0 0.3rem; }
@@ -57,25 +57,25 @@
             <a href="/tareas" class="text-slate-400 hover:text-blue-600 transition p-2 rounded-lg hover:bg-blue-50 shrink-0" title="Volver">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            
+
             <!-- 💎 MEJORA 2: HEADER VIVO DE LA NEGOCIACIÓN -->
             <div class="flex flex-col mt-1 sm:mt-0 w-full overflow-hidden">
                 <h2 class="text-sm font-black text-slate-800 uppercase tracking-wide flex items-center">
                     Sala de Negociación <span class="text-slate-400 font-bold ml-2 normal-case text-xs">#{{ tarea.id if tarea.id else '---' }}</span>
                 </h2>
                 <h1 class="text-xs font-medium text-slate-500 truncate max-w-[300px] mb-1.5">{{ tarea.titulo }}</h1>
-                
+
                 <div class="flex flex-wrap items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider">
                     <span class="bg-emerald-50 border border-emerald-200 text-emerald-600 px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
                         <i class="fas fa-circle text-[6px] {% if tarea.estado != 'Finalizada' %}animate-pulse{% endif %}"></i> {{ 'Cerrada' if tarea.estado == 'Finalizada' else 'Activa' }}
                     </span>
-                    
+
                     {% if tarea.estado in ['En Garantia', 'Finalizada'] and tarea.costo_creditos %}
                     <span class="bg-blue-50 border border-blue-200 text-blue-600 px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
                         <i class="fas fa-lock"></i> Escrow: ${{ "{:,.0f}".format(tarea.costo_creditos|float) }}
                     </span>
                     {% endif %}
-                    
+
                     {% if trabajador_perfil and trabajador_perfil.verificado == 1 %}
                     <span class="bg-amber-50 border border-amber-200 text-amber-600 px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
                         <i class="fas fa-star text-[8px]"></i> Verificado
@@ -84,8 +84,14 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="flex items-center space-x-3 ml-auto">
+            {% if session.get('rol') == 'cliente' %}
+            <button type="button" onclick="abrirModalSOS()" class="bg-red-600 hover:bg-red-700 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition flex items-center space-x-1 uppercase shadow-lg shadow-red-600/30 active:scale-95 animate-pulse">
+                <i class="fas fa-exclamation-triangle"></i> <span class="hidden sm:inline">SOS</span>
+            </button>
+            {% endif %}
+
             {% if tarea.estado == 'En Garantia' %}
             <button type="button" onclick="abrirModalControversia()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition flex items-center space-x-1 uppercase shadow-sm active:scale-95">
                 <i class="fas fa-shield-alt"></i> <span class="hidden sm:inline">Mediación</span>
@@ -103,7 +109,7 @@
     </header>
 
     <main class="max-w-7xl mx-auto p-4 w-full flex-grow">
-        
+
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -111,18 +117,18 @@
                         <i class="fas {% if category == 'success' %} fa-check-circle {% else %} fa-exclamation-circle {% endif %} text-base"></i>
                         <span>{{ message }}</span>
                     </div>
-                {% endfor %} 
+                {% endfor %}
             {% endif %}
         {% endwith %}
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            
+
             <div class="lg:col-span-4 space-y-5">
-                
+
                 <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
                     <!-- 💎 MEJORA 1: TIMELINE DE ESTADOS -->
                     <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Progreso del Servicio</h3>
-                    
+
                     <div class="relative space-y-5 mb-5 px-1">
                         <!-- Línea vertical conectora -->
                         <div class="absolute left-[5px] top-2 bottom-2 w-0.5 bg-slate-100"></div>
@@ -151,7 +157,7 @@
                             <span class="text-xs font-bold transition-colors {% if tarea.estado == 'Finalizada' %}text-slate-800{% else %}text-slate-400{% endif %}">Finalizado</span>
                         </div>
                     </div>
-                    
+
                     <div class="text-xs font-medium border-t border-slate-100 pt-4">
                         {% if tarea.estado == 'En Garantia' %}
                             {% if session['usuario_correo'] == tarea.cliente_correo %}
@@ -168,7 +174,7 @@
                                         <i class="fas fa-camera-retro mr-1.5"></i> Protocolo de Evidencia
                                     </h4>
                                     <p class="text-[10px] text-indigo-600 mb-3 leading-tight">Sube una foto del daño inicial y otra del trabajo terminado para garantizar tu pago.</p>
-                                    
+
                                     <form action="/confirmar_entrega/{{ tarea.id }}" method="POST" enctype="multipart/form-data" class="space-y-2">
                                         <div class="grid grid-cols-2 gap-2">
                                             <label class="border-2 border-dashed border-indigo-300 bg-white rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-indigo-100 transition group">
@@ -206,7 +212,7 @@
                 </div>
 
                 <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-                    
+
                     <div class="flex items-center space-x-3 pb-4 border-b border-slate-100">
                         <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold border border-blue-100 shrink-0">
                             {{ cliente_perfil.nombre[0]|upper }}
@@ -214,7 +220,7 @@
                         <div class="w-full">
                             <p class="text-[10px] font-bold text-slate-400 uppercase">Contratante</p>
                             <p class="text-sm font-bold text-slate-800">{{ cliente_perfil.nombre }}</p>
-                            
+
                             {% if tarea.estado in ['En Garantia', 'Finalizada'] %}
                                 <div class="mt-1 space-y-0.5 animate-fade-in">
                                     <p class="text-[11px] text-slate-600 font-medium flex items-center"><i class="fas fa-phone-alt text-emerald-500 w-4"></i> {{ cliente_perfil.celular if cliente_perfil.celular else cliente_perfil.telefono }}</p>
@@ -245,7 +251,7 @@
                                     </span>
                                 {% endif %}
                                 </p>
-                                
+
                                 {% if tarea.estado in ['En Garantia', 'Finalizada'] %}
                                     <div class="mt-1 space-y-0.5 animate-fade-in">
                                         <p class="text-[11px] text-slate-600 font-medium flex items-center"><i class="fas fa-phone-alt text-emerald-500 w-4"></i> {{ trabajador_perfil.celular if trabajador_perfil.celular else trabajador_perfil.telefono }}</p>
@@ -279,10 +285,23 @@
                             <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Monto Total (COP)</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><span class="text-slate-400 font-bold">$</span></div>
-                                <input type="number" name="monto_pesos" step="1" min="1000" placeholder="45000" required
+                                <input type="number" id="montoBase" name="monto_pesos" step="1" min="1000" placeholder="45000" required
                                     class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-12 py-2.5 text-sm font-bold text-slate-800 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition">
                                 <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"><span class="text-slate-400 text-[10px] font-bold">COP</span></div>
                             </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 flex items-center">
+                                <i class="fas fa-bolt text-amber-500 mr-1"></i> ¿Es una emergencia?
+                            </label>
+                            <div class="grid grid-cols-4 gap-1.5">
+                                <button type="button" onclick="setRecargo(0, this)" class="recargo-btn py-1.5 rounded-lg text-[10px] font-bold border transition bg-white border-slate-200 text-slate-600 hover:border-purple-400">Normal</button>
+                                <button type="button" onclick="setRecargo(20, this)" class="recargo-btn py-1.5 rounded-lg text-[10px] font-bold border transition bg-white border-slate-200 text-slate-600 hover:border-amber-400">+20%</button>
+                                <button type="button" onclick="setRecargo(30, this)" class="recargo-btn py-1.5 rounded-lg text-[10px] font-bold border transition bg-white border-slate-200 text-slate-600 hover:border-amber-400">+30%</button>
+                                <button type="button" onclick="setRecargo(50, this)" class="recargo-btn py-1.5 rounded-lg text-[10px] font-bold border transition bg-white border-slate-200 text-slate-600 hover:border-amber-400">+50%</button>
+                            </div>
+                            <input type="hidden" name="recargo_emergencia" id="recargoEmergencia" value="0">
+                            <div id="previewRecargo" class="hidden mt-2 text-[10px] bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-2 leading-relaxed"></div>
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 flex justify-between items-end">
@@ -295,13 +314,43 @@
                             <textarea name="concepto" rows="2" placeholder="Ej: Revisión e instalación..." required
                                 class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-purple-500 transition resize-none"></textarea>
                         </div>
-                        
-                        <button type="submit" 
-                                onclick="this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin mr-2\'></i>Enviando...'; this.form.submit();" 
+
+                        <button type="submit"
+                                onclick="this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin mr-2\'></i>Enviando...'; this.form.submit();"
                                 class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center">
                             Enviar Propuesta Oficial
                         </button>
                     </form>
+                    <script>
+                        let recargoActual = 0;
+                        function setRecargo(pct, btn) {
+                            recargoActual = pct;
+                            document.getElementById('recargoEmergencia').value = pct;
+                            document.querySelectorAll('.recargo-btn').forEach(b => {
+                                b.classList.remove('bg-purple-600','text-white','border-purple-600','bg-amber-500','border-amber-500');
+                                b.classList.add('bg-white','border-slate-200','text-slate-600');
+                            });
+                            if (pct > 0) {
+                                btn.classList.add('bg-amber-500','text-white','border-amber-500');
+                                btn.classList.remove('bg-white','border-slate-200','text-slate-600');
+                            } else {
+                                btn.classList.add('bg-purple-600','text-white','border-purple-600');
+                                btn.classList.remove('bg-white','border-slate-200','text-slate-600');
+                            }
+                            actualizarPreview();
+                        }
+                        function actualizarPreview() {
+                            const base = parseFloat(document.getElementById('montoBase').value) || 0;
+                            const preview = document.getElementById('previewRecargo');
+                            if (recargoActual === 0 || base <= 0) { preview.classList.add('hidden'); return; }
+                            const recargo = Math.round(base * recargoActual / 100);
+                            const excedente = Math.round(recargo * 0.10);
+                            const total = base + recargo + excedente;
+                            preview.innerHTML = `<b>⚡ Vista previa:</b> Base $${base.toLocaleString('es-CO')} + Recargo ${recargoActual}% ($${recargo.toLocaleString('es-CO')}) + Excedente plataforma ($${excedente.toLocaleString('es-CO')}) = <b class="text-sm">$${total.toLocaleString('es-CO')} COP</b>`;
+                            preview.classList.remove('hidden');
+                        }
+                        document.getElementById('montoBase').addEventListener('input', actualizarPreview);
+                    </script>
                 </div>
                 {% endif %}
 
@@ -309,7 +358,7 @@
 
             <div class="lg:col-span-8 flex flex-col h-full">
                 <div class="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col overflow-hidden relative">
-                    
+
                     <!-- 💎 MEJORA 3: MENSAJE DE GARANTÍA COMPACTO -->
                     <details class="bg-emerald-50/50 border-b border-emerald-100 text-xs group cursor-pointer transition-colors hover:bg-emerald-50">
                         <summary class="px-4 py-3 flex items-center justify-between font-bold text-emerald-800 select-none outline-none">
@@ -329,10 +378,10 @@
                     </details>
 
                     <div id="cajaMensajes" class="mensajes-box p-4 sm:p-6 space-y-4">
-                        
+
                         {% set categorias_profesionales = [
-                            'Abogado Penal', 'Abogado Laboral', 'Abogado de Familia', 
-                            'Contabilidad y Finanzas', 'Asesoría Tributaria', 'Trámites Legales', 
+                            'Abogado Penal', 'Abogado Laboral', 'Abogado de Familia',
+                            'Contabilidad y Finanzas', 'Asesoría Tributaria', 'Trámites Legales',
                             'Arquitectura', 'Ingeniería civil', 'Ingeniería mecánica', 'Ingeniería eléctrica',
                             'Clases de Matemáticas', 'Clases de Idiomas', 'Clases de Música', 'Refuerzo Escolar', 'Tutoría Universitaria'
                         ] %}
@@ -341,7 +390,7 @@
                         <div class="my-2 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-2xl p-4 shadow-sm relative overflow-hidden animate-fade-in-down w-full max-w-2xl mx-auto">
                             <div class="absolute -right-4 -top-4 w-16 h-16 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
                             <div class="absolute left-0 top-0 w-1 h-full bg-indigo-500"></div>
-                            
+
                             <div class="flex items-start gap-3 relative z-10">
                                 <div class="w-9 h-9 rounded-full bg-indigo-100 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0 shadow-inner">
                                     <i class="fas fa-robot text-sm"></i>
@@ -362,24 +411,24 @@
                         {% endif %}
 
                         {% for msg in mensajes %}
-                            
+
                             {% set f_str = msg.fecha_envio | string %}
                             {% set hora_corta = f_str[17:22] if 'GMT' in f_str else (f_str[11:16] if f_str|length >= 16 else f_str) %}
-                            
+
                             {% if 'cotizacion' in msg.tipo %}
                             <div class="flex flex-col items-center my-6 w-full">
                                 <div class="bg-white border shadow-sm rounded-2xl p-5 max-w-sm w-full text-center relative overflow-hidden
-                                    {% if msg.tipo == 'cotizacion_pendiente' %} border-purple-200 
-                                    {% elif msg.tipo == 'cotizacion_aceptada' %} border-emerald-200 
+                                    {% if msg.tipo == 'cotizacion_pendiente' %} border-purple-200
+                                    {% elif msg.tipo == 'cotizacion_aceptada' %} border-emerald-200
                                     {% else %} border-slate-200 {% endif %}">
-                                    
+
                                     <div class="text-[10px] font-black uppercase tracking-widest mb-2
-                                        {% if msg.tipo == 'cotizacion_pendiente' %} text-purple-600 
-                                        {% elif msg.tipo == 'cotizacion_aceptada' %} text-emerald-600 
+                                        {% if msg.tipo == 'cotizacion_pendiente' %} text-purple-600
+                                        {% elif msg.tipo == 'cotizacion_aceptada' %} text-emerald-600
                                         {% else %} text-slate-400 {% endif %}">
                                         <i class="fas fa-file-invoice-dollar mr-1"></i> Cotización Formal
                                     </div>
-                                    
+
                                     <div class="text-3xl font-black text-slate-800 mb-2">
                                         ${{ "{:,.0f}".format(msg.monto_pesos|float if msg.monto_pesos else msg.mensaje.split('|')[0]|float) }} <span class="text-xs font-medium text-slate-400">COP</span>
                                     </div>
@@ -403,12 +452,12 @@
                                             <i class="fas fa-clock mr-1"></i> Esperando al cliente...
                                         </div>
                                         {% endif %}
-                                    
+
                                     {% elif msg.tipo == 'cotizacion_aceptada' %}
                                         <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold py-2 rounded-xl flex justify-center items-center mb-3">
                                             <i class="fas fa-lock mr-1.5"></i> Pago Asegurado en Garantía
                                         </div>
-                                        
+
                                         {% if tarea.estado != 'Finalizada' %}
                                             <div class="border-t border-slate-100 pt-3 mt-2">
                                                 {% if session['usuario_correo'] == tarea.cliente_correo %}
@@ -435,10 +484,10 @@
                             </div>
 
                             {% else %}
-                            
+
                             <div class="flex flex-col w-full {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} items-end {% else %} items-start {% endif %} my-1">
                                 <div class="flex items-end max-w-[85%] md:max-w-[70%] gap-2">
-                                    
+
                                     {% if not (msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario) %}
                                         <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold border border-slate-300 flex-shrink-0">
                                             {{ msg.remitente[0]|upper if msg.remitente else '?' }}
@@ -446,12 +495,12 @@
                                     {% endif %}
 
                                     <div class="relative px-4 py-2.5 text-sm shadow-sm
-                                        {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} 
+                                        {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %}
                                             bg-blue-600 text-white rounded-2xl rounded-br-none
-                                        {% else %} 
-                                            bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-bl-none 
+                                        {% else %}
+                                            bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-bl-none
                                         {% endif %}">
-                                        
+
                                         {% if msg.tipo == 'imagen' %}
                                             <div class="rounded-lg overflow-hidden my-1">
                                                 <img src="/static/uploads/{{ msg.mensaje }}" alt="Foto" class="max-w-full h-auto object-cover max-h-60 rounded cursor-zoom-in" onclick="window.open(this.src)">
@@ -459,8 +508,8 @@
                                         {% else %}
                                             <p class="leading-relaxed whitespace-pre-wrap pr-8">{{ msg.mensaje }}</p>
                                         {% endif %}
-                                        
-                                        <span class="absolute bottom-1 right-2 text-[9px] font-medium 
+
+                                        <span class="absolute bottom-1 right-2 text-[9px] font-medium
                                             {% if msg.remitente_correo == session['usuario_correo'] or msg.remitente == nombre_usuario %} text-blue-200 {% else %} text-slate-400 {% endif %}">
                                             {{ hora_corta }}
                                         </span>
@@ -478,6 +527,17 @@
                                 <p class="text-xs mt-1 max-w-xs">Escribe los detalles del problema o envía una propuesta técnica para iniciar.</p>
                             </div>
                         {% endfor %}
+                        <!-- ⌨️ Indicador "Escribiendo..." -->
+                        <div id="indicador-escribiendo" style="display:none;" class="flex items-center gap-2 px-4 py-1 my-1">
+                            <div class="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold border border-slate-300">
+                                <i class="fas fa-user text-[9px]"></i>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-2xl rounded-bl-none px-4 py-2.5 shadow-sm flex items-center gap-1.5">
+                                <span class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay:0ms"></span>
+                                <span class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay:150ms"></span>
+                                <span class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay:300ms"></span>
+                            </div>
+                        </div>
                     </div>
 
                     {% if tarea.estado == 'Finalizada' %}
@@ -501,7 +561,7 @@
 
                             <form id="formEnviarMensaje" action="/chat/{{ tarea.id }}" method="POST" enctype="multipart/form-data" class="flex flex-col">
                                 <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
-                                
+
                                 <div class="flex items-end space-x-2">
                                     <div class="flex flex-col gap-2">
                                         <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-600 p-3 rounded-xl transition flex items-center justify-center h-12 w-12" title="Cámara">
@@ -518,6 +578,16 @@
 
                                     <div class="flex-1">
                                         <textarea id="inputMensaje" name="mensaje" rows="1" placeholder="Escribe un mensaje..." class="w-full bg-slate-100 border-transparent rounded-xl py-3 px-4 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 transition resize-none"></textarea>
+                                        <script>
+                                            // ⌨️ Avisamos al backend (máx. 1 vez por segundo) mientras el usuario teclea
+                                            document.getElementById('inputMensaje').addEventListener('input', function() {
+                                                if (temporizadorEscritura) return;
+                                                temporizadorEscritura = setTimeout(() => {
+                                                    temporizadorEscritura = null;
+                                                    notificarEscritura();
+                                                }, 1000);
+                                            });
+                                        </script>
                                     </div>
 
                                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-xl transition shadow h-12 w-12 flex items-center justify-center">
@@ -546,7 +616,7 @@
 
     <div id="modalControversia" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[110] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white border border-slate-200 rounded-[2rem] max-w-md w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 relative" id="modalControversiaContent">
-            
+
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-rose-400 to-rose-600"></div>
 
             <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-rose-50 mt-2">
@@ -563,9 +633,9 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <form action="/abrir_disputa/{{ tarea.id }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
-                
+
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-600 font-medium leading-relaxed">
                     Estás a punto de congelar los fondos y escalar este caso a la administración. Por favor, sé claro y objetivo.
                 </div>
@@ -574,7 +644,7 @@
                     <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Motivo de la disputa</label>
                     <textarea name="alegato" rows="3" required placeholder="Ej: El especialista dejó la tubería con fugas y se niega a repararla..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-900 focus:outline-none focus:border-rose-500 transition shadow-inner resize-none"></textarea>
                 </div>
-                
+
                 <div>
                     <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Foto de Evidencia (Obligatorio)</label>
                     <input type="file" name="evidencia" required accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-rose-50 file:text-rose-600 hover:file:bg-rose-100 cursor-pointer border border-slate-200 rounded-xl transition shadow-inner bg-slate-50">
@@ -591,7 +661,7 @@
 
     <div id="modalNuevoHito" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white border border-slate-200 rounded-[2rem] max-w-sm w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="modalNuevoHitoContent">
-            
+
             <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shadow-inner">
@@ -606,7 +676,7 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <form action="/chat/{{ tarea.id }}/enviar_cotizacion" method="POST" class="p-6 space-y-4">
                 <input type="hidden" name="canal_actual" value="{{ canal_actual }}">
                 <input type="hidden" name="es_hito_adicional" value="true">
@@ -623,7 +693,7 @@
                     <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Concepto / Descripción</label>
                     <input type="text" name="concepto" required placeholder="Ej: Compra de tubo PVC / 2da Etapa..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-indigo-500 transition shadow-inner">
                 </div>
-                
+
                 <div>
                     <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Valor del Adicional (COP)</label>
                     <div class="relative">
@@ -643,7 +713,7 @@
 
     <div id="modalDecisionCierre" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[120] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white border border-slate-200 rounded-[2rem] max-w-md w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 text-center relative" id="modalDecisionCierreContent">
-            
+
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-blue-500"></div>
 
             <div class="p-8 pb-6">
@@ -680,29 +750,29 @@
 
     <div id="modalCalificar" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[130] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white border border-slate-200 rounded-[2rem] max-w-sm w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 text-center relative" id="modalCalificarContent">
-            
+
             <div class="p-8 pb-6">
                 <div class="w-16 h-16 mx-auto bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mb-4 shadow-inner border-2 border-amber-100">
                     <i class="fas fa-star text-3xl"></i>
                 </div>
                 <h2 class="text-2xl font-black text-slate-900 mb-1">Califica el Servicio</h2>
                 <p class="text-xs text-slate-500 mb-6 font-medium">¿Qué tal te pareció el trabajo del especialista?</p>
-                
+
                 <form action="/calificar/{{ tarea.id }}" method="POST" class="space-y-5">
-                    
+
                     <div class="estrellas-box mb-2">
                         <input type="radio" id="star5" name="estrellas" value="5" required />
                         <label for="star5" title="5 Estrellas"><i class="fas fa-star"></i></label>
-                        
+
                         <input type="radio" id="star4" name="estrellas" value="4" />
                         <label for="star4" title="4 Estrellas"><i class="fas fa-star"></i></label>
-                        
+
                         <input type="radio" id="star3" name="estrellas" value="3" />
                         <label for="star3" title="3 Estrellas"><i class="fas fa-star"></i></label>
-                        
+
                         <input type="radio" id="star2" name="estrellas" value="2" />
                         <label for="star2" title="2 Estrellas"><i class="fas fa-star"></i></label>
-                        
+
                         <input type="radio" id="star1" name="estrellas" value="1" />
                         <label for="star1" title="1 Estrella"><i class="fas fa-star"></i></label>
                     </div>
@@ -711,16 +781,48 @@
                         <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Reseña (Opcional)</label>
                         <textarea name="resena" rows="3" placeholder="Ej: Excelente servicio, muy puntual y profesional..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-amber-500 transition resize-none shadow-inner"></textarea>
                     </div>
-                    
+
                     <button type="submit" onclick="this.innerHTML='<i class=\'fas fa-spinner fa-spin mr-2\'></i>Procesando...';" class="w-full bg-slate-900 hover:bg-amber-500 text-white font-black py-3.5 rounded-xl transition-all shadow-lg hover:shadow-amber-500/30 active:scale-95 uppercase tracking-widest text-xs flex items-center justify-center gap-2 mt-2">
                         Enviar y Finalizar <i class="fas fa-check"></i>
                     </button>
                 </form>
             </div>
-            
+
             <button type="button" onclick="cerrarModalCalificar()" class="absolute top-4 right-4 text-slate-300 hover:text-rose-500 transition bg-slate-50 rounded-full p-1 border border-slate-100 active:scale-90 w-8 h-8 flex items-center justify-center shadow-sm">
                 <i class="fas fa-times text-sm"></i>
             </button>
+        </div>
+    </div>
+
+    <!-- 🚨 MODAL SOS / EMERGENCIA -->
+    <div id="modalSOS" class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/70 opacity-0 transition-opacity duration-300 p-4">
+        <div id="modalSOSContent" class="bg-white rounded-3xl p-6 w-full max-w-md scale-95 transition-transform duration-300 relative border-t-8 border-red-600">
+            <h3 class="text-xl font-black text-slate-900 mb-1">🚨 Emergencia</h3>
+            <p class="text-xs text-slate-500 mb-4">Se alertará a los técnicos cercanos con tu ubicación GPS. Cargo por prioridad: <strong class="text-red-600">$20.000 COP</strong> (se descuenta de tu billetera).</p>
+
+            <form id="formSOS" onsubmit="enviarSOS(event)">
+                <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">¿Qué pasó?</label>
+                <textarea name="descripcion" rows="3" placeholder="Ej: Fuga de gas, cortocircuito..." class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-500 mb-3"></textarea>
+
+                <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Categoría</label>
+                <select name="categoria" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-500 mb-3">
+                    <option value="Plomeria">Plomería</option>
+                    <option value="Electricista">Electricista</option>
+                    <option value="Gas">Gas</option>
+                    <option value="Cerrajeria">Cerrajería</option>
+                    <option value="Otra">Otra</option>
+                </select>
+
+                <input type="hidden" name="lat" id="sosLat">
+                <input type="hidden" name="lng" id="sosLng">
+
+                <div id="sosStatus" class="text-xs font-bold text-slate-500 mb-3 hidden"></div>
+
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-3.5 rounded-xl transition-all shadow-lg shadow-red-600/30 active:scale-95 uppercase tracking-widest text-xs flex items-center justify-center gap-2">
+                    <i class="fas fa-bell"></i> Enviar Alerta ($20.000)
+                </button>
+                <button type="button" onclick="cerrarModalSOS()" class="w-full mt-2 text-xs font-bold text-slate-400 py-2">Cancelar</button>
+            </form>
         </div>
     </div>
 
@@ -740,7 +842,7 @@
             }
             const fileInput = (inputCamara && inputCamara.files.length > 0) ? inputCamara : inputGaleria;
             const previewContainer = document.getElementById('preview-filename');
-            
+
             if (fileInput && fileInput.files[0]) {
                 document.getElementById('nombre-archivo').textContent = fileInput.files[0].name;
                 previewContainer.classList.remove('hidden');
@@ -749,14 +851,14 @@
         }
 
         function cancelarArchivo() {
-            document.getElementById('imagen_camara').value = ''; 
-            document.getElementById('imagen_galeria').value = ''; 
+            document.getElementById('imagen_camara').value = '';
+            document.getElementById('imagen_galeria').value = '';
             document.getElementById('preview-filename').classList.add('hidden');
         }
 
-        const latitudInicial = parseFloat("{{ tarea.latitud if tarea.latitud else 10.9639 }}");  
-        const longitudInicial = parseFloat("{{ tarea.longitud if tarea.longitud else -74.7964 }}"); 
-        let mapaServicio = null; 
+        const latitudInicial = parseFloat("{{ tarea.latitud if tarea.latitud else 10.9639 }}");
+        const longitudInicial = parseFloat("{{ tarea.longitud if tarea.longitud else -74.7964 }}");
+        let mapaServicio = null;
 
         function inicializarMapa() {
             try {
@@ -771,11 +873,11 @@
         const miFormulario = document.getElementById('formEnviarMensaje');
         if (miFormulario) {
             miFormulario.addEventListener('submit', function(e) {
-                e.preventDefault(); 
+                e.preventDefault();
                 const msgInput = document.getElementById('inputMensaje');
                 const fileC = document.getElementById('imagen_camara');
                 const fileG = document.getElementById('imagen_galeria');
-                
+
                 if ((!msgInput.value.trim()) && (!fileC.files.length && !fileG.files.length)) return;
 
                 const btn = this.querySelector('button[type="submit"]');
@@ -784,8 +886,8 @@
 
                 fetch(this.action || window.location.pathname, { method: 'POST', body: new FormData(this) })
                 .then(res => {
-                    if (res.ok) { 
-                        msgInput.value = ""; 
+                    if (res.ok) {
+                        msgInput.value = "";
                         cancelarArchivo();
                         cargarMensajes();
                     }
@@ -857,7 +959,7 @@
                 mostrarEncrucijadaCliente();
             }).catch(err => {
                 console.error(err);
-                mostrarEncrucijadaCliente(); 
+                mostrarEncrucijadaCliente();
             });
         }
 
@@ -874,13 +976,13 @@
         }
 
         function continuarProceso() {
-            window.location.reload(); 
+            window.location.reload();
         }
 
         function finalizarYCalificar() {
             const modalEncrucijada = document.getElementById('modalDecisionCierre');
             if(modalEncrucijada) modalEncrucijada.classList.add('hidden');
-            
+
             const modal = document.getElementById('modalCalificar');
             const content = document.getElementById('modalCalificarContent');
             if(modal) {
@@ -904,39 +1006,92 @@
 
         // --- SISTEMA DE CARGA EN VIVO (POLLING BLINDADO) ---
         const URL_API_MENSAGES = `/api/chat/{{ tarea.id if tarea.id else tarea['id'] }}/{{ canal_actual }}`;
+        const URL_API_ESCRITURA = `/api/escritura/{{ tarea.id if tarea.id else tarea['id'] }}/{{ canal_actual }}`;
         const usuarioSesion = "{{ session['usuario_correo'] }}";
         const nombreUsuarioActual = "{{ nombre_usuario }}";
         const clienteCorreoTarea = "{{ tarea.cliente_correo }}";
-        let ultimoIdMensaje = 0; 
+        let ultimoIdMensaje = 0;
         let miPollingTimer = null;
+        let contadorPolls = 0;
+        let temporizadorEscritura = null;
+
+        // ⌨️ INDICADOR "ESCRIBIENDO...": avisamos al backend cuando el usuario teclea
+        function notificarEscritura() {
+            fetch(URL_API_ESCRITURA, { method: 'POST' }).catch(() => {});
+        }
+
+        function consultarEscritura() {
+            fetch(URL_API_ESCRITURA)
+                .then(res => res.json())
+                .then(data => {
+                    const indicador = document.getElementById('indicador-escribiendo');
+                    if (indicador) {
+                        indicador.style.display = data.escribiendo ? 'flex' : 'none';
+                    }
+                })
+                .catch(() => {});
+        }
+
+        // ✓✓ CHECKMARKS: HTML del estado de lectura para mensajes propios
+        function htmlCheck(msg) {
+            if (msg.remitente_correo !== usuarioSesion) return '';
+            const doble = msg.leido ? '✓✓' : '✓';
+            const color = msg.leido ? 'text-blue-200' : 'text-blue-200 opacity-80';
+            return `<span id="check-${msg.id}" class="text-[10px] font-bold ml-1 ${color}" title="${msg.leido ? 'Leído' : 'Enviado'}">${doble}</span>`;
+        }
+
+        function actualizarCheck(msg) {
+            const span = document.getElementById(`check-${msg.id}`);
+            if (span && msg.leido && span.textContent !== '✓✓') {
+                span.textContent = '✓✓';
+                span.title = 'Leído';
+            }
+        }
+
+        // 🛡️ Escapa HTML para prevenir inyección de código en los mensajes (XSS)
+        function escapeHtml(texto) {
+            return String(texto ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
 
         function cargarMensajes() {
             clearTimeout(miPollingTimer);
-            fetch(`${URL_API_MENSAGES}?ultimo_id=${ultimoIdMensaje}`)
+            contadorPolls++;
+            consultarEscritura();
+            // 🔁 Cada 4 ciclos pedimos el historial completo para sincronizar los ✓✓ de lectura
+            const idParaConsultar = (contadorPolls % 4 === 0) ? 0 : ultimoIdMensaje;
+            fetch(`${URL_API_MENSAGES}?ultimo_id=${idParaConsultar}`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.mensajes && data.mensajes.length > 0) {
                     document.getElementById('chat-vacio')?.remove();
-                    
+
                     data.mensajes.forEach(msg => {
                         try {
                             if (msg.id > ultimoIdMensaje) ultimoIdMensaje = msg.id;
-                            if (document.getElementById(`msg-${msg.id}`)) return;
+                            if (document.getElementById(`msg-${msg.id}`)) {
+                                actualizarCheck(msg); // 🔄 sincroniza ✓ → ✓✓ sin duplicar la burbuja
+                                return;
+                            }
 
                             const esPropio = (msg.remitente_correo === usuarioSesion || msg.remitente === nombreUsuarioActual);
                             const alineacion = esPropio ? 'items-end' : 'items-start';
                             const burbujaNormal = esPropio ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none';
                             const colorHora = esPropio ? 'text-blue-200' : 'text-slate-400';
                             const avatarInfo = esPropio ? '' : `<div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold border border-slate-300 flex-shrink-0">${msg.remitente ? msg.remitente.charAt(0).toUpperCase() : '?'}</div>`;
-                            
+
                             let f_str = String(msg.fecha_envio || "");
                             let horaCorta = f_str.includes('GMT') ? f_str.substring(17, 22) : (f_str.length >= 16 ? f_str.substring(11, 16) : f_str);
 
                             let html = "";
-                            
+
                             if (msg.tipo && typeof msg.tipo === 'string' && msg.tipo.includes('cotizacion')) {
                                 let bordeColor = msg.tipo === 'cotizacion_pendiente' ? 'border-purple-200' : (msg.tipo === 'cotizacion_aceptada' ? 'border-emerald-200' : 'border-slate-200');
-                                
+
                                 let monto = 0;
                                 let concepto = "";
                                 if (msg.mensaje && typeof msg.mensaje === 'string' && msg.mensaje.includes('|')) {
@@ -944,7 +1099,7 @@
                                     concepto = msg.mensaje.split('|')[1] || "";
                                 } else {
                                     monto = msg.monto_pesos ? parseFloat(msg.monto_pesos) : parseFloat(msg.cotizacion_pesos || 0);
-                                    concepto = msg.cotizacion_concepto || (msg.mensaje ? msg.mensaje : "Cotización sin detalles");
+                                    concepto = escapeHtml(msg.cotizacion_concepto || (msg.mensaje ? msg.mensaje : "Cotización sin detalles"));
                                 }
 
                                 let botonesHTML = "";
@@ -974,7 +1129,7 @@
                                 } else {
                                     botonesHTML = `<div class="bg-slate-50 text-slate-400 text-xs font-bold py-2 rounded-xl mt-4">Cotización Declinada</div>`;
                                 }
-                                
+
                                 html = `
                                 <div id="msg-${msg.id}" class="flex flex-col items-center my-6 w-full">
                                     <div class="bg-white border shadow-sm rounded-2xl p-5 max-w-sm w-full text-center ${bordeColor}">
@@ -985,9 +1140,9 @@
                                     </div>
                                     <span class="text-[9px] font-medium text-slate-400 mt-1.5">${horaCorta}</span>
                                 </div>`;
-                            
+
                             } else if (msg.tipo === 'sistema' || (msg.mensaje && typeof msg.mensaje === 'string' && msg.mensaje.startsWith('SISTEMA:'))) {
-                                let textoLimpio = (msg.mensaje || "").replace('SISTEMA:', '').trim();
+                                let textoLimpio = escapeHtml((msg.mensaje || "").replace('SISTEMA:', '').trim());
                                 html = `
                                 <div id="msg-${msg.id}" class="flex flex-col items-center my-4 w-full">
                                     <div class="bg-slate-900 text-white rounded-xl shadow-md border border-slate-700 text-center text-xs px-4 py-3 max-w-[90%] sm:max-w-[70%]">
@@ -997,10 +1152,10 @@
                                 </div>`;
 
                             } else {
-                                let contenidoHtml = msg.tipo === 'imagen' 
-                                    ? `<div class="rounded-lg overflow-hidden my-1"><img src="/static/uploads/${msg.mensaje}" class="max-w-full h-auto object-cover max-h-60 rounded cursor-zoom-in" onclick="window.open(this.src)"></div>` 
-                                    : `<p class="leading-relaxed whitespace-pre-wrap pr-8">${msg.mensaje || ""}</p>`;
-                                    
+                                let contenidoHtml = msg.tipo === 'imagen'
+                                    ? `<div class="rounded-lg overflow-hidden my-1"><img src="/static/uploads/${encodeURIComponent(msg.mensaje)}" class="max-w-full h-auto object-cover max-h-60 rounded cursor-zoom-in" onclick="window.open(this.src)"></div>`
+                                    : `<p class="leading-relaxed whitespace-pre-wrap pr-8">${escapeHtml(msg.mensaje || "")}</p>`;
+
                                 html = `
                                 <div id="msg-${msg.id}" class="flex flex-col w-full ${alineacion} my-1">
                                     <div class="flex items-end max-w-[85%] md:max-w-[70%] gap-2">
@@ -1009,23 +1164,104 @@
                                             ${contenidoHtml}
                                             <span class="absolute bottom-1 right-2 text-[9px] font-medium ${colorHora}">${horaCorta}</span>
                                         </div>
+                                        ${htmlCheck(msg)}
                                     </div>
                                 </div>`;
                             }
-                            
+
                             cajaMensajes.insertAdjacentHTML('beforeend', html);
                         } catch(e) {
                             console.error("Error procesando mensaje individual:", e, msg);
                         }
                     });
-                    
+
                     irAlFinalChat();
                 }
             })
             .catch(error => console.error("Error en el polling de mensajes:", error))
-            .finally(() => { 
-                if (!document.hidden) miPollingTimer = setTimeout(cargarMensajes, 4000); 
+            .finally(() => {
+                if (!document.hidden) miPollingTimer = setTimeout(cargarMensajes, 4000);
             });
+        }
+
+        // --- SISTEMA SOS / EMERGENCIA ---
+        function abrirModalSOS() {
+            const modal = document.getElementById('modalSOS');
+            const content = document.getElementById('modalSOSContent');
+            if(!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+            obtenerUbicacionSOS();
+        }
+
+        function cerrarModalSOS() {
+            const modal = document.getElementById('modalSOS');
+            const content = document.getElementById('modalSOSContent');
+            if(!modal) return;
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+        }
+
+        function obtenerUbicacionSOS() {
+            const status = document.getElementById('sosStatus');
+            if(!navigator.geolocation) {
+                status?.classList.remove('hidden');
+                if(status) status.textContent = '⚠️ Tu navegador no soporta GPS. La alerta se enviará con la ubicación de la tarea.';
+                return;
+            }
+            if(status) { status.classList.remove('hidden'); status.textContent = '📍 Obteniendo tu ubicación GPS...'; }
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    document.getElementById('sosLat').value = pos.coords.latitude;
+                    document.getElementById('sosLng').value = pos.coords.longitude;
+                    if(status) status.textContent = '✅ Ubicación GPS capturada.';
+                },
+                () => {
+                    if(status) status.textContent = '⚠️ No se pudo obtener el GPS. La alerta usará la ubicación de la tarea.';
+                }
+            );
+        }
+
+        async function enviarSOS(event) {
+            event.preventDefault();
+            const form = event.target;
+            const btn = form.querySelector('button[type=submit]');
+            const status = document.getElementById('sosStatus');
+            btn.disabled = true;
+            btn.textContent = 'Enviando alerta...';
+            try {
+                const res = await fetch('/api/emergencia', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tarea_id: {{ tarea.id }},
+                        descripcion: form.descripcion ? form.descripcion.value : '',
+                        lat: parseFloat(document.getElementById('sosLat').value) || null,
+                        lng: parseFloat(document.getElementById('sosLng').value) || null
+                    })
+                });
+                const data = await res.json();
+                if(!res.ok || !data.success) throw new Error(data.error || 'Error al activar la emergencia');
+                const modal = document.getElementById('modalSOS');
+                const content = document.getElementById('modalSOSContent');
+                content.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="text-5xl mb-3">🚨</div>
+                        <h3 class="text-xl font-black text-slate-900 mb-2">¡Alerta Enviada!</h3>
+                        <p class="text-sm text-slate-600 mb-1"><strong>${data.tecnicos_alertados}</strong> técnicos han sido alertados ✅</p>
+                        <p class="text-xs text-slate-400 mb-4">Cargo por prioridad: $${(data.cargo_cop||0).toLocaleString('es-CO')} COP descontado de tu billetera.</p>
+                        <button type="button" onclick="window.location.reload()" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-3 rounded-xl text-xs uppercase tracking-widest">Entendido</button>
+                    </div>`;
+            } catch(err) {
+                btn.disabled = false;
+                btn.textContent = 'Confirmar Alerta';
+                if(status) { status.classList.remove('hidden'); status.textContent = '❌ ' + err.message; }
+            }
         }
 
         document.addEventListener("DOMContentLoaded", function() {
