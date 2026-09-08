@@ -11,11 +11,11 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
-    
+
     <script>
         tailwind.config = {
             theme: {
@@ -35,7 +35,7 @@
     </script>
 
     <style>
-        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         /* Ocultar scrollbar para los filtros horizontales en móvil */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -47,7 +47,7 @@
     <!-- Navbar superior -->
     <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3 border-b border-slate-100">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
-            
+
             <a href="{{ url_for('home') }}" class="flex items-center space-x-2">
                 <img src="{{ url_for('static', filename='img/logo.png') }}?v=1" alt="Logo inWorker" class="h-6 sm:h-7 w-auto object-contain" onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/inwor.jpg') }}?v=1';">
             </a>
@@ -65,7 +65,7 @@
                         <span class="text-xs font-black text-slate-900">${{ "{:,.0f}".format((saldo|int) * 10000) }}</span>
                     </div>
                 </div>
-                
+
                 <a href="/logout" class="w-10 h-10 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-full text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition" title="Cerrar Sesión">
                     <i class="fas fa-sign-out-alt text-sm"></i>
                 </a>
@@ -74,7 +74,7 @@
     </nav>
 
     <main class="max-w-4xl mx-auto px-4 py-8 pb-24 flex-grow w-full">
-        
+
         <!-- HEADER TEXTOS -->
         <div class="mb-6">
             <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-2">
@@ -87,7 +87,7 @@
 
         <!-- FORMULARIO DE BÚSQUEDA Y FILTROS -->
         <form action="/tareas" method="GET" class="mb-8">
-            
+
             <!-- Buscador Principal -->
             <div class="flex gap-2 mb-6">
                 <div class="relative flex-1">
@@ -143,9 +143,9 @@
                         <i class="fas fa-chevron-down text-slate-400 text-[10px]"></i>
                     </div>
                 </div>
-                
+
                 <button type="button" class="bg-white border border-slate-200 rounded-xl px-4 py-2.5 flex items-center gap-2 text-xs font-bold text-slate-700 shadow-sm">
-                    <i class="fas fa-filter text-slate-400"></i> Filtros 
+                    <i class="fas fa-filter text-slate-400"></i> Filtros
                     <span class="bg-brand-blue text-white w-4 h-4 rounded-full text-[9px] flex items-center justify-center">2</span>
                 </button>
 
@@ -187,7 +187,7 @@
         <div class="space-y-4">
             {% for tarea in tareas %}
             <div class="bg-white border border-slate-200/80 rounded-3xl p-5 hover:shadow-lg hover:border-brand-blue/30 transition duration-300">
-                
+
                 <!-- Barra superior de la tarjeta -->
                 <div class="flex justify-between items-center mb-3">
                     <span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5
@@ -239,15 +239,15 @@
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-medium text-slate-500">
                         <span class="flex items-center gap-1.5"><i class="far fa-map text-slate-400"></i> Colombia</span>
                         <span class="flex items-center gap-1.5 border-l border-slate-200 pl-4"><i class="far fa-clock text-slate-400"></i> Publicado hoy</span>
-                        
+
                         {% if tarea and tarea.trabajador_correo == session['usuario_correo'] %}
                             <span class="flex items-center gap-1.5 border-l border-slate-200 pl-4 text-emerald-600 font-bold"><i class="fas fa-shield-check"></i> Oferta exclusiva</span>
                         {% else %}
                             <span class="flex items-center gap-1.5 border-l border-slate-200 pl-4 text-purple-600 font-bold"><i class="fas fa-users"></i> 3 propuestas</span>
                         {% endif %}
                     </div>
-                    
-                    <button type="button" onclick="abrirModalDetalles(this)" 
+
+                    <button type="button" onclick="abrirModalDetalles(this)"
                         data-id="{{ tarea.id }}"
                         data-titulo="{{ tarea.titulo | e }}"
                         data-descripcion="{{ tarea.descripcion | e }}"
@@ -299,7 +299,7 @@
     <!-- MODAL DE PUBLICAR (Se mantiene igual que antes) -->
     <div id="modalPublicar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white border border-slate-200 rounded-[2rem] max-w-lg w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="modalPublicarContent">
-            
+
             <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-blue-100 text-brand-blue flex items-center justify-center shadow-inner">
@@ -313,7 +313,7 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <form action="/publicar_tarea" method="POST" class="p-6 space-y-5">
                 <input type="hidden" name="tecnico_invitado" value="{{ session.get('invitar_tecnico_correo', '') }}">
 
@@ -321,18 +321,18 @@
                     <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">Título del Requerimiento</label>
                     <input type="text" name="titulo" required placeholder="Ej: Mantenimiento Preventivo de Aire Acondicionado" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-900 focus:outline-none focus:border-brand-blue focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner">
                 </div>
-                
+
                 <div class="relative group/ia">
                     <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">Detalles y Síntomas</label>
                     <textarea id="descripcion_tarea" name="descripcion" rows="4" required placeholder="Describe el problema de forma sencilla..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-inner resize-none"></textarea>
-                    
+
                     <div class="absolute bottom-3 right-3">
                         <button type="button" id="btn-upway-ai" onclick="mejorarConIA()" class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/30 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all active:scale-95">
                             <i class="fas fa-magic"></i> <span id="texto-btn-ia">Asistente Upway</span>
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">Categoría Técnica</label>
@@ -368,7 +368,7 @@
     <!-- MODAL DE DETALLES (Se mantiene igual) -->
     <div id="modalDetalles" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[105] flex items-center justify-center hidden p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white border border-slate-200 rounded-[2rem] max-w-lg w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]" id="modalDetallesContent">
-            
+
             <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-blue-100 text-brand-blue flex items-center justify-center shadow-inner">
@@ -382,7 +382,7 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="p-6 overflow-y-auto">
                 <div class="mb-4">
                     <span id="detalle-categoria" class="text-[9px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm">
@@ -390,7 +390,7 @@
                     </span>
                 </div>
                 <h3 id="detalle-titulo" class="text-2xl font-black text-slate-900 leading-tight mb-4">Título</h3>
-                
+
                 <div class="bg-slate-50 border border-slate-100 rounded-2xl p-5 mb-6 shadow-inner">
                     <p class="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">Descripción Completa</p>
                     <p id="detalle-descripcion" class="text-sm text-slate-700 leading-relaxed font-medium whitespace-pre-wrap"></p>
@@ -430,13 +430,48 @@
             btn.classList.add('animate-pulse', 'opacity-80', 'cursor-not-allowed');
             btn.disabled = true;
             textoBtn.innerText = "Procesando...";
-            
-            setTimeout(() => { // Simulación si la IA no está conectada
-                textarea.value = textoOriginal + " (Mejorado)";
+
+            try {
+                const resp = await fetch('/api/ia/redactar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texto: textoOriginal })
+                });
+                const data = await resp.json();
+
+                if (data.success && data.texto_optimizado) {
+                    let textoIA = data.texto_optimizado;
+
+                    // Extraer la categoría sugerida por Upway AI y seleccionarla en el formulario
+                    const match = textoIA.match(/Sugerencia de categoría:\s*(.+)/i);
+                    if (match) {
+                        const sugerida = match[1].trim();
+                        const select = document.getElementById('categoria_tarea');
+                        if (select) {
+                            for (const opt of select.options) {
+                                if (opt.text.trim() === sugerida || opt.value === sugerida) {
+                                    select.value = opt.value;
+                                    break;
+                                }
+                            }
+                        }
+                        textoIA = textoIA.replace(match[0], '').trim();
+                    }
+
+                    textarea.value = textoIA;
+                    textoBtn.innerText = "✨ Mejorado por IA";
+                } else {
+                    textoBtn.innerText = "Mejorar con IA";
+                    alert(data.error || 'La IA no pudo procesar tu texto. Intenta de nuevo.');
+                }
+            } catch (err) {
+                console.error('Error llamando a Upway AI:', err);
+                textoBtn.innerText = "Mejorar con IA";
+                alert('No pudimos conectar con Upway AI. Inténtalo más tarde.');
+            } finally {
                 btn.classList.remove('animate-pulse', 'opacity-80', 'cursor-not-allowed');
                 btn.disabled = false;
-                textoBtn.innerText = "Mejorar con IA";
-            }, 1000);
+            }
         }
 
         function abrirModal() {
@@ -459,7 +494,7 @@
             document.getElementById('detalle-categoria').innerText = btn.getAttribute('data-categoria');
             document.getElementById('detalle-pago').innerHTML = `$${Number(btn.getAttribute('data-pago')).toLocaleString('es-CO')} <span class="text-[10px] font-bold text-slate-400">COP</span>`;
             document.getElementById('detalle-btn-chat').href = `/chat/${btn.getAttribute('data-id')}`;
-            
+
             const modal = document.getElementById('modalDetalles');
             const content = document.getElementById('modalDetallesContent');
             modal.classList.remove('hidden');

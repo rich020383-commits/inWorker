@@ -552,7 +552,7 @@ from flask import request, jsonify
 import time
 
 # =========================================================================
-# 🧠 ENDPOINT UPWARD AI: Auto-Redactor REAL con Gemini API
+# 🧠 ENDPOINT UPWAY AI: Auto-Redactor REAL con Gemini API
 # =========================================================================
 @app.route('/api/ia/redactar', methods=['POST'])
 def api_ia_redactar():
@@ -566,9 +566,9 @@ def api_ia_redactar():
         return jsonify({'success': False, 'error': 'Texto vacío'}), 400
 
     try:
-        # 1. El Prompt Maestro de Upward AI (¡ACTUALIZADO CON EL NUEVO ECOSISTEMA!)
+        # 1. El Prompt Maestro de Upway AI (¡ACTUALIZADO CON EL NUEVO ECOSISTEMA!)
         prompt_maestro = f"""
-        Eres Upward AI, el asistente experto de inWorker (un marketplace integral de servicios técnicos, profesionales y de bienestar).
+        Eres Upway AI, el asistente experto de inWorker (un marketplace integral de servicios técnicos, profesionales y de bienestar).
         Un cliente ha descrito su problema o necesidad de forma muy básica o informal:
         "{texto_cliente}"
 
@@ -599,7 +599,7 @@ def api_ia_redactar():
         })
 
     except Exception as e:
-        print(f"❌ Error crítico en Upward AI (Gemini): {e}")
+        print(f"❌ Error crítico en Upway AI (Gemini): {e}")
         return jsonify({
             'success': False,
             'error': 'Nuestros servidores de IA están congestionados. Por favor, describe tu requerimiento manualmente.'
@@ -615,6 +615,128 @@ def creditos_vencidos(usuario):
     if not usuario.saldo_creditos or usuario.saldo_creditos <= 0:
         return False  # sin saldo no hay nada que venza
     return datetime.utcnow() > usuario.creditos_expiran
+
+# =========================================================================
+# 💸 PRESUPUESTO CON IA: foto del daño → rango de precio real en Colombia
+# =========================================================================
+@app.route('/api/ia/estimar', methods=['POST'])
+def api_ia_estimar():
+    if 'usuario_correo' not in session:
+        return jsonify({'success': False, 'error': 'No autenticado'}), 401
+
+    foto = request.files.get('foto')
+    categoria = request.form.get('categoria', 'Reparación de electrodomésticos')
+
+    if not foto or foto.filename == '':
+        return jsonify({'success': False, 'error': 'Debes adjuntar una foto del problema'}), 400
+
+    try:
+        from PIL import Image
+        import io
+        imagen = Image.open(io.BytesIO(foto.read()))
+
+        prompt = f"""
+        Eres un perito de servicios técnicos para el hogar en COLOMBIA con 20 años de experiencia.
+        El cliente te envía una foto de un problema en su hogar relacionado con la categoría: {categoria}.
+
+        Analiza la imagen y responde ÚNICAMENTE en JSON:
+        {{
+          "diagnostico": "qué se observa en la foto en 1 frase simple, sin tecnicismos",
+          "rango_min_cop": número entero (precio MÍNIMO real de mercado en COP para reparar esto),
+          "rango_max_cop": número entero (precio MÁXIMO real de mercado en COP),
+          "urgencia": "BAJA" o "MEDIA" o "ALTA" (¿qué tan urgente es atenderlo?riesgo de empeorar),
+          "consejo": "1 consejo práctico mientras llega el técnico"
+        }}
+        Usa precios reales del mercado colombiano (2025-2026). Si no puedes identificar el problema,
+        usa rangos conservadores de la categoría.
+        """
+
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=[prompt, imagen]
+        )
+        import json
+        resultado = json.loads(response.text.strip())
+        return jsonify({'success': True, **resultado})
+
+    except Exception as e:
+        print(f"❌ Error en estimador IA: {e}")
+        return jsonify({'success': False, 'error': 'Nuestros servidores de IA están congestionados. Intenta de nuevo o publica tu orden manualmente.'}), 500
+
+# =====================================================================
+# 🚨 BOTÓN DE EMERGENCIA: crea una orden prioritaria y alerta a los
+#    técnicos verificados más cercanos por su canal privado
+# =====================================================================
+@app.route('/api/emergencia', methods=['POST'])
+def api_emergencia():
+    if 'usuario_correo' not in session:
+        return jsonify({'success': False, 'error': 'No autenticado'}), 401
+
+    correo_logueado = session['usuario_correo']
+    data = request.get_json() or {}
+    categoria = (data.get('categoria') or '').strip()
+    descripcion = (data.get('descripcion') or '').strip()
+    latitud = data.get('latitud')
+    longitud = data.get('longitud')
+
+    if not categoria or not descripcion:
+        return jsonify({'success': False, 'error': 'Indica el tipo de emergencia y qué pasó'}), 400
+
+    try:
+        tarea = Tarea(
+            titulo=f"🚨 EMERGENCIA: {categoria}",
+            descripcion=f"[SOLICITUD DE EMERGENCIA] {descripcion}",
+            pago='Por acordar',
+            categoria=categoria,
+            estado='Emergencia',
+            cliente_correo=correo_logueado,
+            latitud=latitud if latitud is not None else 4.6097,
+            longitud=longitud if longitud is not None else -74.0817,
+            zona='Emergencia inmediata'
+        )
+        db.session.add(tarea)
+        db.session.flush()
+
+        # Técnicos verificados más cercanos (máx. 10)
+        tecnicos = Usuario.query.filter(
+            Usuario.rol.in_(['Trabajador', 'Worker']),
+            Usuario.verificado == 1
+        ).all()
+
+        ref_lat = latitud if latitud is not None else 4.6097
+        ref_lng = longitud if longitud is not None else -74.0817
+
+        def _distancia(t):
+            try:
+                return calcular_distancia(ref_lat, ref_lng, t.latitud or ref_lat, t.longitud or ref_lng)
+            except Exception:
+                return 9999
+
+        cercanos = sorted(tecnicos, key=_distancia)[:10]
+
+        for tec in cercanos:
+            db.session.add(Mensaje(
+                tarea_id=tarea.id,
+                canal_trabajador=tec.correo,
+                remitente_correo='sistema@inworker.co',
+                mensaje=f"🚨 EMERGENCIA CERCA DE TI: {categoria} — {descripcion}. El cliente necesita ayuda INMEDIATA. Abre el tablón y envía tu cotización AHORA.",
+                tipo='sistema',
+                leido=0
+            ))
+
+        db.session.commit()
+        print(f"🚨 EMERGENCIA #{tarea.id} creada por {correo_logueado}. {len(cercanos)} técnicos alertados.")
+
+        return jsonify({
+            'success': True,
+            'tarea_id': tarea.id,
+            'tecnicos_alertados': len(cercanos)
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error creando emergencia: {e}")
+        return jsonify({'success': False, 'error': 'Error interno al activar la emergencia'}), 500
 
 # =====================================================================
 # 💬 SISTEMA DE ALERTAS EN TIEMPO REAL (Llamado cada 7 segundos) - ¡OPTIMIZADO!
@@ -746,7 +868,7 @@ def registrar():
             rol=rol,
             telefono=telefono_form,
             verificado=0,
-            saldo_creditos=0.0,
+            saldo_creditos=2.0, # 🎁 Créditos de bienvenida: 2 Cr ($20.000) para su primer servicio
             codigo_embajador=generar_codigo_embajador(), # 🎁 Nace con su propio código
             referido_por=referido_por if referido_por else None # 🕵️‍♂️ Registra quién lo trajo
         )
@@ -966,7 +1088,7 @@ def auth_google_sync():
             rol="Trabajador", # Rol por defecto (luego lo puede cambiar en su perfil)
             telefono="Sin especificar",
             verificado=1, # Ya viene verificado por Google
-            saldo_creditos=0.0,
+            saldo_creditos=2.0, # 🎁 Créditos de bienvenida
             codigo_embajador=generar_codigo_embajador(),
             referido_por=None
         )
@@ -1835,8 +1957,32 @@ def reportar_pago_nequi():
         flash("❌ El monto transferido debe ser mayor a cero.", "error")
         return redirect(url_for('recargar_billetera'))
 
+    # 🛡️ Límites razonables: mínimo 1 crédito (10.000 COP), máximo 500 créditos por transacción
+    VALOR_CREDITO_COP = 10000
+    MONTO_MINIMO_COP = VALOR_CREDITO_COP          # 10.000 COP
+    MONTO_MAXIMO_COP = 5_000_000                  # Tope antifraude por recarga
+    if monto_transferido < MONTO_MINIMO_COP:
+        flash(f"❌ La recarga mínima es de ${MONTO_MINIMO_COP:,} COP (1 Crédito).", "error")
+        return redirect(url_for('recargar_billetera'))
+    if monto_transferido > MONTO_MAXIMO_COP:
+        flash(f"❌ Por seguridad, el tope por recarga es de ${MONTO_MAXIMO_COP:,} COP. Si necesitas más, contacta a soporte.", "error")
+        return redirect(url_for('recargar_billetera'))
+
     if not comprobante or comprobante.filename == '':
         flash("❌ Debes adjuntar la captura de pantalla de la transferencia.", "error")
+        return redirect(url_for('recargar_billetera'))
+
+    # 🛡️ Validación del comprobante: solo imágenes, máximo 5 MB
+    EXTENSIONES_PERMITIDAS = {'png', 'jpg', 'jpeg', 'webp'}
+    extension = comprobante.filename.rsplit('.', 1)[-1].lower() if '.' in comprobante.filename else ''
+    if extension not in EXTENSIONES_PERMITIDAS:
+        flash("❌ El comprobante debe ser una imagen (PNG, JPG, JPEG o WEBP).", "error")
+        return redirect(url_for('recargar_billetera'))
+    comprobante.seek(0, os.SEEK_END)
+    tamano_bytes = comprobante.tell()
+    comprobante.seek(0)
+    if tamano_bytes > 5 * 1024 * 1024:
+        flash("❌ La imagen es demasiado grande (máximo 5 MB). Comprímela e inténtalo de nuevo.", "error")
         return redirect(url_for('recargar_billetera'))
 
     try:
@@ -1846,7 +1992,6 @@ def reportar_pago_nequi():
         comprobante.save(ruta_guardado)
 
         # 2. Matemática inWorker (10,000 COP = 1 Crédito)
-        VALOR_CREDITO_COP = 10000
         creditos_comprados = round(monto_transferido / VALOR_CREDITO_COP, 2)
 
         # 3. Creamos el registro en estado PENDIENTE (Sin inyectar saldo aún)
@@ -1857,10 +2002,41 @@ def reportar_pago_nequi():
             comprobante=nombre_unico,
             estado='Pendiente'
         )
+
+        # 🤖 VERIFICACIÓN AUTOMÁTICA CON IA (Gemini Vision):
+        # Si el comprobante es real, reciente y el monto coincide → auto-aprobamos al instante.
+        # Si la IA duda o no está disponible → queda en cola para el admin.
+        auto_aprobada = False
+        try:
+            veredicto = verificar_comprobante_nequi(ruta_guardado, monto_transferido)
+            if veredicto.get('aprobado') and veredicto.get('confianza') == 'alta':
+                nueva_recarga.estado = 'Aprobada'
+                auto_aprobada = True
+        except Exception as ia_err:
+            print(f"⚠️ IA de comprobantes no disponible, enviando a cola manual: {ia_err}")
+
         db.session.add(nueva_recarga)
         db.session.commit()
 
-        # 🚨 ALERTA PARA EL ADMIN
+        if auto_aprobada:
+            # ✅ Inyección inmediata de saldo (mismo flujo que la auditoría manual)
+            usuario = Usuario.query.filter_by(correo=correo_logueado).first()
+            if usuario:
+                usuario.saldo_creditos = round((usuario.saldo_creditos or 0.0) + creditos_comprados, 2)
+                usuario.creditos_expiran = datetime.utcnow() + timedelta(days=365)
+                aviso_sistema = Mensaje(
+                    remitente_correo='baraka@inworker.com',
+                    canal_trabajador=correo_logueado,
+                    mensaje=f"⚡ ¡Recarga exitosa! Se han añadido {creditos_comprados} Créditos a tu billetera. Ya puedes usarlos en el Mercado de Servicios.",
+                    tipo='sistema',
+                    leido=0
+                )
+                db.session.add(aviso_sistema)
+                db.session.commit()
+            flash(f"✅ ¡Recarga verificada al instante! Se añadieron {creditos_comprados} Créditos a tu billetera.", "success")
+            return redirect(url_for('dashboard'))
+
+        # 🚨 ALERTA PARA EL ADMIN (solo si requiere revisión humana)
         print(f"🚨 ACCIÓN REQUERIDA: Verificar Nequi de {monto_transferido} COP. Usuario: {correo_logueado}.")
 
         # 4. Mensaje psicológico de tranquilidad al cliente
@@ -2995,7 +3171,10 @@ def confirmar_entrega(tarea_id):
             return redirect(url_for('ver_chat', tarea_id=tarea_id))
 
         # 💳 DISPARADOR AUTOMÁTICO DE DESEMBOLSO FINANCIERO
-        if tarea.confirmacion_cliente == 1 and tarea.confirmacion_trabajador == 1:
+        # 🛡️ Candado de idempotencia: solo desembolsamos UNA vez (si la orden sigue en escrow).
+        # Evita el doble pago si cliente y técnico confirman casi al mismo tiempo (race condition).
+        ya_desembolsado = tarea.estado == 'Finalizada'
+        if tarea.confirmacion_cliente == 1 and tarea.confirmacion_trabajador == 1 and not ya_desembolsado:
             creditos_totales = tarea.costo_creditos or 0.0
             tecnico_destino = tarea.trabajador_correo
 
