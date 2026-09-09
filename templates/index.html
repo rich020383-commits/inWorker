@@ -850,15 +850,14 @@
     <!-- ========================================== -->
     {% if session.get('usuario_rol') != 'Admin' %}
     <div class="fixed bottom-36 md:bottom-24 right-6 z-[80] group">
-        <a href="https://wa.me/573126427856?text=%F0%9F%9A%A8%20EMERGENCIA%20inWorker%3A%20Tengo%20un%20problema%20urgente%20con%20mi%20servicio%20y%20necesito%20intervenci%C3%B3n%20inmediata."
-           target="_blank"
+        <button type="button" onclick="abrirSOSGlobal()"
            class="flex items-center justify-center w-14 h-14 bg-rose-600 text-white rounded-full shadow-2xl hover:bg-rose-700 transition-all transform hover:scale-110 relative">
             <i class="fas fa-triangle-exclamation text-2xl z-10"></i>
             <div class="absolute inset-0 rounded-full bg-rose-500 animate-ping opacity-60"></div>
             <span class="absolute right-16 bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-md pointer-events-none">
-                Emergencia / Disputas
+                Emergencia / Técnico cercano
             </span>
-        </a>
+        </button>
     </div>
     {% endif %}
 
@@ -876,5 +875,89 @@
             </span>
         </a>
     </div>
-</body>
-</html>
+
+    <!-- ========================================== -->
+    <!-- 🚨 MODAL SOS GLOBAL (búsqueda de técnicos cercanos) -->
+    <!-- ========================================== -->
+    {% if session.get('usuario_rol') != 'Admin' %}
+    <div id="modalSOSGlobal" class="fixed inset-0 z-[90] hidden items-center justify-center bg-black/70 p-4 opacity-0 transition-opacity duration-300">
+        <div id="modalSOSGlobalContent" class="bg-white rounded-3xl p-6 w-full max-w-md scale-95 transition-transform duration-300 border-t-8 border-rose-600">
+            <h3 class="text-xl font-black text-slate-900 mb-1">🚨 Emergencia</h3>
+            <p class="text-xs text-slate-500 mb-4">Alertaremos a los técnicos verificados más cercanos a tu ubicación GPS. Si es fuera de horario (7am-7pm), la plataforma aplica un recargo de urgencia del 10% sobre la cotización del técnico.</p>
+            <form onsubmit="enviarSOSGlobal(event)">
+                <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">¿Qué necesitas?</label>
+                <textarea name="descripcion" rows="3" required placeholder="Ej: Fuga de gas, cortocircuito, cerradura atascada..." class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-rose-500 mb-3"></textarea>
+                <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Categoría</label>
+                <select name="categoria" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-rose-500 mb-3">
+                    <option value="Plomeria">Plomería</option>
+                    <option value="Electricista">Electricista</option>
+                    <option value="Gas">Gas</option>
+                    <option value="Cerrajeria">Cerrajería</option>
+                    <option value="Otra">Otra / Mantenimiento</option>
+                </select>
+                <input type="hidden" id="sosGlobalLat">
+                <input type="hidden" id="sosGlobalLng">
+                <div id="sosGlobalStatus" class="text-xs font-bold text-slate-500 mb-3 hidden"></div>
+                <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3.5 rounded-xl transition-all shadow-lg shadow-rose-600/30 active:scale-95 uppercase tracking-widest text-xs flex items-center justify-center gap-2">
+                    <i class="fas fa-bell"></i> Buscar técnicos cercanos
+                </button>
+                <button type="button" onclick="cerrarSOSGlobal()" class="w-full mt-2 text-xs font-bold text-slate-400 py-2">Cancelar</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        function abrirSOSGlobal() {
+            const m = document.getElementById('modalSOSGlobal');
+            m.classList.remove('hidden'); m.classList.add('flex');
+            setTimeout(() => { m.classList.remove('opacity-0'); document.getElementById('modalSOSGlobalContent').classList.remove('scale-95'); }, 10);
+            const status = document.getElementById('sosGlobalStatus');
+            if (navigator.geolocation) {
+                status.classList.remove('hidden'); status.textContent = '📍 Obteniendo tu ubicación GPS...';
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        document.getElementById('sosGlobalLat').value = pos.coords.latitude;
+                        document.getElementById('sosGlobalLng').value = pos.coords.longitude;
+                        status.textContent = '✅ Ubicación GPS capturada.';
+                    },
+                    () => { status.textContent = '⚠️ Sin GPS. Se usará la ubicación de tu perfil.'; }
+                );
+            } else { status.classList.remove('hidden'); status.textContent = '⚠️ Sin GPS. Se usará la ubicación de tu perfil.'; }
+        }
+        function cerrarSOSGlobal() {
+            const m = document.getElementById('modalSOSGlobal');
+            m.classList.add('opacity-0'); document.getElementById('modalSOSGlobalContent').classList.add('scale-95');
+            setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
+        }
+        async function enviarSOSGlobal(event) {
+            event.preventDefault();
+            const form = event.target;
+            const btn = form.querySelector('button[type=submit]');
+            const status = document.getElementById('sosGlobalStatus');
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/emergencia', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        categoria: form.categoria.value,
+                        descripcion: form.descripcion.value,
+                        latitud: parseFloat(document.getElementById('sosGlobalLat').value) || null,
+                        longitud: parseFloat(document.getElementById('sosGlobalLng').value) || null
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Error al activar la emergencia');
+                document.getElementById('modalSOSGlobalContent').innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="text-5xl mb-3">✅</div>
+                        <h3 class="text-xl font-black text-slate-900 mb-2">¡Alerta Enviada!</h3>
+                        <p class="text-sm text-slate-600 mb-4"><strong>${data.tecnicos_alertados}</strong> técnicos verificados cercanos fueron alertados con tu ubicación.</p>
+                        <a href="/tareas" class="block w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3 rounded-xl text-xs uppercase tracking-widest">Ver mi tablón de servicios</a>
+                    </div>`;
+            } catch (err) {
+                btn.disabled = false;
+                status.classList.remove('hidden'); status.textContent = '❌ ' + err.message;
+            }
+        }
+    </script>
+    {% endif %}
+</html></body>

@@ -49,6 +49,7 @@
         /* 🛡️ Oculta el marcador por defecto del acordeón de Escrow */
         summary::-webkit-details-marker { display: none; }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app-refresh.css') }}?v=4">
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans antialiased flex flex-col min-h-screen">
 
@@ -1240,9 +1241,10 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         tarea_id: {{ tarea.id }},
+                        categoria: form.categoria ? form.categoria.value : '',
                         descripcion: form.descripcion ? form.descripcion.value : '',
-                        lat: parseFloat(document.getElementById('sosLat').value) || null,
-                        lng: parseFloat(document.getElementById('sosLng').value) || null
+                        latitud: parseFloat(document.getElementById('sosLat').value) || null,
+                        longitud: parseFloat(document.getElementById('sosLng').value) || null
                     })
                 });
                 const data = await res.json();
